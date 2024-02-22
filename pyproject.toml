@@ -27,10 +27,10 @@ classifiers = [
 
 dynamic = ["version"]
 
-dependencies = ["numpy", "xarray", "dask[complete]"]
+dependencies = ["numpy", "xarray", "cf_xarray", "dask[complete]"]
 
 [project.optional-dependencies]
-dev = ["ruff", "pre-commit", "pytest", "pytest-cov", "sphinx", "sphinx-rtd-theme"]
+dev = ["black", "ruff", "pre-commit", "pyright", "pytest", "pytest-cov", "sphinx", "sphinx-rtd-theme"]
 
 [project.urls]
 "Homepage" = "https://github.com/asascience-open/xarray-subset-grid"
@@ -65,3 +65,7 @@ select = [
 extend-safe-fixes = [
   "TID252", # absolute imports
 ]
+
+[tool.pyright]
+venvPath = "."
+venv = "venv"
