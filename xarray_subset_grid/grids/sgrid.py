@@ -1,25 +1,28 @@
-from abc import ABC, abstractmethod
-
 import xarray as xr
 from numpy import ndarray
 
+from xarray_subset_grid.grid import Grid
 
-class Grid(ABC):
-    """Abstract class for grid types"""
+
+class SGrid(Grid):
+    '''Grid implementation for SGRID datasets'''
 
     @staticmethod
-    @abstractmethod
     def recognize(ds: xr.Dataset) -> bool:
         """Recognize if the dataset matches the given grid"""
-        return False
+        try:
+            _mesh = ds.cf['grid_topology']
+        except KeyError:
+            return False
+
+        # For now, if the dataset has a grid topology and not a mesh topology, we assume it's a SGRID
+        return True
 
     @property
-    @abstractmethod
     def name(self) -> str:
         """Name of the grid type"""
-        return "grid"
+        return "sgrid"
 
-    @abstractmethod
     def subset_polygon(self, ds: xr.Dataset, polygon: list[list[float, float]] | ndarray) -> xr.Dataset:
         """Subset the dataset to the grid
         :param ds: The dataset to subset

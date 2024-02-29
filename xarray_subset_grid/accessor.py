@@ -1,15 +1,11 @@
 from typing import Optional
+
 import xarray as xr
 
-from xarray_subset_grid.grids.fvcom import FVCOMGrid
 from xarray_subset_grid.grid import Grid
-from xarray_subset_grid.grids.roms import ROMSGrid
+from xarray_subset_grid.grids import SGrid, UGrid
 
-
-_grid_impls = [
-    FVCOMGrid,
-    ROMSGrid
-]
+_grid_impls = [UGrid, SGrid]
 
 
 def register_grid_impl(grid_impl: Grid, priority: int = 0):
@@ -37,6 +33,7 @@ def grid_factory(ds: xr.Dataset) -> Optional[Grid]:
 @xr.register_dataset_accessor("subset_grid")
 class GridDatasetAccessor:
     """Accessor for grid operations on datasets"""
+
     _ds: xr.Dataset
     _grid: Optional[Grid]
 
