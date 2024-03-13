@@ -20,7 +20,7 @@ class Grid(ABC):
         return "grid"
 
     @abstractmethod
-    def subset_polygon(self, ds: xr.Dataset, polygon: list[list[float, float]] | ndarray) -> xr.Dataset:
+    def subset_polygon(self, ds: xr.Dataset, polygon: list[tuple[float, float]] | ndarray) -> xr.Dataset:
         """Subset the dataset to the grid
         :param ds: The dataset to subset
         :param polygon: The polygon to subset to
