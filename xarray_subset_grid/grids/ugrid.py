@@ -35,7 +35,7 @@ class UGrid(Grid):
 
         return (
             mesh.attrs.get("cf_role") == "mesh_topology"
-            and mesh.attrs.get("face_node_connectity") is not None
+            and mesh.attrs.get("face_node_connectivity") is not None
         )
 
     @property

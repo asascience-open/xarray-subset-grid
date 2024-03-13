@@ -30,10 +30,28 @@ dynamic = ["version"]
 dependencies = ["numpy", "xarray", "cf_xarray", "dask[complete]"]
 
 [project.optional-dependencies]
-dev = ["black", "ruff", "pre-commit", "pyright", "pytest", "pytest-cov", "sphinx", "sphinx-rtd-theme"]
+dev = [
+  "black",
+  "ruff",
+  "pre-commit",
+  "pyright",
+  "pytest",
+  "pytest-cov",
+  "sphinx",
+  "sphinx-rtd-theme"
+]
+examples = [
+  "fsspec",
+  "s3fs",
+  "zarr",
+  "matplotlib"
+]
 
 [project.urls]
 "Homepage" = "https://github.com/asascience-open/xarray-subset-grid"
+
+[tool.setuptools]
+packages = ["xarray_subset_grid"]
 
 [tool.setuptools_scm]
 write_to = "xarray_subset_grid/_version.py"
