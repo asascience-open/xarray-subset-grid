@@ -13,12 +13,12 @@ class SGrid(Grid):
     def recognize(ds: xr.Dataset) -> bool:
         """Recognize if the dataset matches the given grid"""
         try:
-            _mesh = ds.cf["grid_topology"]
+            _grid_topology_keys = ds.cf.cf_roles["grid_topology"]
         except KeyError:
             return False
 
         # For now, if the dataset has a grid topology and not a mesh topology, we assume it's a SGRID
-        return True
+        return len(_grid_topology_keys) > 0 and _grid_topology_keys[0] in ds
 
     @property
     def name(self) -> str:
@@ -33,7 +33,9 @@ class SGrid(Grid):
         :param polygon: The polygon to subset to
         :return: The subsetted dataset
         """
-        dims = _get_sgrid_dim_coord_names(ds.cf["grid_topology"])
+        grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
+        grid_topology = ds[grid_topology_key]
+        dims = _get_sgrid_dim_coord_names(grid_topology)
 
         ds_out = []
 
@@ -50,11 +52,14 @@ class SGrid(Grid):
             # Get the coordinates for the dimension
             lon = np.array([])
             lat = np.array([])
+            mask_dims = ('', '')
             for c in coord:
                 if "lon" in ds[c].attrs.get("standard_name", ""):
                     lon = ds[c].values
+                    mask_dims = ds[c].dims
                 elif "lat" in ds[c].attrs.get("standard_name", ""):
                     lat = ds[c].values
+                    mask_dims = ds[c].dims
 
             # Find the subset of the coordinates that are inside the polygon and reshape
             # to match the original dimension shape
@@ -66,19 +71,20 @@ class SGrid(Grid):
             # so that we can use it to mask and drop via xr.where, which requires that
             # the mask and data have the same shape and both are DataArrays with matching
             # dimensions
-            ds_subset = ds.assign(subset_mask=xr.DataArray(polygon_mask, dims=dims))
+            ds_subset = ds.assign(subset_mask=xr.DataArray(polygon_mask, dims=mask_dims))
 
             # Now we can use the mask to subset the data
             ds_subset = ds_subset[vars].where(ds_subset.subset_mask, drop=True)
-
-            # Remove the mask variable
-            ds_subset = ds_subset.drop_vars("subset_mask")
 
             # Add the subsetted dataset to the list for merging
             ds_out.append(ds_subset)
 
         # Merge the subsetted datasets
         ds_out = xr.merge(ds_out)
+
+        ds_out = ds_out.assign({
+            grid_topology_key: grid_topology
+        })
 
         return ds_out
 
@@ -88,7 +94,7 @@ def _get_sgrid_dim_coord_names(
 ) -> list[tuple[list[str], list[str]]]:
     """Get the names of the dimensions that are coordinates
 
-    This is really hacky and not a long term solution, but it is our generic best start
+    This is really hacky and possibly not a long term solution, but it is our generic best start
     """
     dims = []
     coords = []

@@ -24,7 +24,6 @@ def grid_factory(ds: xr.Dataset) -> Optional[Grid]:
     :return: The grid implementation or None if no implementation is found
     """
     for grid_impl in _grid_impls:
-        print(grid_impl)
         if grid_impl.recognize(ds):
             return grid_impl()
 

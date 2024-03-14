@@ -29,14 +29,12 @@ class UGrid(Grid):
     def recognize(ds: xr.Dataset) -> bool:
         """Recognize if the dataset matches the given grid"""
         try:
-            mesh = ds.cf["mesh_topology"]
-        except KeyError:
+            mesh_key = ds.cf.cf_roles["mesh_topology"][0]
+            mesh = ds[mesh_key]
+        except Exception:
             return False
 
-        return (
-            mesh.attrs.get("cf_role") == "mesh_topology"
-            and mesh.attrs.get("face_node_connectivity") is not None
-        )
+        return mesh.attrs.get("face_node_connectivity") is not None
 
     @property
     def name(self) -> str:
