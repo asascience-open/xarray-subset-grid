@@ -44,7 +44,9 @@ examples = [
   "fsspec",
   "s3fs",
   "zarr",
-  "matplotlib"
+  "matplotlib". 
+  "netcdf4",
+  "h5netcdf"
 ]
 
 [project.urls]
