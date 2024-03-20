@@ -67,6 +67,16 @@ class SGrid(Grid):
                 lon.shape
             )
 
+            # Adjust the mask to only mask the rows and columns that are completely
+            # outside the polygon. If the row and column both touch the target polygon
+            # then we want to keep them
+            polygon_mask = np.where(polygon_mask, 1, 0)
+            polygon_row_mask = np.all(polygon_mask == False, axis=0)
+            polygon_col_mask = np.all(polygon_mask == False, axis=1)
+            polygon_mask[:, ~polygon_row_mask] += 1
+            polygon_mask[~polygon_col_mask, :] += 1
+            polygon_mask = np.where(polygon_mask > 1, True, False)
+
             # First, we need to add the mask as a variable in the dataset
             # so that we can use it to mask and drop via xr.where, which requires that
             # the mask and data have the same shape and both are DataArrays with matching
