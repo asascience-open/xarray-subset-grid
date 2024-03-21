@@ -52,6 +52,7 @@ class UGrid(Grid):
         # For this grid type, we find all nodes that are connected to elements that are inside the polygon. To do this,
         # we first find all nodes that are inside the polygon and then find all elements that are connected to those nodes.
         mesh = ds.cf["mesh_topology"]
+        has_face_face_connectivity = "face_face_connectivity" in mesh.attrs
         x_var, y_var = mesh.node_coordinates.split(" ")
         x, y = ds[x_var], ds[y_var]
 
@@ -69,13 +70,15 @@ class UGrid(Grid):
         face_node_new = np.searchsorted(
             selected_nodes, ds[mesh.face_node_connectivity].T[selected_elements]
         ).T
-        face_face_new = np.searchsorted(
-            selected_elements, ds[mesh.face_face_connectivity].T[selected_elements]
-        ).T
+        if has_face_face_connectivity:
+            face_face_new = np.searchsorted(
+                selected_elements, ds[mesh.face_face_connectivity].T[selected_elements]
+            ).T
 
-        # Subset using xarrays select indexing, and overwrite the face_node_connectivity and face_face_connectivity
+        # Subset using xarrays select indexing, and overwrite the face_node_connectivity and face_face_connectivity (if available)
         # with the new indices
         ds_subset = ds.sel(node=selected_nodes, nele=selected_elements)
         ds_subset[mesh.face_node_connectivity][:] = face_node_new
-        ds_subset[mesh.face_face_connectivity][:] = face_face_new
+        if has_face_face_connectivity:
+            ds_subset[mesh.face_face_connectivity][:] = face_face_new
         return ds_subset
