@@ -50,9 +50,15 @@ def assign_ugrid_topology(ds: xr.Dataset, **attrs) -> xr.Dataset:
     also assign the node_coordinates attribute to the dataset with the lon and lat coordinate variable names, introspected
     from the face_node_connectivity variables' dimensions.
 
+    You can also optionally specify any of the following mesh topology variables by passing them as keyword arguments
+    - node_coordinates: If not specified, the function will introspect the dataset for the longitude and latitude coordinate variable names using cf_xarray
+    - face_face_connectivity
+    - face_coordinates: If not specified, the function will introspect the dataset for the longitude and latitude coordinate variable names matching the face_node_connectivity variable
+                        but do nothing if they are not found
+
     Args:
         ds (xr.Dataset): The dataset to assign the UGRID topology to
-        **attrs: The attributes to assign to the dataset
+        **attrs: The attributes to assign to the datasets mesh topology metadata (see function description for more details)
     """
     # Get the variable name for the face_node_connectivity
     face_node_connectivity = attrs.get("face_node_connectivity", None)
@@ -61,24 +67,31 @@ def assign_ugrid_topology(ds: xr.Dataset, **attrs) -> xr.Dataset:
     face_face_connectivity = attrs.get("face_face_connectivity", None)
 
     # Get the longitude and latitude coordinate variable names
-    try:
-        face_coords = ds[face_node_connectivity].cf.coordinates
-        face_coords = [f"{coord[0]}" for coord in face_coords.values()]
-    except AttributeError:
-        face_coords = None
+    node_coords = attrs.get("node_coordinates", None)
+    face_coords = attrs.get("face_coordinates", None)
 
-    try:
-        if face_coords:
-            filter = face_coords
-        else:
-            filter = []
+    if not face_coords:
+        try:
+            face_coords = ds[face_node_connectivity].cf.coordinates
+            face_coords = [f"{coord[0]}" for coord in face_coords.values()]
+        except AttributeError:
+            face_coords = None
 
-        coords = ds.cf.coordinates
-        node_lon = [l for l in coords['longitude'] if l not in filter][0]
-        node_lat = [l for l in coords['latitude'] if l not in filter][0]
-        node_coords = [node_lon, node_lat]
-    except AttributeError:
-        raise ValueError("The dataset does not have cf_compliant node coordinates longitude and latitude coordinates")
+    if not node_coords:
+        try:
+            if face_coords:
+                filter = face_coords
+            else:
+                filter = []
+
+            coords = ds.cf.coordinates
+            node_lon = [l for l in coords["longitude"] if l not in filter][0]
+            node_lat = [l for l in coords["latitude"] if l not in filter][0]
+            node_coords = [node_lon, node_lat]
+        except AttributeError:
+            raise ValueError(
+                "The dataset does not have cf_compliant node coordinates longitude and latitude coordinates"
+            )
 
     mesh_attrs = {
         "cf_role": "mesh_topology",
