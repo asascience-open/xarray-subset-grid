@@ -85,8 +85,8 @@ def assign_ugrid_topology(ds: xr.Dataset, **attrs) -> xr.Dataset:
                 filter = []
 
             coords = ds.cf.coordinates
-            node_lon = [l for l in coords["longitude"] if l not in filter][0]
-            node_lat = [l for l in coords["latitude"] if l not in filter][0]
+            node_lon = [c for c in coords["longitude"] if c not in filter][0]
+            node_lat = [c for c in coords["latitude"] if c not in filter][0]
             node_coords = [node_lon, node_lat]
         except AttributeError:
             raise ValueError(

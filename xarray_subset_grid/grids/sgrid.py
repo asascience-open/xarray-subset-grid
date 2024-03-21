@@ -52,7 +52,7 @@ class SGrid(Grid):
             # Get the coordinates for the dimension
             lon = np.array([])
             lat = np.array([])
-            mask_dims = ('', '')
+            mask_dims = ("", "")
             for c in coord:
                 if "lon" in ds[c].attrs.get("standard_name", ""):
                     lon = ds[c].values
@@ -81,7 +81,9 @@ class SGrid(Grid):
             # so that we can use it to mask and drop via xr.where, which requires that
             # the mask and data have the same shape and both are DataArrays with matching
             # dimensions
-            ds_subset = ds.assign(subset_mask=xr.DataArray(polygon_mask, dims=mask_dims))
+            ds_subset = ds.assign(
+                subset_mask=xr.DataArray(polygon_mask, dims=mask_dims)
+            )
 
             # Now we can use the mask to subset the data
             ds_subset = ds_subset[vars].where(ds_subset.subset_mask, drop=True)
@@ -92,9 +94,7 @@ class SGrid(Grid):
         # Merge the subsetted datasets
         ds_out = xr.merge(ds_out)
 
-        ds_out = ds_out.assign({
-            grid_topology_key: grid_topology
-        })
+        ds_out = ds_out.assign({grid_topology_key: grid_topology})
 
         return ds_out
 
