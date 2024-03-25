@@ -71,8 +71,8 @@ class SGrid(Grid):
             # outside the polygon. If the row and column both touch the target polygon
             # then we want to keep them
             polygon_mask = np.where(polygon_mask, 1, 0)
-            polygon_row_mask = np.all(polygon_mask is False, axis=0)
-            polygon_col_mask = np.all(polygon_mask is False, axis=1)
+            polygon_row_mask = np.all(polygon_mask == 0, axis=0)
+            polygon_col_mask = np.all(polygon_mask == 0, axis=1)
             polygon_mask[:, ~polygon_row_mask] += 1
             polygon_mask[~polygon_col_mask, :] += 1
             polygon_mask = np.where(polygon_mask > 1, True, False)
