@@ -24,13 +24,14 @@ def ray_tracing_numpy(x, y, poly):
         idx = np.nonzero(
             (y > min(p1y, p2y)) & (y <= max(p1y, p2y)) & (x <= max(p1x, p2x))
         )[0]
-        if p1y != p2y:
-            xints = (y[idx] - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-        if p1x == p2x:
-            inside[idx] = ~inside[idx]
-        else:
-            idxx = idx[x[idx] <= xints]
-            inside[idxx] = ~inside[idxx]
+        if len(idx):
+            if p1y != p2y:
+                xints = (y[idx] - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+            if p1x == p2x:
+                inside[idx] = ~inside[idx]
+            else:
+                idxx = idx[x[idx] <= xints]
+                inside[idxx] = ~inside[idxx]
 
         p1x, p1y = p2x, p2y
     return inside
