@@ -3,6 +3,31 @@ import numpy as np
 import xarray as xr
 
 
+def normalize_polygon_x_coords(x, poly):
+    """Normalize the polygon x coordinates to the given x and y coordinates
+
+    EG: If the longitude values are between 0 and 360, we need to normalize
+    the polygon x coordinates to be between 0 and 360. Vice versa if the
+    longitude values are between -180 and 180.
+
+    Args:
+        x (np.array): x-coordinates of the vertices
+        y (np.array): y-coordinates of the vertices
+        poly (np.array): polygon vertices
+    """
+    x_min, x_max = x.min(), x.max()
+
+    poly_x = poly[:, 0]
+    poly_x_min, poly_x_max = poly_x.min(), poly_x.max()
+
+    if x_max > 180 and poly_x_max < 0:
+        poly_x[poly_x < 0] += 360
+    elif x_min < 0 and poly_x_max > 180:
+        poly_x[poly_x > 180] -= 360
+
+    poly[:, 0] = poly_x
+    return poly
+
 def ray_tracing_numpy(x, y, poly):
     """Find vertices inside of the given polygon
 

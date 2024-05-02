@@ -2,7 +2,7 @@ import numpy as np
 import xarray as xr
 
 from xarray_subset_grid.grid import Grid
-from xarray_subset_grid.utils import ray_tracing_numpy
+from xarray_subset_grid.utils import normalize_polygon_x_coords, ray_tracing_numpy
 
 
 class UGrid(Grid):
@@ -57,7 +57,10 @@ class UGrid(Grid):
         x, y = ds[x_var], ds[y_var]
 
         # If any nodes in an element are inside the polygon, the element is inside the polygon so make sure all of the relevent nodes and elements are unmasked
-        node_inside = ray_tracing_numpy(x.values, y.values, polygon)
+        x = x.values
+        y = y.values
+        polygon = normalize_polygon_x_coords(x, polygon)
+        node_inside = ray_tracing_numpy(x, y, polygon)
         tris = ds[mesh.face_node_connectivity].T - 1
         tri_mask = node_inside[tris]
         elements_inside = tri_mask.any(axis=1)
@@ -77,7 +80,7 @@ class UGrid(Grid):
 
         # Subset using xarrays select indexing, and overwrite the face_node_connectivity and face_face_connectivity (if available)
         # with the new indices
-        ds_subset = ds.sel(node=selected_nodes, nele=selected_elements)
+        ds_subset = ds.sel(node=selected_nodes, nele=selected_elements).drop_encoding()
         ds_subset[mesh.face_node_connectivity][:] = face_node_new
         if has_face_face_connectivity:
             ds_subset[mesh.face_face_connectivity][:] = face_face_new
