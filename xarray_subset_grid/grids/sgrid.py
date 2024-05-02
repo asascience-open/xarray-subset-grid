@@ -3,7 +3,7 @@ import xarray as xr
 from numpy import ndarray
 
 from xarray_subset_grid.grid import Grid
-from xarray_subset_grid.utils import ray_tracing_numpy
+from xarray_subset_grid.utils import normalize_polygon_x_coords, ray_tracing_numpy
 
 
 class SGrid(Grid):
@@ -63,7 +63,9 @@ class SGrid(Grid):
 
             # Find the subset of the coordinates that are inside the polygon and reshape
             # to match the original dimension shape
-            polygon_mask = ray_tracing_numpy(lon.flat, lat.flat, polygon).reshape(
+            x = np.array(lon.flat)
+            polygon = normalize_polygon_x_coords(x, polygon)
+            polygon_mask = ray_tracing_numpy(x, lat.flat, polygon).reshape(
                 lon.shape
             )
 
@@ -86,7 +88,7 @@ class SGrid(Grid):
             )
 
             # Now we can use the mask to subset the data
-            ds_subset = ds_subset[vars].where(ds_subset.subset_mask, drop=True)
+            ds_subset = ds_subset[vars].where(ds_subset.subset_mask, drop=True).drop_encoding()
 
             # Add the subsetted dataset to the list for merging
             ds_out.append(ds_subset)
