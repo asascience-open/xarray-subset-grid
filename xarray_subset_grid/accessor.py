@@ -1,6 +1,7 @@
 from typing import Optional
 
 import xarray as xr
+from numpy import ndarray
 
 from xarray_subset_grid.grid import Grid
 from xarray_subset_grid.grids import SGrid, UGrid
@@ -51,3 +52,66 @@ class GridDatasetAccessor:
         :return: The grid implementation or None if no implementation is found
         """
         return self._grid
+
+    @property
+    def data_vars(self) -> list[str]:
+        """List of data variables
+
+        These variables exist on the grid and are available to used for
+        data analysis. These can be discarded when subsetting the dataset
+        when they are not needed.
+        """
+        if self._grid:
+            return self._grid.data_vars(self._ds)
+        return []
+
+    @property
+    def grid_vars(self) -> list[str]:
+        """List of grid variables
+
+        These variables are used to define the grid and thus should be kept
+        when subsetting the dataset
+        """
+        if self._grid:
+            return self._grid.grid_vars(self._ds)
+        return []
+
+    def subset_vars(self, vars: list[str]) -> xr.Dataset:
+        """Subset the dataset to the given variables, keeping the grid variables as well
+
+        :param vars: The variables to keep
+        :return: The subsetted dataset
+        """
+        if self._grid:
+            return self._grid.subset_vars(self._ds, vars)
+        return self._ds
+
+    def subset_polygon(
+        self, polygon: list[tuple[float, float]] | ndarray
+    ) -> Optional[xr.Dataset]:
+        """Subset the dataset to the grid.
+
+        This call is forwarded to the grid implementation with the loaded dataset.
+
+        :param ds: The dataset to subset
+        :param polygon: The polygon to subset to
+        :return: The subsetted dataset
+        """
+        if self._grid:
+            return self._grid.subset_polygon(self._ds, polygon)
+        return None
+
+    def subset_bbox(
+        self, bbox: tuple[float, float, float, float]
+    ) -> Optional[xr.Dataset]:
+        """Subset the dataset to the bounding box
+
+        This call is forwarded to the grid implementation with the loaded dataset.
+
+        :param ds: The dataset to subset
+        :param bbox: The bounding box to subset to
+        :return: The subsetted dataset
+        """
+        if self._grid:
+            return self._grid.subset_bbox(self._ds, bbox)
+        return None
