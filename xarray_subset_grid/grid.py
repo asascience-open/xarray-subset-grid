@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 
 import numpy as np
 import xarray as xr
@@ -19,6 +20,30 @@ class Grid(ABC):
     def name(self) -> str:
         """Name of the grid type"""
         return "grid"
+
+    @abstractmethod
+    def grid_vars(self, ds: xr.Dataset) -> list[str]:
+        """List of grid variables
+
+        These variables are used to define the grid and thus should be kept
+        when subsetting the dataset
+        """
+        return []
+
+    @abstractmethod
+    def data_vars(self, ds: xr.Dataset) -> list[str]:
+        """List of data variables
+
+        These variables exist on the grid and are availabel to used for
+        data analysis. These can be discarded when subsetting the dataset
+        when they are not needed.
+        """
+        return []
+
+    def subset_vars(self, ds: xr.Dataset, vars: Iterable[str]) -> list[str]:
+        """Subset the dataset to the given variables, keeping the grid variables as well"""
+        subset = list(set(self.grid_vars(ds) + list(vars)))
+        return ds[subset]
 
     @abstractmethod
     def subset_polygon(

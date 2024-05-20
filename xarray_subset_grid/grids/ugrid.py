@@ -41,6 +41,49 @@ class UGrid(Grid):
         """Name of the grid type"""
         return "ugrid"
 
+    def grid_vars(self, ds: xr.Dataset) -> list[str]:
+        """List of grid variables
+
+        These variables are used to define the grid and thus should be kept
+        when subsetting the dataset
+        """
+        mesh = ds.cf["mesh_topology"]
+        vars = [mesh.name]
+        if "face_node_connectivity" in mesh.attrs:
+            vars.append(mesh.face_node_connectivity)
+        if "face_face_connectivity" in mesh.attrs:
+            vars.append(mesh.face_face_connectivity)
+        if "node_coordinates" in mesh.attrs:
+            node_coords = mesh.node_coordinates.split(" ")
+            vars.extend(node_coords)
+        if "face_coordinates" in mesh.attrs:
+            face_coords = mesh.face_coordinates.split(" ")
+            vars.extend(face_coords)
+
+        return vars
+
+    def data_vars(self, ds: xr.Dataset) -> list[str]:
+        """List of data variables
+
+        These variables exist on the grid and are availabel to used for
+        data analysis. These can be discarded when subsetting the dataset
+        when they are not needed.
+        """
+        mesh = ds.cf["mesh_topology"]
+        dims = []
+
+        # Use the coordinates as the source of truth, the face and node
+        # dimensions are the same as the coordinates and any data variables
+        # that do not contain either face or node dimensions can be ignored
+        face_coord = mesh.face_coordinates.split(" ")[0]
+        dims.extend(ds[face_coord].dims)
+        node_coord = mesh.node_coordinates.split(" ")[0]
+        dims.extend(ds[node_coord].dims)
+
+        dims = set(dims)
+
+        return [var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)]
+
     def subset_polygon(
         self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
     ) -> xr.Dataset:
