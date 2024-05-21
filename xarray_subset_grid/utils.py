@@ -4,15 +4,21 @@ import xarray as xr
 
 
 def normalize_polygon_x_coords(x, poly):
-    """Normalize the polygon x coordinates to the given x and y coordinates
+    """
+    Normalize the polygon x coordinates (longitude) to the
+    same coord system as used by given x coordinates.
 
-    EG: If the longitude values are between 0 and 360, we need to normalize
+    e.g. If the longitude values are between 0 and 360, we need to normalize
     the polygon x coordinates to be between 0 and 360. Vice versa if the
     longitude values are between -180 and 180.
 
+    If the x coords are between 0 and 180 (i.e. both will work), the polygon
+    is not changed.
+
+    NOTE: polygon is normalized in place!
+
     Args:
         x (np.array): x-coordinates of the vertices
-        y (np.array): y-coordinates of the vertices
         poly (np.array): polygon vertices
     """
     x_min, x_max = x.min(), x.max()
