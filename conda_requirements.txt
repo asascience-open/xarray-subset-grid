@@ -1,0 +1,23 @@
+# requirements file for conda
+# everything should be available from the conda-forge channel
+#
+# This is a full set for the examples and all
+# -- at some point, we may want to divide it into
+# required vs optional requirements
+
+# Core requirements
+python>=3.9
+numpy
+xarray
+cf_xarray
+dask
+
+# For the examples
+fsspec
+s3fs
+zarr
+matplotlib
+netcdf4
+h5netcdf
+
+
