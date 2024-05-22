@@ -4,7 +4,6 @@
 # This is what you want for development
 
 # development
-black
 ruff
 pre-commit
 pyright

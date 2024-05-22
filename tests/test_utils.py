@@ -1,5 +1,4 @@
 import numpy as np
-
 import pytest
 
 from xarray_subset_grid.utils import normalize_polygon_x_coords

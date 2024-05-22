@@ -64,15 +64,13 @@ extend-exclude = [
     "xarray_subset_grid/_version.py"
 ]
 target-version = "py39"
+# Use a longer line length.
+line-length = 95
 
 [tool.ruff.lint]
-# E402: module level import not at top of file
-# E501: line too long - let black worry about that
-# E731: do not assign a lambda expression, use a def
 ignore = [
-  "E402",
-  "E501",
-  "E731",
+  "E402", # module level import not at top of file
+  "E731", # do not assign a lambda expression, use a def
 ]
 select = [
   "F", # Pyflakes

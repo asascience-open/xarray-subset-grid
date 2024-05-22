@@ -71,8 +71,8 @@ def ray_tracing_numpy(x, y, poly):
 def assign_ugrid_topology(ds: xr.Dataset, **attrs) -> xr.Dataset:
     """Assign the UGRID topology to the dataset
 
-    Only the face_node_connectivity attribute is required. The face_face_connectivity attribute is optional. If
-    the variable for face_node_connectivity is named nv, the function call should look like this:
+    Only the face_node_connectivity attribute is required. The face_face_connectivity attribute is optional.
+    If the variable for face_node_connectivity is named nv, the function call should look like this:
 
     ```
     ds = assign_ugrid_topology(ds, face_node_connectivity="nv")
