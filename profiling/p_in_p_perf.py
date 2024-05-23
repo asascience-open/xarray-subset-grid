@@ -1,16 +1,29 @@
 '''
 Performance testing for point in polygon code
 
-Options:
+Conclusion:
 
-Custom code::
+Cython version is 10x faster for 1000 pts
+Numpy version (in this project) is a touch faster for 200,000 pts.
+
+NECOFS is ~ 200,000 k nodes
+
+(for 20 point polygon)
+
+So: for the big ones where it matters, numpy version is fine.
+
+-- all versions gave the same result for a random test set.
+
+
+Options tested:
+
+Custom code in this project::
 
     def ray_tracing_numpy(x, y, poly):
         """Find vertices inside of the given polygon
 
         From: https://stackoverflow.com/a/57999874
         """
-
 
 The code from Shapely:
 https://shapely.readthedocs.io/en/stable/reference/shapely.contains_xy.html#shapely-contains-xy
@@ -24,6 +37,9 @@ This is a package I (Chris Barker) wrote to provide fast, simple computational g
 Downside: It's compiled code (Cython) and It's not properly packaged up, but could be if it
           proves useful.
 
+This test code requires:
+shapely
+geometry_utils
 '''
 
 import numpy as np
@@ -64,13 +80,23 @@ test_points = np.c_[test_lon, test_lat]
 from xarray_subset_grid.utils import ray_tracing_numpy
 
 rtn_inside = ray_tracing_numpy(test_lon, test_lat, test_poly)
+# 1000 pts
 # In [13]: %timeit ray_tracing_numpy(test_lon, test_lat, test_poly)
 # 344 µs ± 16.2 µs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
+# 200,000 pts
+# In [25]: %timeit ray_tracing_numpy(test_lon, test_lat, test_poly)
+# 9.03 ms ± 303 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+
+
 
 from geometry_utils import polygon_inside
 geom = polygon_inside(test_poly, test_points)
+# 1000 pts
 # In [11]: %timeit polygon_inside(test_poly, test_points)
 # 37.2 µs ± 1.25 µs per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+# 200,000 pts
+# In [26]: %timeit polygon_inside(test_poly, test_points)
+# 10.1 ms ± 456 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
 
 # Do they give the same answer?
 assert np.array_equal(rtn_inside, geom)
@@ -80,8 +106,14 @@ from shapely import contains_xy, Polygon
 sh_poly = Polygon(test_poly)
 
 shapely = contains_xy(sh_poly, test_points)
+# 1000 pts
 # In [19]: %timeit shapely = contains_xy(sh_poly, test_points)
 # 288 µs ± 9.48 µs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
+# 200,000 pts
+# %timeit shapely = contains_xy(sh_poly, test_points)
+# 54.7 ms ± 1.4 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
+
+
 
 assert np.array_equal(rtn_inside, shapely)
 
