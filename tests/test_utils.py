@@ -1,7 +1,11 @@
 import numpy as np
 import pytest
 
-from xarray_subset_grid.utils import normalize_polygon_x_coords
+from xarray_subset_grid.utils import (normalize_polygon_x_coords,
+                                      ray_tracing_numpy,
+                                      )
+
+# normalize_polygon_x_coords tests.
 
 poly1_180 = np.array([
     [-73, 41],
@@ -74,3 +78,27 @@ def test_normalize_x_coords(lons, poly, norm_poly):
     #         ]
     #     ),
     # )
+
+def test_ray_tracing_numpy():
+    """
+    minimal test, but at least it'll show it's not totally broken
+
+    NOTE: this function was compared to shapely and a Cython implementation
+    """
+    poly = [
+        (3.0, 3.0),
+        (5.0, 8.0),
+        (10.0, 5.0),
+        (7.0, 1.0),
+    ]
+
+    points = np.array([
+        (3.0, 6.0),  # outside
+        (6.0, 4.0),  # inside
+        (9.0, 7.0),  # outside
+    ])
+
+    result = ray_tracing_numpy(points[:, 0], points[:, 1], poly)
+
+    assert np.array_equal(result, [False, True, False])
+
