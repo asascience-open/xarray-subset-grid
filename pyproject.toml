@@ -89,7 +89,7 @@ venv = "venv"
 
 [tool.pixi.project]
 channels = ["conda-forge"]
-platforms = ["osx-64"]
+platforms = ["linux-64", "osx-arm64", "osx-64", "win-64"]
 
 [tool.pixi.pypi-dependencies]
 xarray_subset_grid = { path = ".", editable = true }
