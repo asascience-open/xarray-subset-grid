@@ -63,7 +63,7 @@ And one "task": `test`
 To run the tests in an isolated environment:
 
 ```
-pixi test
+pixi run -e dev test
 ```
 
 To run a shell to do dev work:

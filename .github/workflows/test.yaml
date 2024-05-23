@@ -11,5 +11,5 @@ jobs:
           cache: true
           # auth-host: prefix.dev
           # auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
-      - run: pixi run test
+      - run: pixi run --environment dev test
 
