@@ -31,7 +31,6 @@ dependencies = ["numpy", "xarray", "cf_xarray", "dask[complete]"]
 
 [project.optional-dependencies]
 dev = [
-  "black",
   "ruff",
   "pre-commit",
   "pyright",
@@ -87,3 +86,46 @@ extend-safe-fixes = [
 [tool.pyright]
 venvPath = "."
 venv = "venv"
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["osx-64"]
+
+[tool.pixi.pypi-dependencies]
+xarray_subset_grid = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+dev = { features = ["dev"], solve-group = "default" }
+examples = { features = ["examples"], solve-group = "default" }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+numpy = "*"
+
+[tool.pixi.feature.dev.dependencies]
+ruff = "*"
+pre-commit = "*"
+pyright = "*"
+pytest = "*"
+pytest-cov = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
+
+[tool.pixi.feature.dev.tasks]
+test = "pytest tests/"
+
+[tool.pixi.feature.examples.dependencies]
+fsspec = "*"
+s3fs = "*"
+zarr = "*"
+matplotlib = "*"
+netcdf4 = "*"
+h5netcdf = "*"
+jupyter = "*"
+ipython = "*"
+
+
+
+
