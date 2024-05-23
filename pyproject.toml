@@ -98,11 +98,17 @@ xarray_subset_grid = { path = ".", editable = true }
 default = { solve-group = "default" }
 dev = { features = ["dev"], solve-group = "default" }
 examples = { features = ["examples"], solve-group = "default" }
+all = { features = ["dev", "examples"], solve-group = "default" }
 
 [tool.pixi.tasks]
 
 [tool.pixi.dependencies]
 numpy = "*"
+xarray = "*"
+pandas = ">=2.2.2"
+cf_xarray = "*"
+dask = "*"
+
 
 [tool.pixi.feature.dev.dependencies]
 ruff = "*"
