@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import Optional, Union
 
+import numpy as np
 import xarray as xr
-from numpy import ndarray
 
 from xarray_subset_grid.grid import Grid
 from xarray_subset_grid.grids import SGrid, UGrid
@@ -87,7 +87,7 @@ class GridDatasetAccessor:
         return self._ds
 
     def subset_polygon(
-        self, polygon: list[tuple[float, float]] | ndarray
+        self, polygon: Union[list[tuple[float, float]], np.ndarray]
     ) -> Optional[xr.Dataset]:
         """Subset the dataset to the grid.
 
