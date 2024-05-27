@@ -1,6 +1,7 @@
+from typing import Union
+
 import numpy as np
 import xarray as xr
-from numpy import ndarray
 
 from xarray_subset_grid.grid import Grid
 from xarray_subset_grid.utils import normalize_polygon_x_coords, ray_tracing_numpy
@@ -55,7 +56,7 @@ class SGrid(Grid):
         return [var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)]
 
     def subset_polygon(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | ndarray
+        self, ds: xr.Dataset, polygon: Union[list[tuple[float, float]], np.ndarray]
     ) -> xr.Dataset:
         """Subset the dataset to the grid
         :param ds: The dataset to subset
@@ -94,9 +95,7 @@ class SGrid(Grid):
             # to match the original dimension shape
             x = np.array(lon.flat)
             polygon = normalize_polygon_x_coords(x, polygon)
-            polygon_mask = ray_tracing_numpy(x, lat.flat, polygon).reshape(
-                lon.shape
-            )
+            polygon_mask = ray_tracing_numpy(x, lat.flat, polygon).reshape(lon.shape)
 
             # Adjust the mask to only mask the rows and columns that are completely
             # outside the polygon. If the row and column both touch the target polygon
@@ -117,7 +116,9 @@ class SGrid(Grid):
             )
 
             # Now we can use the mask to subset the data
-            ds_subset = ds_subset[vars].where(ds_subset.subset_mask, drop=True).drop_encoding()
+            ds_subset = (
+                ds_subset[vars].where(ds_subset.subset_mask, drop=True).drop_encoding()
+            )
 
             # Add the subsetted dataset to the list for merging
             ds_out.append(ds_subset)
