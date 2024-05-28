@@ -108,6 +108,11 @@ xarray = "*"
 pandas = ">=2.2.2"
 cf_xarray = "*"
 dask = "*"
+fsspec = "*"
+s3fs = "*"
+zarr = "*"
+netcdf4 = "*"
+h5netcdf = "*"
 
 
 [tool.pixi.feature.dev.dependencies]
@@ -123,15 +128,9 @@ sphinx-rtd-theme = "*"
 test = "pytest tests/"
 
 [tool.pixi.feature.examples.dependencies]
-fsspec = "*"
-s3fs = "*"
-zarr = "*"
 matplotlib = "*"
-netcdf4 = "*"
-h5netcdf = "*"
 jupyter = "*"
 ipython = "*"
-
 
 
 
