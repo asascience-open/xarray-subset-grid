@@ -75,10 +75,11 @@ def assign_ugrid_topology(ds: xr.Dataset,
                           face_face_connectivity: str = None,
                           node_coordinates: str = None,
                           face_coordinates: str = None,
-                          **attrs) -> xr.Dataset:
-    """Assign the UGRID topology to the dataset
+                          ) -> xr.Dataset:
+    """
+    Assign the UGRID topology to the dataset
 
-    Only the face_node_connectivity attribute is required. The face_face_connectivity attribute is optional.
+    Only the face_node_connectivity parameter is required. The face_face_connectivity attribute is optional.
     If the variable for face_node_connectivity is named nv, the function call should look like this:
 
     ```
@@ -97,7 +98,24 @@ def assign_ugrid_topology(ds: xr.Dataset,
 
     Args:
         ds (xr.Dataset): The dataset to assign the UGRID topology to
-        **attrs: The attributes to assign to the datasets mesh topology metadata (see function description for more details)
+        face_node_connectivity (str): THe variable name of the face definitions
+
+        face_face_connectivity: str = None,
+        node_coordinates: str = None,
+        face_coordinates: str = None,
+
+    (See the UGRID conventions for descriptions of these)
+
+    You can pass a dict in with all the grid topology variables:
+
+    ```
+        grid_topology = {'node_coordinates': ('lon', 'lat'),
+                     'face_node_connectivity': 'nv',
+                     'node_coordinates': ('lon', 'lat'),
+                     'face_coordinates': ('lonc', 'latc'),
+                     }
+    ```
+
     """
     # Get the variable name for the face_node_connectivity
     # face_node_connectivity = attrs.get("face_node_connectivity", None)
@@ -108,6 +126,7 @@ def assign_ugrid_topology(ds: xr.Dataset,
     # Get the longitude and latitude coordinate variable names
     # node_coords = attrs.get("node_coordinates", None)
     # face_coords = attrs.get("face_coordinates", None)
+
     node_coords = node_coordinates
     face_coords = face_coordinates
 

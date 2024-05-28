@@ -19,7 +19,6 @@ def test_assign_ugrid_topology_no_connectivity():
     assert True
 
 
-
 def test_assign_ugrid_topology():
     """
     FVCOM (SFBOFS):
@@ -42,5 +41,33 @@ def test_assign_ugrid_topology():
     assert mesh['face_node_connectivity'] == 'nv'
     assert mesh['face_coordinates'] == 'lonc latc'
 
+def test_assign_ugrid_topology_dict():
+    """
+    FVCOM (SFBOFS):
+
+    Test passing a dict in of the topology.
+
+    """
+    ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
+
+    # make sure it's not there to start with
+    with pytest.raises(KeyError):
+        ds['mesh']
+
+    grid_topology = {'node_coordinates': ('lon', 'lat'),
+                     'face_node_connectivity': 'nv',
+                     'node_coordinates': ('lon', 'lat'),
+                     'face_coordinates': ('lonc', 'latc'),
+                     }
+
+    ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
+
+    # there are others, but these are the ones that really matter.
+    mesh = ds['mesh'].attrs
+    assert mesh['cf_role'] == 'mesh_topology'
+    assert mesh['node_coordinates'] == 'lon lat'
+    assert mesh['face_node_connectivity'] == 'nv'
+    assert mesh['face_coordinates'] == 'lonc latc'
+    assert mesh['node_coordinates'] == 'lon lat'
 
 
