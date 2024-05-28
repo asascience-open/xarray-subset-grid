@@ -1,4 +1,5 @@
 from typing import Optional
+import warnings
 
 import xarray as xr
 from numpy import ndarray
@@ -27,9 +28,8 @@ def grid_factory(ds: xr.Dataset) -> Optional[Grid]:
     for grid_impl in _grid_impls:
         if grid_impl.recognize(ds):
             return grid_impl()
-
+    warnings.warn("no grid type found in this dataset")
     return None
-
 
 @xr.register_dataset_accessor("subset_grid")
 class GridDatasetAccessor:

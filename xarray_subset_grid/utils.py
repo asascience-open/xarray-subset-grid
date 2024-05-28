@@ -2,7 +2,6 @@ import cf_xarray  # noqa
 import numpy as np
 import xarray as xr
 
-
 def normalize_polygon_x_coords(x, poly):
     """
     Normalize the polygon x coordinates (longitude) to the
@@ -68,7 +67,15 @@ def ray_tracing_numpy(x, y, poly):
     return inside
 
 
-def assign_ugrid_topology(ds: xr.Dataset, **attrs) -> xr.Dataset:
+# This should probably be defined in ugrid.py -- but importing it there
+#  for now.
+def assign_ugrid_topology(ds: xr.Dataset,
+                          *,
+                          face_node_connectivity: str,
+                          face_face_connectivity: str = None,
+                          node_coordinates: str = None,
+                          face_coordinates: str = None,
+                          **attrs) -> xr.Dataset:
     """Assign the UGRID topology to the dataset
 
     Only the face_node_connectivity attribute is required. The face_face_connectivity attribute is optional.
@@ -93,14 +100,16 @@ def assign_ugrid_topology(ds: xr.Dataset, **attrs) -> xr.Dataset:
         **attrs: The attributes to assign to the datasets mesh topology metadata (see function description for more details)
     """
     # Get the variable name for the face_node_connectivity
-    face_node_connectivity = attrs.get("face_node_connectivity", None)
-    if face_node_connectivity is None:
-        raise ValueError("The face_node_connectivity attribute is required")
-    face_face_connectivity = attrs.get("face_face_connectivity", None)
+    # face_node_connectivity = attrs.get("face_node_connectivity", None)
+    # if face_node_connectivity is None:
+    #     raise ValueError("The face_node_connectivity attribute is required")
+    #face_face_connectivity = attrs.get("face_face_connectivity", None)
 
     # Get the longitude and latitude coordinate variable names
-    node_coords = attrs.get("node_coordinates", None)
-    face_coords = attrs.get("face_coordinates", None)
+    # node_coords = attrs.get("node_coordinates", None)
+    # face_coords = attrs.get("face_coordinates", None)
+    node_coords = node_coordinates
+    face_coords = face_coordinates
 
     if not face_coords:
         try:
@@ -143,3 +152,20 @@ def assign_ugrid_topology(ds: xr.Dataset, **attrs) -> xr.Dataset:
     )
 
     return ds
+
+
+def convert_bytes(num):
+    """
+    This function will convert bytes to MB.... GB... etc
+    from:
+    https://stackoverflow.com/questions/12523586/python-format-size-application-converting-b-to-kb-mb-gb-tb
+    """
+    # stupid, but handy for demos, etc.
+
+    step_unit = 1024 #1024 bad the size
+
+    for x in ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB']:
+        if num < step_unit:
+            return "%3.1f %s" % (num, x)
+        num /= step_unit
+

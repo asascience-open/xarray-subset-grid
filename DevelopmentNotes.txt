@@ -1,0 +1,14 @@
+Development notes:
+
+Various notes you want to know when working on this code.
+
+Data Structures:
+
+Polygons:
+
+Defined as an Nx2 array of (lon, lat) float64
+
+Bounding Box:
+
+A tuple of floats: (min_lon, min_lat, max_lon, max_lat).
+
