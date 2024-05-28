@@ -99,12 +99,18 @@ default = { solve-group = "default" }
 dev = { features = ["dev"], solve-group = "default" }
 examples = { features = ["examples"], solve-group = "default" }
 all = { features = ["dev", "examples"], solve-group = "default" }
+test39 = ["dev", "py39"] # implicit: test39 = ["dev", "py39", "default"]
+test310 = ["dev", "py310"] # implicit: test39 = ["dev", "py39", "default"]
+test311 = ["dev", "py311"]
+test312 = ["dev", "py312"]
+
 
 [tool.pixi.tasks]
 
 [tool.pixi.dependencies]
+python = ">=3.9"
 numpy = "*"
-xarray = "*"
+xarray = ">=2023.10.0"
 pandas = ">=2.2.2"
 cf_xarray = "*"
 dask = "*"
@@ -131,6 +137,20 @@ test = "pytest tests/"
 matplotlib = "*"
 jupyter = "*"
 ipython = "*"
+
+[tool.pixi.feature.py39.dependencies]
+python = "~=3.9.0"
+
+[tool.pixi.feature.py310.dependencies]
+python = "~=3.10.0"
+
+[tool.pixi.feature.py311.dependencies]
+python = "~=3.11.0"
+
+[tool.pixi.feature.py312.dependencies]
+python = "~=3.12.0"
+
+
 
 
 
