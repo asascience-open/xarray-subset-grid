@@ -79,7 +79,9 @@ def assign_ugrid_topology(ds: xr.Dataset,
     """
     Assign the UGRID topology to the dataset
 
-    Only the face_node_connectivity parameter is required. The face_face_connectivity attribute is optional.
+    Only the face_node_connectivity parameter is required.
+    The face_face_connectivity parameter is optional.
+
     If the variable for face_node_connectivity is named nv, the function call should look like this:
 
     ```
@@ -153,9 +155,19 @@ def assign_ugrid_topology(ds: xr.Dataset,
                 "The dataset does not have cf_compliant node coordinates longitude and latitude coordinates"
             )
 
+    if not face_face_connectivity:
+        # face_face_connectivity var should have same dimensions as
+        # face_node_connectivity this is assuming that only one will match!
+        for var_name, var in ds.variables.items():
+            if var_name == face_node_connectivity:
+                continue
+            if var.dims == ds[face_node_connectivity].dims:
+                face_face_connectivity = var_name
+                break
+
     mesh_attrs = {
         "cf_role": "mesh_topology",
-        "topology_dimension": 2,
+        "topology_dimension": np.int32(2),
         "node_coordinates": " ".join(node_coords),
         "face_node_connectivity": face_node_connectivity,
     }
@@ -167,7 +179,7 @@ def assign_ugrid_topology(ds: xr.Dataset,
 
     # Assign the mesh topology to the dataset
     ds = ds.assign(
-        mesh=((), 0, mesh_attrs),
+        mesh=((), np.int32(0), mesh_attrs),
     )
 
     return ds

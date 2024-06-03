@@ -29,7 +29,7 @@ The grid implementations should also be exposed correctly so that they can be us
 
 ## Use with conda
 
-If you are (or want to) use conda, you can install the dependencies with:
+If you are using (or want to use) conda, you can install the dependencies with:
 
 conda install --file conda_requirements.txt
 
