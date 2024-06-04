@@ -25,8 +25,8 @@ class SGrid(Grid):
         """Name of the grid type"""
         return "sgrid"
 
-    def grid_vars(self, ds: xr.Dataset) -> list[str]:
-        """List of grid variables
+    def grid_vars(self, ds: xr.Dataset) -> set[str]:
+        """Set of grid variables
 
         These variables are used to define the grid and thus should be kept
         when subsetting the dataset
@@ -36,10 +36,10 @@ class SGrid(Grid):
         grid_coords = [grid_topology_key]
         for _dims, coords in _get_sgrid_dim_coord_names(grid_topology):
             grid_coords.extend(coords)
-        return grid_coords
+        return set(grid_coords)
 
-    def data_vars(self, ds: xr.Dataset) -> list[str]:
-        """List of data variables
+    def data_vars(self, ds: xr.Dataset) -> set[str]:
+        """Set of data variables
 
         These variables exist on the grid and are available to used for
         data analysis. These can be discarded when subsetting the dataset
@@ -52,7 +52,7 @@ class SGrid(Grid):
             dims.extend(dims)
         dims = set(dims)
 
-        return [var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)]
+        return {var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)}
 
     def subset_polygon(
         self, ds: xr.Dataset, polygon: list[tuple[float, float]] | ndarray

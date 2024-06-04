@@ -43,7 +43,7 @@ class UGrid(Grid):
         """Name of the grid type"""
         return "ugrid"
 
-    def grid_vars(self, ds: xr.Dataset) -> list[str]:
+    def grid_vars(self, ds: xr.Dataset) -> set[str]:
         """
         List of grid variables
 
@@ -51,23 +51,23 @@ class UGrid(Grid):
         when subsetting the dataset
         """
         mesh = ds.cf["mesh_topology"]
-        vars = [mesh.name]
+        vars = {mesh.name}
         if "face_node_connectivity" in mesh.attrs:
-            vars.append(mesh.face_node_connectivity)
+            vars.add(mesh.face_node_connectivity)
         if "face_face_connectivity" in mesh.attrs:
-            vars.append(mesh.face_face_connectivity)
+            vars.add(mesh.face_face_connectivity)
         if "node_coordinates" in mesh.attrs:
             node_coords = mesh.node_coordinates.split(" ")
-            vars.extend(node_coords)
+            vars.update(node_coords)
         if "face_coordinates" in mesh.attrs:
             face_coords = mesh.face_coordinates.split(" ")
-            vars.extend(face_coords)
+            vars.update(face_coords)
 
         return vars
 
-    def data_vars(self, ds: xr.Dataset) -> list[str]:
+    def data_vars(self, ds: xr.Dataset) -> set[str]:
         """
-        List of data variables
+        Set of data variables
 
         These variables exist on the grid and are available to used for
         data analysis. These can be discarded when subsetting the dataset
@@ -90,17 +90,10 @@ class UGrid(Grid):
 
         data_vars = {var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)}
         # return [var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)]
-        data_vars -= set(self.grid_vars(ds))
+        data_vars -= self.grid_vars(ds)
 
-        return list(data_vars)
+        return data_vars
 
-    def coords(self, ds: xr.Dataset) -> list[str]:
-        """
-        List of coordinate variables
-
-        These variables are the usual xarray coordinate variables
-        """
-        return list(ds.coords)
 
     def subset_polygon(
         self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray

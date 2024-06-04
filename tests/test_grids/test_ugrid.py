@@ -295,11 +295,11 @@ def test_grid_vars():
     print(grid_vars)
     # ['mesh', 'nv', 'lon', 'lat', 'lonc', 'latc']
     print(ds['mesh'].attrs)
-    assert set(grid_vars) == set(['mesh', 'nv', 'nbe', 'lon', 'lat', 'lonc', 'latc'])
+    assert grid_vars == set(['mesh', 'nv', 'nbe', 'lon', 'lat', 'lonc', 'latc'])
 
 
 # quite broken -- test may not be right either.
-@pytest.mark.xfail
+# @pytest.mark.xfail
 def test_data_vars():
     """
     Check if the grid vars are defined properly
@@ -318,8 +318,7 @@ def test_data_vars():
         'wet_nodes', 'wet_cells'
     ])
 
-# this is quite broken ...
-#@pytest.mark.xfail
+
 def test_extra_vars():
     """
     Check if the extra vars are defined properly
@@ -334,12 +333,12 @@ def test_extra_vars():
 
     print([*ds])
     print(f"{extra_vars=}")
-    assert set(extra_vars) == set(['nf_type',
-                                   'Times',
-                                   'x',
-                                   'y',
-                                   'requested_times',
-                                   ])
+    assert extra_vars == set(['nf_type',
+                              'Times',
+                              'x',
+                              'y',
+                              'requested_times',
+                              ])
 
 
 def test_coords():

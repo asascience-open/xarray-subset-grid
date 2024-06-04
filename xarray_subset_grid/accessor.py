@@ -54,27 +54,25 @@ class GridDatasetAccessor:
         return self._grid
 
     @property
-    def data_vars(self) -> list[str]:
+    def data_vars(self) -> set[str]:
         """List of data variables
 
         These variables exist on the grid and are available to used for
         data analysis. These can be discarded when subsetting the dataset
         when they are not needed.
         """
-        "getting coords from accessor:"
-        print(f"{self._ds.coords}")
         if self._ds:
-            return list(self._ds.coords)
-        return []
+            return set(self._ds.coords)
+        return set()
 
     @property
-    def coords(self) -> list[str]:
+    def coords(self) -> set[str]:
         if self._ds:
             return self._ds.coords
-        return []
+        return set()
 
     @property
-    def grid_vars(self) -> list[str]:
+    def grid_vars(self) -> set[str]:
         """List of grid variables
 
         These variables are used to define the grid and thus should be kept
@@ -82,13 +80,13 @@ class GridDatasetAccessor:
         """
         if self._grid:
             return self._grid.grid_vars(self._ds)
-        return []
+        return set()
 
     @property
-    def extra_vars(self) -> list[str]:
+    def extra_vars(self) -> set[str]:
         if self._grid:
             return self._grid.extra_vars(self._ds)
-        return []
+        return set()
 
     def subset_vars(self, vars: list[str]) -> xr.Dataset:
         """Subset the dataset to the given variables, keeping the grid variables as well
