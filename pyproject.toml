@@ -4,10 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xarray_subset_grid"
-authors = [{ name = "Matthew Iannucci", email = "matt.iannucci@tetratech.com" }]
+authors = [{ name = "Matthew Iannucci", email = "matt.iannucci@tetratech.com" },
+           { name = "Christopher H. Barker", email = "chris.barker@noaa.gov" }]
 description = "Subset Xarray datasets in space"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["xarray"]
 license = { file = "LICENSE" }
 
@@ -18,7 +19,6 @@ classifiers = [
     "License :: OSI Approved :: BSD License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -31,7 +31,9 @@ dependencies = [
   "numpy", 
   "xarray>=2023.10.0", 
   "cf_xarray", 
-  "dask[complete]"]
+  "dask[complete]",
+  "netcdf4",
+  ]
 
 [project.optional-dependencies]
 dev = [
@@ -48,7 +50,6 @@ examples = [
   "s3fs",
   "zarr",
   "matplotlib",
-  "netcdf4",
   "h5netcdf"
 ]
 
@@ -66,7 +67,7 @@ builtins = ["ellipsis"]
 extend-exclude = [
     "xarray_subset_grid/_version.py"
 ]
-target-version = "py39"
+target-version = "py310"
 # Use a longer line length.
 line-length = 95
 
@@ -103,8 +104,7 @@ default = { solve-group = "default" }
 dev = { features = ["dev"], solve-group = "default" }
 examples = { features = ["examples"], solve-group = "default" }
 all = { features = ["dev", "examples"], solve-group = "default" }
-test39 = ["dev", "py39"] # implicit: test39 = ["dev", "py39", "default"]
-test310 = ["dev", "py310"] # implicit: test39 = ["dev", "py39", "default"]
+test310 = ["dev", "py310"] # implicit: test310 = ["dev", "py310", "default"]
 test311 = ["dev", "py311"]
 test312 = ["dev", "py312"]
 
@@ -112,7 +112,7 @@ test312 = ["dev", "py312"]
 [tool.pixi.tasks]
 
 [tool.pixi.dependencies]
-python = ">=3.9"
+python = ">=3.10"
 numpy = "*"
 xarray = ">=2023.10.0"
 pandas = ">=2.2.2"
@@ -142,9 +142,6 @@ matplotlib = "*"
 jupyter = "*"
 ipython = "*"
 
-[tool.pixi.feature.py39.dependencies]
-python = "~=3.9.0"
-
 [tool.pixi.feature.py310.dependencies]
 python = "~=3.10.0"
 
@@ -153,8 +150,3 @@ python = "~=3.11.0"
 
 [tool.pixi.feature.py312.dependencies]
 python = "~=3.12.0"
-
-
-
-
-
