@@ -94,6 +94,14 @@ class UGrid(Grid):
 
         return list(data_vars)
 
+    def coords(self, ds: xr.Dataset) -> list[str]:
+        """
+        List of coordinate variables
+
+        These variables are the usual xarray coordinate variables
+        """
+        return list(ds.coords)
+
     def subset_polygon(
         self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
     ) -> xr.Dataset:

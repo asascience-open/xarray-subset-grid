@@ -34,11 +34,28 @@ class Grid(ABC):
     def data_vars(self, ds: xr.Dataset) -> list[str]:
         """List of data variables
 
-        These variables exist on the grid and are availabel to used for
+        These variables exist on the grid and are available to used for
         data analysis. These can be discarded when subsetting the dataset
         when they are not needed.
         """
         return []
+
+    # def coords(self, ds: xr.Dataset) -> list[str]:
+    #     """
+    #     List of coordinate variables
+
+    #     These variables are the usual xarray coordinate variables
+    #     """
+    #     return list(ds.coords)
+
+
+    def extra_vars(self, ds: xr.Dataset) -> list[str]:
+        """List of variables that are not grid vars or data vars.
+
+        These variables area ll the ones in the dataset that are not used
+        to specify the grid, nor data on the grid.
+        """
+        return list(set(ds.data_vars) - set(self.data_vars(ds)) - set(self.grid_vars(ds)))
 
     def subset_vars(self, ds: xr.Dataset, vars: Iterable[str]) -> list[str]:
         """Subset the dataset to the given variables, keeping the grid variables as well"""

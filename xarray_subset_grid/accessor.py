@@ -61,8 +61,16 @@ class GridDatasetAccessor:
         data analysis. These can be discarded when subsetting the dataset
         when they are not needed.
         """
-        if self._grid:
-            return self._grid.data_vars(self._ds)
+        "getting coords from accessor:"
+        print(f"{self._ds.coords}")
+        if self._ds:
+            return list(self._ds.coords)
+        return []
+
+    @property
+    def coords(self) -> list[str]:
+        if self._ds:
+            return self._ds.coords
         return []
 
     @property
@@ -74,6 +82,12 @@ class GridDatasetAccessor:
         """
         if self._grid:
             return self._grid.grid_vars(self._ds)
+        return []
+
+    @property
+    def extra_vars(self) -> list[str]:
+        if self._grid:
+            return self._grid.extra_vars(self._ds)
         return []
 
     def subset_vars(self, vars: list[str]) -> xr.Dataset:

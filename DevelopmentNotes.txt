@@ -8,7 +8,10 @@ Polygons:
 
 Defined as an Nx2 array of (lon, lat) float64
 
+First point is not repeated.
+
 Bounding Box:
 
 A tuple of floats: (min_lon, min_lat, max_lon, max_lat).
+
 
