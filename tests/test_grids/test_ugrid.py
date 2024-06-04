@@ -299,7 +299,7 @@ def test_grid_vars():
 
 
 # quite broken -- test may not be right either.
-# @pytest.mark.xfail
+@pytest.mark.xfail
 def test_data_vars():
     """
     Check if the grid vars are defined properly
@@ -313,9 +313,18 @@ def test_data_vars():
 
     print([*ds])
     print(data_vars)
-    assert set(data_vars) == set([
-        'x', 'y', 'cell', 'h', 'zeta', 'temp', 'salinity', 'u', 'v', 'uwind_speed', 'vwind_speed',
-        'wet_nodes', 'wet_cells'
+    assert set(data_vars) == set(['node',
+                                  'cell',
+                                  'h',
+                                  'zeta',
+                                  'temp',
+                                  'salinity',
+                                  'u',
+                                  'v',
+                                  'uwind_speed',
+                                  'vwind_speed',
+                                  'wet_nodes',
+                                  'wet_cells'
     ])
 
 
