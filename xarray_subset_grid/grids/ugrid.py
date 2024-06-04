@@ -1,3 +1,5 @@
+from typing import Union
+
 import numpy as np
 import xarray as xr
 
@@ -96,7 +98,7 @@ class UGrid(Grid):
 
 
     def subset_polygon(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
+        self, ds: xr.Dataset, polygon: Union[list[tuple[float, float]], np.ndarray]
     ) -> xr.Dataset:
         """Subset the dataset to the grid
         :param ds: The dataset to subset
