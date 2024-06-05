@@ -63,7 +63,7 @@ class GridDatasetAccessor:
         when they are not needed.
         """
         if self._ds:
-            return set(self._ds.coords)
+            return self._grid.data_vars(self._ds)
         return set()
 
     @property

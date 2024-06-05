@@ -77,6 +77,7 @@ class UGrid(Grid):
 
         Then all grid_vars are excluded as well.
         """
+        print("***** in data_vars")
         mesh = ds.cf["mesh_topology"]
         dims = []
 
@@ -90,9 +91,19 @@ class UGrid(Grid):
 
         dims = set(dims)
 
+        print("in data_vars")
+        print(f"{dims=}")
+
+        print(f"{list(ds.data_vars)=}")
+
+
+
         data_vars = {var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)}
         # return [var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)]
+        print(f"{data_vars=}")
+        print(f"{self.grid_vars(ds)=}")
         data_vars -= self.grid_vars(ds)
+        print(f"{data_vars=}")
 
         return data_vars
 

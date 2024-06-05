@@ -76,6 +76,10 @@ def assign_ugrid_topology(ds: xr.Dataset,
                           node_coordinates: str = None,
                           face_coordinates: str = None,
                           ) -> xr.Dataset:
+    # Should this be "make entire dataset UGRID compliant ?"
+    #  That would mean that the grid varaibles should all get metadata, such as "location"
+    #  and we'd need to clean up coordinates that shouldn't be coordinates.
+    #  ("node is one that's in the UGRID test file")
     """
     Assign the UGRID topology to the dataset
 
