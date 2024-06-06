@@ -97,7 +97,6 @@ class UGrid(Grid):
 
         return data_vars
 
-
     def subset_polygon(
         self, ds: xr.Dataset, polygon: Union[list[tuple[float, float]], np.ndarray]
     ) -> xr.Dataset:
@@ -113,6 +112,15 @@ class UGrid(Grid):
         x_var, y_var = mesh.node_coordinates.split(" ")
         x, y = ds[x_var], ds[y_var]
 
+        # NOTE: When the first dimension is "nele", the face_node_connectivity
+        #       is indexed by element first, then vertex. When the first dimension
+        if ds[mesh.face_node_connectivity].dims[0] == "nele":
+            transpose_face_node_connectivity = False
+            face_node_connectivity = ds[mesh.face_node_connectivity]
+        else:
+            transpose_face_node_connectivity = True
+            face_node_connectivity = ds[mesh.face_node_connectivity].T
+
         # If any nodes in an element are inside the polygon, the element is
         # inside the polygon so make sure all of the relevent nodes and
         # elements are unmasked
@@ -120,24 +128,38 @@ class UGrid(Grid):
         y = y.values
         polygon = normalize_polygon_x_coords(x, polygon)
         node_inside = ray_tracing_numpy(x, y, polygon)
+
         # NOTE: UGRIDS can be zero-indexed OR one-indexed!
         #       see the UGRID spec.
-        tris = ds[mesh.face_node_connectivity].T - 1
+        tris = face_node_connectivity - 1
         tri_mask = node_inside[tris]
         elements_inside = tri_mask.any(axis=1)
         tri_mask[elements_inside] = True
+
         node_inside[tris] = tri_mask
 
         # Re-index the nodes and elements to remove the masked ones
         selected_nodes = np.sort(np.unique(tris[elements_inside].values.flatten()))
         selected_elements = np.sort(np.unique(np.where(elements_inside)))
         face_node_new = np.searchsorted(
-            selected_nodes, ds[mesh.face_node_connectivity].T[selected_elements]
-        ).T
+            selected_nodes, face_node_connectivity[selected_elements]
+        )
+        if transpose_face_node_connectivity:
+            face_node_new = face_node_new.T
+
         if has_face_face_connectivity:
+            if ds[mesh.face_node_connectivity].dims[0] == "nele":
+                transpose_face_face_connectivity = False
+                face_face_connectivity = ds[mesh.face_face_connectivity]
+            else:
+                transpose_face_face_connectivity = True
+                face_face_connectivity = ds[mesh.face_face_connectivity].T
             face_face_new = np.searchsorted(
-                selected_elements, ds[mesh.face_face_connectivity].T[selected_elements]
-            ).T
+                selected_elements, face_face_connectivity[selected_elements]
+            )
+
+            if transpose_face_face_connectivity:
+                face_face_new = face_face_new.T
 
         # Subset using xarrays select indexing, and overwrite the face_node_connectivity
         # and face_face_connectivity (if available) with the new indices
