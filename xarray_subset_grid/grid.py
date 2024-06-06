@@ -28,21 +28,29 @@ class Grid(ABC):
         These variables are used to define the grid and thus should be kept
         when subsetting the dataset
         """
-        return []
+        return set()
 
     @abstractmethod
-    def data_vars(self, ds: xr.Dataset) -> list[str]:
+    def data_vars(self, ds: xr.Dataset) -> set[str]:
         """List of data variables
 
-        These variables exist on the grid and are availabel to used for
+        These variables exist on the grid and are available to used for
         data analysis. These can be discarded when subsetting the dataset
         when they are not needed.
         """
-        return []
+        return set()
 
-    def subset_vars(self, ds: xr.Dataset, vars: Iterable[str]) -> list[str]:
+    def extra_vars(self, ds: xr.Dataset) -> set[str]:
+        """List of variables that are not grid vars or data vars.
+
+        These variables area ll the ones in the dataset that are not used
+        to specify the grid, nor data on the grid.
+        """
+        return set(ds.data_vars) - self.data_vars(ds) - self.grid_vars(ds)
+
+    def subset_vars(self, ds: xr.Dataset, vars: Iterable[str]) -> xr.Dataset:
         """Subset the dataset to the given variables, keeping the grid variables as well"""
-        subset = list(set(self.grid_vars(ds) + list(vars)))
+        subset = list(self.grid_vars(ds)) + list(vars)
         return ds[subset]
 
     @abstractmethod

@@ -1,4 +1,6 @@
-from typing import Optional, Union
+from typing import Optional
+import warnings
+#from typing import Optional, Union
 
 import numpy as np
 import xarray as xr
@@ -27,9 +29,8 @@ def grid_factory(ds: xr.Dataset) -> Optional[Grid]:
     for grid_impl in _grid_impls:
         if grid_impl.recognize(ds):
             return grid_impl()
-
+    warnings.warn("no grid type found in this dataset")
     return None
-
 
 @xr.register_dataset_accessor("subset_grid")
 class GridDatasetAccessor:
@@ -54,19 +55,25 @@ class GridDatasetAccessor:
         return self._grid
 
     @property
-    def data_vars(self) -> list[str]:
+    def data_vars(self) -> set[str]:
         """List of data variables
 
         These variables exist on the grid and are available to used for
         data analysis. These can be discarded when subsetting the dataset
         when they are not needed.
         """
-        if self._grid:
+        if self._ds:
             return self._grid.data_vars(self._ds)
-        return []
+        return set()
 
     @property
-    def grid_vars(self) -> list[str]:
+    def coords(self) -> set[str]:
+        if self._ds:
+            return self._ds.coords
+        return set()
+
+    @property
+    def grid_vars(self) -> set[str]:
         """List of grid variables
 
         These variables are used to define the grid and thus should be kept
@@ -74,7 +81,13 @@ class GridDatasetAccessor:
         """
         if self._grid:
             return self._grid.grid_vars(self._ds)
-        return []
+        return set()
+
+    @property
+    def extra_vars(self) -> set[str]:
+        if self._grid:
+            return self._grid.extra_vars(self._ds)
+        return set()
 
     def subset_vars(self, vars: list[str]) -> xr.Dataset:
         """Subset the dataset to the given variables, keeping the grid variables as well
@@ -86,10 +99,10 @@ class GridDatasetAccessor:
             return self._grid.subset_vars(self._ds, vars)
         return self._ds
 
-    def subset_polygon(
-        self, polygon: Union[list[tuple[float, float]], np.ndarray]
-    ) -> Optional[xr.Dataset]:
-        """Subset the dataset to the grid.
+    def subset_polygon(self, polygon: list[tuple[float, float]] | np.ndarray
+                       ) -> Optional[xr.Dataset]:
+        """
+        Subset the dataset to the grid.
 
         This call is forwarded to the grid implementation with the loaded dataset.
 

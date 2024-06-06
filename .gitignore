@@ -160,3 +160,7 @@ cython_debug/
 #.idea/
 
 xarray_subset_grid/_version.py
+# pixi environments
+.pixi
+*.egg-info
+
