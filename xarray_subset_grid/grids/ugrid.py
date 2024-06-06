@@ -4,9 +4,11 @@ import numpy as np
 import xarray as xr
 
 from xarray_subset_grid.grid import Grid
-from xarray_subset_grid.utils import (normalize_polygon_x_coords,
-                                      ray_tracing_numpy,
-                                      assign_ugrid_topology)
+from xarray_subset_grid.utils import (
+    assign_ugrid_topology,
+    normalize_polygon_x_coords,
+    ray_tracing_numpy,
+)
 
 
 class UGrid(Grid):
