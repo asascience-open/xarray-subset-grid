@@ -4,9 +4,10 @@ import numpy as np
 import xarray as xr
 
 from xarray_subset_grid.grid import Grid
-from xarray_subset_grid.utils import (normalize_polygon_x_coords,
-                                      ray_tracing_numpy,
-                                      assign_ugrid_topology)
+from xarray_subset_grid.utils import (
+    normalize_polygon_x_coords,
+    ray_tracing_numpy,
+)
 
 
 class UGrid(Grid):
@@ -77,7 +78,6 @@ class UGrid(Grid):
 
         Then all grid_vars are excluded as well.
         """
-        print("***** in data_vars")
         mesh = ds.cf["mesh_topology"]
         dims = []
 
@@ -90,23 +90,11 @@ class UGrid(Grid):
         dims.extend(ds[node_coord].dims)
 
         dims = set(dims)
-
-        print("in data_vars")
-        print(f"{dims=}")
-
-        print(f"{list(ds.data_vars)=}")
-
-
-
         data_vars = {var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)}
+
         # return [var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)]
-        print(f"{data_vars=}")
-        print(f"{self.grid_vars(ds)=}")
         data_vars -= self.grid_vars(ds)
-        print(f"{data_vars=}")
-
         return data_vars
-
 
     def subset_polygon(
         self, ds: xr.Dataset, polygon: Union[list[tuple[float, float]], np.ndarray]
