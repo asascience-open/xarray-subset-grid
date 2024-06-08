@@ -4,10 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xarray_subset_grid"
-authors = [{ name = "Matthew Iannucci", email = "matt.iannucci@tetratech.com" }]
+authors = [{ name = "Matthew Iannucci", email = "matt.iannucci@tetratech.com" },
+           { name = "Christopher H. Barker", email = "chris.barker@noaa.gov" }]
 description = "Subset Xarray datasets in space"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["xarray"]
 license = { file = "LICENSE" }
 
@@ -18,7 +19,6 @@ classifiers = [
     "License :: OSI Approved :: BSD License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -31,11 +31,12 @@ dependencies = [
   "numpy", 
   "xarray>=2023.10.0", 
   "cf_xarray", 
-  "dask[complete]"]
+  "dask[complete]",
+  "netcdf4",
+  ]
 
 [project.optional-dependencies]
 dev = [
-  "black",
   "ruff",
   "pre-commit",
   "pyright",
@@ -49,7 +50,6 @@ examples = [
   "s3fs",
   "zarr",
   "matplotlib",
-  "netcdf4",
   "h5netcdf"
 ]
 
@@ -67,16 +67,14 @@ builtins = ["ellipsis"]
 extend-exclude = [
     "xarray_subset_grid/_version.py"
 ]
-target-version = "py39"
+target-version = "py310"
+# Use a longer line length.
+line-length = 95
 
 [tool.ruff.lint]
-# E402: module level import not at top of file
-# E501: line too long - let black worry about that
-# E731: do not assign a lambda expression, use a def
 ignore = [
-  "E402",
-  "E501",
-  "E731",
+  "E402", # module level import not at top of file
+  "E731", # do not assign a lambda expression, use a def
 ]
 select = [
   "F", # Pyflakes
@@ -93,3 +91,62 @@ extend-safe-fixes = [
 [tool.pyright]
 venvPath = "."
 venv = "venv"
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-arm64", "osx-64", "win-64"]
+
+[tool.pixi.pypi-dependencies]
+xarray_subset_grid = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+dev = { features = ["dev"], solve-group = "default" }
+examples = { features = ["examples"], solve-group = "default" }
+all = { features = ["dev", "examples"], solve-group = "default" }
+test310 = ["dev", "py310"] # implicit: test310 = ["dev", "py310", "default"]
+test311 = ["dev", "py311"]
+test312 = ["dev", "py312"]
+
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+python = ">=3.10"
+numpy = "*"
+xarray = ">=2023.10.0"
+pandas = ">=2.2.2"
+cf_xarray = "*"
+dask = "*"
+fsspec = "*"
+s3fs = "*"
+zarr = "*"
+netcdf4 = "*"
+h5netcdf = "*"
+
+
+[tool.pixi.feature.dev.dependencies]
+ruff = "*"
+pre-commit = "*"
+pyright = "*"
+pytest = "*"
+pytest-cov = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
+
+[tool.pixi.feature.dev.tasks]
+test = "pytest tests/"
+
+[tool.pixi.feature.examples.dependencies]
+matplotlib = "*"
+jupyter = "*"
+ipython = "*"
+
+[tool.pixi.feature.py310.dependencies]
+python = "~=3.10.0"
+
+[tool.pixi.feature.py311.dependencies]
+python = "~=3.11.0"
+
+[tool.pixi.feature.py312.dependencies]
+python = "~=3.12.0"

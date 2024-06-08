@@ -4,7 +4,11 @@ import numpy as np
 import xarray as xr
 
 from xarray_subset_grid.grid import Grid
-from xarray_subset_grid.utils import normalize_polygon_x_coords, ray_tracing_numpy
+from xarray_subset_grid.utils import (
+    assign_ugrid_topology,
+    normalize_polygon_x_coords,
+    ray_tracing_numpy,
+)
 
 
 class UGrid(Grid):
@@ -43,33 +47,37 @@ class UGrid(Grid):
         """Name of the grid type"""
         return "ugrid"
 
-    def grid_vars(self, ds: xr.Dataset) -> list[str]:
-        """List of grid variables
+    def grid_vars(self, ds: xr.Dataset) -> set[str]:
+        """
+        List of grid variables
 
         These variables are used to define the grid and thus should be kept
         when subsetting the dataset
         """
         mesh = ds.cf["mesh_topology"]
-        vars = [mesh.name]
+        vars = {mesh.name}
         if "face_node_connectivity" in mesh.attrs:
-            vars.append(mesh.face_node_connectivity)
+            vars.add(mesh.face_node_connectivity)
         if "face_face_connectivity" in mesh.attrs:
-            vars.append(mesh.face_face_connectivity)
+            vars.add(mesh.face_face_connectivity)
         if "node_coordinates" in mesh.attrs:
             node_coords = mesh.node_coordinates.split(" ")
-            vars.extend(node_coords)
+            vars.update(node_coords)
         if "face_coordinates" in mesh.attrs:
             face_coords = mesh.face_coordinates.split(" ")
-            vars.extend(face_coords)
+            vars.update(face_coords)
 
         return vars
 
-    def data_vars(self, ds: xr.Dataset) -> list[str]:
-        """List of data variables
+    def data_vars(self, ds: xr.Dataset) -> set[str]:
+        """
+        Set of data variables
 
-        These variables exist on the grid and are availabel to used for
+        These variables exist on the grid and are available to used for
         data analysis. These can be discarded when subsetting the dataset
         when they are not needed.
+
+        Then all grid_vars are excluded as well.
         """
         mesh = ds.cf["mesh_topology"]
         dims = []
@@ -84,7 +92,11 @@ class UGrid(Grid):
 
         dims = set(dims)
 
-        return [var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)]
+        data_vars = {var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)}
+        data_vars -= self.grid_vars(ds)
+
+        return data_vars
+
 
     def subset_polygon(
         self, ds: xr.Dataset, polygon: Union[list[tuple[float, float]], np.ndarray]
@@ -101,18 +113,22 @@ class UGrid(Grid):
         x_var, y_var = mesh.node_coordinates.split(" ")
         x, y = ds[x_var], ds[y_var]
 
-        # If any nodes in an element are inside the polygon, the element is inside the polygon so make sure all of the relevent nodes and elements are unmasked
+        # If any nodes in an element are inside the polygon, the element is
+        # inside the polygon so make sure all of the relevent nodes and
+        # elements are unmasked
         x = x.values
         y = y.values
         polygon = normalize_polygon_x_coords(x, polygon)
         node_inside = ray_tracing_numpy(x, y, polygon)
+        # NOTE: UGRIDS can be zero-indexed OR one-indexed!
+        #       see the UGRID spec.
         tris = ds[mesh.face_node_connectivity].T - 1
         tri_mask = node_inside[tris]
         elements_inside = tri_mask.any(axis=1)
         tri_mask[elements_inside] = True
         node_inside[tris] = tri_mask
 
-        # Reindex the nodes and elements to remove the masked ones
+        # Re-index the nodes and elements to remove the masked ones
         selected_nodes = np.sort(np.unique(tris[elements_inside].values.flatten()))
         selected_elements = np.sort(np.unique(np.where(elements_inside)))
         face_node_new = np.searchsorted(
@@ -123,8 +139,8 @@ class UGrid(Grid):
                 selected_elements, ds[mesh.face_face_connectivity].T[selected_elements]
             ).T
 
-        # Subset using xarrays select indexing, and overwrite the face_node_connectivity and face_face_connectivity (if available)
-        # with the new indices
+        # Subset using xarrays select indexing, and overwrite the face_node_connectivity
+        # and face_face_connectivity (if available) with the new indices
         ds_subset = ds.sel(node=selected_nodes, nele=selected_elements).drop_encoding()
         ds_subset[mesh.face_node_connectivity][:] = face_node_new
         if has_face_face_connectivity:

@@ -1,0 +1,14 @@
+# Requirements file for conda
+# everything should be available from the conda-forge channel
+#
+# This is what you want for development
+
+# development
+ruff
+pre-commit
+pyright
+pytest
+pytest-cov
+sphinx
+sphinx-rtd-theme
+
