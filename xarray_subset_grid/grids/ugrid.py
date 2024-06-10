@@ -5,7 +5,6 @@ import xarray as xr
 
 from xarray_subset_grid.grid import Grid
 from xarray_subset_grid.utils import (
-    assign_ugrid_topology,
     normalize_polygon_x_coords,
     ray_tracing_numpy,
 )
@@ -168,3 +167,153 @@ class UGrid(Grid):
         if has_face_face_connectivity:
             ds_subset[mesh.face_face_connectivity][:] = face_face_new
         return ds_subset
+
+def assign_ugrid_topology(ds: xr.Dataset,
+                          *,
+                          face_node_connectivity: str,
+                          face_face_connectivity: str = None,
+                          node_coordinates: str = None,
+                          face_coordinates: str = None,
+                          start_index: int = None,
+                          ) -> xr.Dataset:
+    # Should this be "make entire dataset UGRID compliant ?"
+    #  That would mean that the grid variables should all get metadata,
+    #  such as "location"
+    #  and we'd need to clean up coordinates that shouldn't be coordinates.
+    #  ("node is one that's in the UGRID test file")
+    """
+    Assign the UGRID topology to the dataset
+
+    Only the face_node_connectivity parameter is required.
+    The face_face_connectivity parameter is optional.
+
+    If the variable for face_node_connectivity is named nv, the function call should look like this:
+
+    ```
+    ds = assign_ugrid_topology(ds, face_node_connectivity="nv")
+    ```
+
+    This will assign a new variable to the dataset called "mesh" with the face_node_connectivity attribute. It will
+    also assign the node_coordinates attribute to the dataset with the lon and lat coordinate variable names, introspected
+    from the face_node_connectivity variables' dimensions.
+
+    You can also optionally specify any of the following mesh topology variables by passing them as keyword arguments
+    - node_coordinates: If not specified, the function will introspect the dataset for the longitude and latitude coordinate variable names using cf_xarray
+    - face_face_connectivity
+    - face_coordinates: If not specified, the function will introspect the dataset for the longitude and latitude coordinate variable names matching the face_node_connectivity variable
+                        but do nothing if they are not found
+
+    Args:
+        ds (xr.Dataset): The dataset to assign the UGRID topology to
+        face_node_connectivity (str): THe variable name of the face definitions
+
+        face_face_connectivity: str = None,
+        node_coordinates: str = None,
+        face_coordinates: str = None,
+
+    (See the UGRID conventions for descriptions of these)
+
+    You can pass a dict in with all the grid topology variables:
+
+    ```
+        grid_topology = {'node_coordinates': ('lon', 'lat'),
+                     'face_node_connectivity': 'nv',
+                     'node_coordinates': ('lon', 'lat'),
+                     'face_coordinates': ('lonc', 'latc'),
+                     }
+    ```
+    """
+    # All the possible attributes:
+    # Required:
+    # node_coordinates
+    # face_node_connectivity
+
+    # Optional:
+    # face_dimension
+    # edge_node_connectivity
+    # edge_dimension
+    # Optional attributes
+    # face_edge_connectivity
+    # face_face_connectivity
+    # edge_face_connectivity
+    # boundary_node_connectivity
+    # face_coordinates
+    # edge_coordinates
+
+    # Get the variable name for the face_node_connectivity
+    # face_node_connectivity = attrs.get("face_node_connectivity", None)
+    # if face_node_connectivity is None:
+    #     raise ValueError("The face_node_connectivity attribute is required")
+    #face_face_connectivity = attrs.get("face_face_connectivity", None)
+
+    # Get the longitude and latitude coordinate variable names
+    # node_coords = attrs.get("node_coordinates", None)
+    # face_coords = attrs.get("face_coordinates", None)
+
+    node_coords = node_coordinates
+    face_coords = face_coordinates
+
+    if not face_coords:
+        try:
+            face_coords = ds[face_node_connectivity].cf.coordinates
+            face_coords = [f"{coord[0]}" for coord in face_coords.values()]
+        except AttributeError:
+            face_coords = None
+
+    if not node_coords:
+        try:
+            if face_coords:
+                filter = face_coords
+            else:
+                filter = []
+
+            coords = ds.cf.coordinates
+            node_lon = [c for c in coords["longitude"] if c not in filter][0]
+            node_lat = [c for c in coords["latitude"] if c not in filter][0]
+            node_coords = [node_lon, node_lat]
+        except AttributeError:
+            raise ValueError(
+                "The dataset does not have cf_compliant node coordinates longitude and latitude coordinates"
+            )
+
+    if not face_face_connectivity:
+        # face_face_connectivity var should have same dimensions as
+        # face_node_connectivity this is assuming that only one will match!
+        for var_name, var in ds.variables.items():
+            if var_name == face_node_connectivity:
+                continue
+            if var.dims == ds[face_node_connectivity].dims:
+                face_face_connectivity = var_name
+                break
+
+    mesh_attrs = {
+        "cf_role": "mesh_topology",
+        "topology_dimension": np.int32(2),
+        "node_coordinates": " ".join(node_coords),
+        "face_node_connectivity": face_node_connectivity,
+    }
+
+    if face_coords:
+        mesh_attrs["face_coordinates"] = " ".join(face_coords)
+    if face_face_connectivity:
+        mesh_attrs["face_face_connectivity"] = face_face_connectivity
+
+    # Assign the mesh topology to the dataset
+    ds = ds.assign(
+        mesh=((), np.int32(0), mesh_attrs),
+    )
+
+    # check for start_index, and set it if there.
+    if start_index is None:
+        start_index = int(ds[face_node_connectivity].min())
+
+    if not start_index in (0, 1):
+        raise ValueError(f"start_index must be 1 or 0, not {start_index}")
+
+    # assign the start_index to all the grid variables
+    for var_name in (face_node_connectivity, face_face_connectivity):
+        if var_name:
+            var = ds[var_name]
+            var.attrs.setdefault('start_index', start_index)
+
+    return ds

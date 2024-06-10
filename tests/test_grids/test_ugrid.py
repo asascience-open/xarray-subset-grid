@@ -285,6 +285,24 @@ def test_assign_ugrid_topology_dict():
     assert mesh['face_face_connectivity'] == 'nbe'
 
 
+def test_assign_ugrid_topology_start_index_one():
+    ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
+    ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
+    # bit fragile, but easy to write the test
+    assert ds['nv'].attrs['start_index'] == 1
+    assert ds['nbe'].attrs['start_index'] == 1
+
+
+def test_assign_ugrid_topology_start_index_zero():
+    ds = xr.open_dataset(EXAMPLE_DATA / "small_ugrid_zero_based.nc")
+    ds = ugrid.assign_ugrid_topology(ds, face_node_connectivity='mesh_face_nodes')
+    # bit fragile, but easy to write the test
+    assert ds['mesh_face_nodes'].attrs['start_index'] == 0
+    assert ds['mesh_edge_nodes'].attrs['start_index'] == 0
+    assert ds['mesh_boundary_nodes'].attrs['start_index'] == 0
+
+
+
 # NOTE: these tests are probably not complete -- but they are something.
 #       we really should have a complete UGRID example to test with.
 def test_grid_vars():
