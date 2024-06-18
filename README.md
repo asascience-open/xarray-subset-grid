@@ -31,14 +31,17 @@ The grid implementations should also be exposed correctly so that they can be us
 
 If you are using (or want to use) conda, you can install the dependencies with:
 
+```
 conda install --file conda_requirements.txt
+```
 
 That will get you the full set, including what you need to run the examples, etc.
 
 If you need the development tools, you can also install:
 
+```
 conda install --file conda_requirements_dev.txt
-
+```
 
 (requirements should all be on the conda-forge channel)
 
