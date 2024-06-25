@@ -216,9 +216,16 @@ def assign_ugrid_topology(ds: xr.Dataset,
         ds (xr.Dataset): The dataset to assign the UGRID topology to
         face_node_connectivity (str): THe variable name of the face definitions
 
+        face_node_connectivity: str,
         face_face_connectivity: str = None,
+        boundary_node_connectivity: str = None,
+        face_edge_connectivity: str = None,
+        edge_node_connectivity: str = None,
+        edge_face_connectivity: str = None,
         node_coordinates: str = None,
         face_coordinates: str = None,
+        edge_coordinates: str = None,
+        start_index: int = None,
 
     (See the UGRID conventions for descriptions of these)
 
@@ -230,6 +237,9 @@ def assign_ugrid_topology(ds: xr.Dataset,
                          'node_coordinates': ('lon', 'lat'),
                          'face_coordinates': ('lonc', 'latc'),
                          }
+
+        assign_ugrid_topology(ds, **grid_topology)
+
     ```
     """
     # All the possible attributes:
