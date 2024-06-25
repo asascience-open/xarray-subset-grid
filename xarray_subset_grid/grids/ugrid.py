@@ -10,6 +10,16 @@ from xarray_subset_grid.utils import (
     ray_tracing_numpy,
 )
 
+ALL_MESH_VARS = ("node_coordinates",
+                 "face_coordinates",
+                 "edge_coordinates",
+                 "face_node_connectivity",
+                 "face_face_connectivity",
+                 "boundary_node_connectivity",
+                 "face_edge_connectivity",
+                 "edge_face_connectivity",
+                 "edge_node_connectivity",
+                 )
 
 class UGrid(Grid):
     """Grid implementation for UGRID datasets
@@ -56,17 +66,13 @@ class UGrid(Grid):
         """
         mesh = ds.cf["mesh_topology"]
         vars = {mesh.name}
-        if "face_node_connectivity" in mesh.attrs:
-            vars.add(mesh.face_node_connectivity)
-        if "face_face_connectivity" in mesh.attrs:
-            vars.add(mesh.face_face_connectivity)
-        if "node_coordinates" in mesh.attrs:
-            node_coordinates = mesh.node_coordinates.split(" ")
-            vars.update(node_coordinates)
-        if "face_coordinates" in mesh.attrs:
-            face_coordinates = mesh.face_coordinates.split(" ")
-            vars.update(face_coordinates)
-
+        for var_name in ALL_MESH_VARS:
+            if var_name in mesh.attrs:
+                if "coordinates" in var_name:
+                    node_coordinates = mesh.node_coordinates.split(" ")
+                    vars.update(mesh.attrs[var_name].split(" "))
+                else:
+                    vars.add(mesh.attrs[var_name])
         return vars
 
     def data_vars(self, ds: xr.Dataset) -> set[str]:
@@ -259,16 +265,7 @@ def assign_ugrid_topology(ds: xr.Dataset,
     # face_coordinates
     # edge_coordinates
 
-    ALL_MESH_VARS = ("node_coordinates",
-                     "face_coordinates",
-                     "edge_coordinates",
-                     "face_node_connectivity",
-                     "face_face_connectivity",
-                     "boundary_node_connectivity",
-                     "face_edge_connectivity",
-                     "edge_face_connectivity",
-                     "edge_node_connectivity",
-                     )
+
     # check for an existing mesh variable?
     try:
         mesh_vars = ds.cf.cf_roles["mesh_topology"]
