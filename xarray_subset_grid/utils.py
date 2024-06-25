@@ -67,135 +67,22 @@ def ray_tracing_numpy(x, y, poly):
     return inside
 
 
-# This should probably be defined in ugrid.py -- but importing it there
-#  for now.
-def assign_ugrid_topology(ds: xr.Dataset,
-                          *,
-                          face_node_connectivity: str,
-                          face_face_connectivity: str = None,
-                          node_coordinates: str = None,
-                          face_coordinates: str = None,
-                          ) -> xr.Dataset:
-    # Should this be "make entire dataset UGRID compliant ?"
-    #  That would mean that the grid varaibles should all get metadata, such as "location"
-    #  and we'd need to clean up coordinates that shouldn't be coordinates.
-    #  ("node is one that's in the UGRID test file")
-    """
-    Assign the UGRID topology to the dataset
+# This is defined in ugrid.py
+# this placeholder for backwards compatibility for a brief period
+def assign_ugrid_topology(*args, **kwargs):
+    warnings.warn(DeprecationWarning, "The function `assign_grid_topology` has been moved to the "
+                                      "`grids.ugrid` module. It will not be able to be called from "
+                                      "the utils `module` in the future.")
+    from .grids.ugrid import assign_ugrid_topology
+    return assign_ugrid_topology(*args, **kwargs)
 
-    Only the face_node_connectivity parameter is required.
-    The face_face_connectivity parameter is optional.
-
-    If the variable for face_node_connectivity is named nv, the function call should look like this:
-
-    ```
-    ds = assign_ugrid_topology(ds, face_node_connectivity="nv")
-    ```
-
-    This will assign a new variable to the dataset called "mesh" with the face_node_connectivity attribute. It will
-    also assign the node_coordinates attribute to the dataset with the lon and lat coordinate variable names, introspected
-    from the face_node_connectivity variables' dimensions.
-
-    You can also optionally specify any of the following mesh topology variables by passing them as keyword arguments
-    - node_coordinates: If not specified, the function will introspect the dataset for the longitude and latitude coordinate variable names using cf_xarray
-    - face_face_connectivity
-    - face_coordinates: If not specified, the function will introspect the dataset for the longitude and latitude coordinate variable names matching the face_node_connectivity variable
-                        but do nothing if they are not found
-
-    Args:
-        ds (xr.Dataset): The dataset to assign the UGRID topology to
-        face_node_connectivity (str): THe variable name of the face definitions
-
-        face_face_connectivity: str = None,
-        node_coordinates: str = None,
-        face_coordinates: str = None,
-
-    (See the UGRID conventions for descriptions of these)
-
-    You can pass a dict in with all the grid topology variables:
-
-    ```
-        grid_topology = {'node_coordinates': ('lon', 'lat'),
-                     'face_node_connectivity': 'nv',
-                     'node_coordinates': ('lon', 'lat'),
-                     'face_coordinates': ('lonc', 'latc'),
-                     }
-    ```
-
-    """
-    # Get the variable name for the face_node_connectivity
-    # face_node_connectivity = attrs.get("face_node_connectivity", None)
-    # if face_node_connectivity is None:
-    #     raise ValueError("The face_node_connectivity attribute is required")
-    #face_face_connectivity = attrs.get("face_face_connectivity", None)
-
-    # Get the longitude and latitude coordinate variable names
-    # node_coords = attrs.get("node_coordinates", None)
-    # face_coords = attrs.get("face_coordinates", None)
-
-    node_coords = node_coordinates
-    face_coords = face_coordinates
-
-    if not face_coords:
-        try:
-            face_coords = ds[face_node_connectivity].cf.coordinates
-            face_coords = [f"{coord[0]}" for coord in face_coords.values()]
-        except AttributeError:
-            face_coords = None
-
-    if not node_coords:
-        try:
-            if face_coords:
-                filter = face_coords
-            else:
-                filter = []
-
-            coords = ds.cf.coordinates
-            node_lon = [c for c in coords["longitude"] if c not in filter][0]
-            node_lat = [c for c in coords["latitude"] if c not in filter][0]
-            node_coords = [node_lon, node_lat]
-        except AttributeError:
-            raise ValueError(
-                "The dataset does not have cf_compliant node coordinates longitude and latitude coordinates"
-            )
-
-    if not face_face_connectivity:
-        # face_face_connectivity var should have same dimensions as
-        # face_node_connectivity this is assuming that only one will match!
-        for var_name, var in ds.variables.items():
-            if var_name == face_node_connectivity:
-                continue
-            if var.dims == ds[face_node_connectivity].dims:
-                face_face_connectivity = var_name
-                break
-
-    mesh_attrs = {
-        "cf_role": "mesh_topology",
-        "topology_dimension": np.int32(2),
-        "node_coordinates": " ".join(node_coords),
-        "face_node_connectivity": face_node_connectivity,
-    }
-
-    if face_coords:
-        mesh_attrs["face_coordinates"] = " ".join(face_coords)
-    if face_face_connectivity:
-        mesh_attrs["face_face_connectivity"] = face_face_connectivity
-
-    # Assign the mesh topology to the dataset
-    ds = ds.assign(
-        mesh=((), np.int32(0), mesh_attrs),
-    )
-
-    return ds
-
-
-def convert_bytes(num):
+def format_bytes(num):
     """
     This function will convert bytes to MB.... GB... etc
     from:
     https://stackoverflow.com/questions/12523586/python-format-size-application-converting-b-to-kb-mb-gb-tb
     """
-    # stupid, but handy for demos, etc.
+    # not much to it, but handy for demos, etc.
 
     step_unit = 1024 #1024 bad the size
 

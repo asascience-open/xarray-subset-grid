@@ -260,6 +260,7 @@ def test_assign_ugrid_topology_min():
     assert mesh['face_coordinates'] == 'lonc latc'
     assert mesh['face_face_connectivity'] == 'nbe'
 
+
 def test_assign_ugrid_topology_dict():
     """
     FVCOM (SFBOFS):
@@ -283,6 +284,62 @@ def test_assign_ugrid_topology_dict():
     assert mesh['face_coordinates'] == 'lonc latc'
     assert mesh['node_coordinates'] == 'lon lat'
     assert mesh['face_face_connectivity'] == 'nbe'
+
+def test_assign_ugrid_topology_existing_mesh_var():
+    """
+    It should raise if you don't give it anything.
+
+    The existing one in the file:
+
+    int mesh ;
+        mesh:cf_role = "mesh_topology" ;
+        mesh:long_name = "Topology data of 2D unstructured mesh" ;
+        mesh:topology_dimension = 2LL ;
+        mesh:node_coordinates = "mesh_node_lon mesh_node_lat" ;
+        mesh:edge_node_connectivity = "mesh_edge_nodes" ;
+        mesh:edge_coordinates = "mesh_edge_lon mesh_edge_lat" ;
+        mesh:face_node_connectivity = "mesh_face_nodes" ;
+        mesh:face_coordinates = "mesh_face_lon mesh_face_lat" ;
+        mesh:face_face_connectivity = "mesh_face_links" ;
+        mesh:boundary_node_connectivity = "mesh_boundary_nodes" ;
+    """
+
+    ds = xr.open_dataset(EXAMPLE_DATA / "small_ugrid_zero_based.nc")
+
+    # assigning the one that's already there -- should be non-destructive
+    ds_new = ugrid.assign_ugrid_topology(ds, face_node_connectivity='mesh_face_nodes')
+
+    old_mesh_var = ds['mesh']
+    new_mesh_var = ds_new['mesh']
+
+    assert old_mesh_var.attrs == new_mesh_var.attrs
+
+
+def test_assign_ugrid_topology_start_index_one():
+    ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
+    ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
+    # bit fragile, but easy to write the test
+    assert ds['nv'].attrs['start_index'] == 1
+    assert ds['nbe'].attrs['start_index'] == 1
+
+
+def test_assign_ugrid_topology_start_index_zero_specify():
+    ds = xr.open_dataset(EXAMPLE_DATA / "small_ugrid_zero_based.nc")
+    ds = ugrid.assign_ugrid_topology(ds, face_node_connectivity='mesh_face_nodes', start_index=0)
+
+    # a bit fragile, but easy to write the test
+    assert ds['mesh_face_nodes'].attrs['start_index'] == 0
+    assert ds['mesh_edge_nodes'].attrs['start_index'] == 0
+    assert ds['mesh_boundary_nodes'].attrs['start_index'] == 0
+
+def test_assign_ugrid_topology_start_index_zero_infer():
+    ds = xr.open_dataset(EXAMPLE_DATA / "small_ugrid_zero_based.nc")
+    ds = ugrid.assign_ugrid_topology(ds, face_node_connectivity='mesh_face_nodes')
+
+    # a bit fragile, but easy to write the test
+    assert ds['mesh_face_nodes'].attrs['start_index'] == 0
+    assert ds['mesh_edge_nodes'].attrs['start_index'] == 0
+    assert ds['mesh_boundary_nodes'].attrs['start_index'] == 0
 
 
 # NOTE: these tests are probably not complete -- but they are something.
