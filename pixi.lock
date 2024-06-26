@@ -10781,8 +10781,8 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/debugpy
   - pkg:pypi/bytecode
+  - pkg:pypi/debugpy
   size: 2079306
   timestamp: 1707444570818
 - kind: conda
@@ -10802,8 +10802,8 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/debugpy
   - pkg:pypi/bytecode
+  - pkg:pypi/debugpy
   size: 3105043
   timestamp: 1707445249662
 - kind: conda
@@ -10821,8 +10821,8 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/debugpy
   - pkg:pypi/bytecode
+  - pkg:pypi/debugpy
   size: 2065572
   timestamp: 1707444822563
 - kind: conda
@@ -27236,9 +27236,9 @@ packages:
   timestamp: 1715608167507
 - kind: pypi
   name: xarray-subset-grid
-  version: 0.1.dev52+g02f6468.d20240604
+  version: 0.1.dev41+g75a92e8
   path: .
-  sha256: 279d1c51cdc1f80daef21e8a94a77e219dd50d61bddf24b7c7abadaa0b7e7d84
+  sha256: aebb8a03415496daf25d8c2e6b9c7edf1a49f745ab8583af316ecd8ee95e6ab2
   requires_dist:
   - numpy
   - xarray>=2023.10.0
