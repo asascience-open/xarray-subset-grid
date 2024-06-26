@@ -43,7 +43,7 @@ dev = [
   "pytest",
   "pytest-cov",
   "sphinx",
-  "sphinx-rtd-theme"
+  "sphinx-rtd-theme",
 ]
 examples = [
   "fsspec",
