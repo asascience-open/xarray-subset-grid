@@ -1,4 +1,3 @@
-from typing import Union
 import warnings
 
 import numpy as np
@@ -10,33 +9,38 @@ from xarray_subset_grid.utils import (
     ray_tracing_numpy,
 )
 
-ALL_MESH_VARS = ("node_coordinates",
-                 "face_coordinates",
-                 "edge_coordinates",
-                 "face_node_connectivity",
-                 "face_face_connectivity",
-                 "boundary_node_connectivity",
-                 "face_edge_connectivity",
-                 "edge_face_connectivity",
-                 "edge_node_connectivity",
-                 )
+ALL_MESH_VARS = (
+    "node_coordinates",
+    "face_coordinates",
+    "edge_coordinates",
+    "face_node_connectivity",
+    "face_face_connectivity",
+    "boundary_node_connectivity",
+    "face_edge_connectivity",
+    "edge_face_connectivity",
+    "edge_node_connectivity",
+)
+
 
 class UGrid(Grid):
     """Grid implementation for UGRID datasets
 
-    UGRID is a grid type that is used to represent unstructured grids. It is used to represent grids where the elements
-    are not regular, such as triangular or quadrilateral grids. UGRID is a standard that is used in the oceanographic
-    community.
+    UGRID is a grid type that is used to represent unstructured grids. It is used to represent
+    grids where the elements are not regular, such as triangular or quadrilateral grids.
+    UGRID is a standard that is used in the oceanographic community.
 
-    In this specific grid implementation, we assume that the dataset has a variable that describes the mesh
-    with the mesh_topology cf_role. This variable should have a face_node_connectivity attribute that describes the
-    connectivity of the nodes to the elements. The face_node_connectivity attribute should be a 2D array where the
-    first dimension is the number of elements and the second dimension is the number of nodes per element. The values
-    in the array should be the indices of the nodes in the node variable that are connected to the element.
+    In this specific grid implementation, we assume that the dataset has a variable
+    that describes the mesh with the mesh_topology cf_role. This variable should have
+    a face_node_connectivity attribute that describes the connectivity of the nodes
+    to the elements. The face_node_connectivity attribute should be a 2D array where the
+    first dimension is the number of elements and the second dimension is the number of nodes
+    per element. The values in the array should be the indices of the nodes in the node
+    variable that are connected to the element.
 
-    The face_face_connectivity attribute is optional and describes the connectivity of the elements to each other. It
-    should be a 2D array where the first dimension is the number of elements and the second dimension is the number of
-    elements that are connected to the element.
+    The face_face_connectivity attribute is optional and describes the connectivity of the
+    elements to each other. It should be a 2D array where the first dimension is the number
+    of elements and the second dimension is the number of elements that are connected
+    to the element.
 
     # TODO: Abstract away common subsetting methods to functions that can be cached for reuse
     """
@@ -104,19 +108,20 @@ class UGrid(Grid):
         return data_vars
 
     def subset_polygon(
-        self, ds: xr.Dataset, polygon: Union[list[tuple[float, float]], np.ndarray]
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
     ) -> xr.Dataset:
         """Subset the dataset to the grid
         :param ds: The dataset to subset
         :param polygon: The polygon to subset to
         :return: The subsetted dataset
         """
-        # For this grid type, we find all nodes that are connected to elements that are inside the polygon. To do this,
-        # we first find all nodes that are inside the polygon and then find all elements that are connected to those nodes.
+        # For this grid type, we find all nodes that are connected to elements that are inside
+        # the polygon. To do this, we first find all nodes that are inside the polygon and then
+        # find all elements that are connected to those nodes.
         try:
             mesh = ds.cf["mesh_topology"]
         except KeyError as err:
-            raise ValueError('Dataset has no mesh topology variable') from err
+            raise ValueError("Dataset has no mesh topology variable") from err
         has_face_face_connectivity = "face_face_connectivity" in mesh.attrs
         x_var, y_var = mesh.node_coordinates.split(" ")
         x, y = ds[x_var], ds[y_var]
@@ -178,19 +183,21 @@ class UGrid(Grid):
             ds_subset[mesh.face_face_connectivity][:] = face_face_new
         return ds_subset
 
-def assign_ugrid_topology(ds: xr.Dataset,
-                          *,
-                          face_node_connectivity: str,
-                          face_face_connectivity: str = None,
-                          boundary_node_connectivity: str = None,
-                          face_edge_connectivity: str = None,
-                          edge_node_connectivity: str = None,
-                          edge_face_connectivity: str = None,
-                          node_coordinates: str = None,
-                          face_coordinates: str = None,
-                          edge_coordinates: str = None,
-                          start_index: int = None,
-                          ) -> xr.Dataset:
+
+def assign_ugrid_topology(
+    ds: xr.Dataset,
+    *,
+    face_node_connectivity: str,
+    face_face_connectivity: str = None,
+    boundary_node_connectivity: str = None,
+    face_edge_connectivity: str = None,
+    edge_node_connectivity: str = None,
+    edge_face_connectivity: str = None,
+    node_coordinates: str = None,
+    face_coordinates: str = None,
+    edge_coordinates: str = None,
+    start_index: int = None,
+) -> xr.Dataset:
     # Should this be "make entire dataset UGRID compliant ?"
     #  That would mean that the grid variables should all get metadata,
     #  such as "location"
@@ -202,21 +209,28 @@ def assign_ugrid_topology(ds: xr.Dataset,
     Only the face_node_connectivity parameter is required.
     The face_face_connectivity parameter is optional.
 
-    If the variable for face_node_connectivity is named nv, the function call should look like this:
+    If the variable for face_node_connectivity is named nv, the function call should look
+    like this:
 
     ```
     ds = assign_ugrid_topology(ds, face_node_connectivity="nv")
     ```
 
-    This will assign a new variable to the dataset called "mesh" with the face_node_connectivity attribute. It will
-    also assign the node_coordinates attribute to the dataset with the lon and lat coordinate variable names, introspected
+    This will assign a new variable to the dataset called "mesh" with
+    the face_node_connectivity attribute. It will also assign the node_coordinates attribute
+    to the dataset with the lon and lat coordinate variable names, introspected
     from the face_node_connectivity variables' dimensions.
 
-    You can also optionally specify any of the following mesh topology variables by passing them as keyword arguments
-    - node_coordinates: If not specified, the function will introspect the dataset for the longitude and latitude coordinate variable names using cf_xarray
+    You can also optionally specify any of the following mesh topology variables by passing
+    them as keyword arguments
+    - node_coordinates: If not specified, the function will introspect the dataset
+                        for the longitude and latitude coordinate variable names using
+                        cf_xarray
     - face_face_connectivity
-    - face_coordinates: If not specified, the function will introspect the dataset for the longitude and latitude coordinate variable names matching the face_node_connectivity variable
-                        but do nothing if they are not found
+    - face_coordinates: If not specified, the function will introspect the dataset
+                        for the longitude and latitude coordinate variable names matching
+                        the face_node_connectivity variable, but do nothing if they are
+                        not found
 
     Args:
         ds (xr.Dataset): The dataset to assign the UGRID topology to
@@ -265,7 +279,6 @@ def assign_ugrid_topology(ds: xr.Dataset,
     # face_coordinates
     # edge_coordinates
 
-
     # check for an existing mesh variable?
     try:
         mesh_vars = ds.cf.cf_roles["mesh_topology"]
@@ -273,23 +286,55 @@ def assign_ugrid_topology(ds: xr.Dataset,
         # not there, create one
         mesh_attrs = {"cf_role": "mesh_topology"}
         ds = ds.assign(mesh=((), np.int32(0), mesh_attrs))
-        mesh_attrs = ds['mesh'].attrs
+        mesh_attrs = ds["mesh"].attrs
     else:
         if len(mesh_vars) > 1:
-            raise ValueError(f"This dataset has more than one mesh_topology variable: {mesh_vars}")
+            raise ValueError(
+                f"This dataset has more than one mesh_topology variable: {mesh_vars}"
+            )
         mesh_attrs = ds[mesh_vars[0]].attrs
 
     # update local variables with existing mesh
     # not DRY, but what can you do?
-    node_coordinates = mesh_attrs.get("node_coordinates") if node_coordinates is None else node_coordinates
-    face_coordinates = mesh_attrs.get("face_coordinates") if face_coordinates is None else face_coordinates
-    edge_coordinates = mesh_attrs.get("edge_coordinates") if edge_coordinates is None else edge_coordinates
-    face_node_connectivity = mesh_attrs.get("face_node_connectivity") if face_node_connectivity is None else face_node_connectivity
-    face_face_connectivity = mesh_attrs.get("face_face_connectivity") if face_face_connectivity is None else face_face_connectivity
-    boundary_node_connectivity = mesh_attrs.get("boundary_node_connectivity") if boundary_node_connectivity is None else boundary_node_connectivity
-    face_edge_connectivity = mesh_attrs.get("face_edge_connectivity") if face_edge_connectivity is None else face_edge_connectivity
-    edge_face_connectivity = mesh_attrs.get("edge_face_connectivity") if edge_face_connectivity is None else edge_face_connectivity
-    edge_node_connectivity = mesh_attrs.get("edge_node_connectivity") if edge_node_connectivity is None else edge_node_connectivity
+    node_coordinates = (
+        mesh_attrs.get("node_coordinates") if node_coordinates is None else node_coordinates
+    )
+    face_coordinates = (
+        mesh_attrs.get("face_coordinates") if face_coordinates is None else face_coordinates
+    )
+    edge_coordinates = (
+        mesh_attrs.get("edge_coordinates") if edge_coordinates is None else edge_coordinates
+    )
+    face_node_connectivity = (
+        mesh_attrs.get("face_node_connectivity")
+        if face_node_connectivity is None
+        else face_node_connectivity
+    )
+    face_face_connectivity = (
+        mesh_attrs.get("face_face_connectivity")
+        if face_face_connectivity is None
+        else face_face_connectivity
+    )
+    boundary_node_connectivity = (
+        mesh_attrs.get("boundary_node_connectivity")
+        if boundary_node_connectivity is None
+        else boundary_node_connectivity
+    )
+    face_edge_connectivity = (
+        mesh_attrs.get("face_edge_connectivity")
+        if face_edge_connectivity is None
+        else face_edge_connectivity
+    )
+    edge_face_connectivity = (
+        mesh_attrs.get("edge_face_connectivity")
+        if edge_face_connectivity is None
+        else edge_face_connectivity
+    )
+    edge_node_connectivity = (
+        mesh_attrs.get("edge_node_connectivity")
+        if edge_node_connectivity is None
+        else edge_node_connectivity
+    )
 
     # find the coordinates
     if not face_coordinates:
@@ -312,7 +357,7 @@ def assign_ugrid_topology(ds: xr.Dataset,
             node_coordinates = [node_lon, node_lat]
         except AttributeError:
             raise ValueError(
-                "The dataset does not have cf_compliant node coordinates longitude and latitude coordinates"
+                "The dataset does not have cf_compliant node coordinates longitude and latitude coordinates"  # noqa: E501
             )
 
     if not edge_coordinates:
@@ -321,7 +366,6 @@ def assign_ugrid_topology(ds: xr.Dataset,
             edge_coordinates = [f"{coord[0]}" for coord in edge_coordinates.values()]
         except (KeyError, AttributeError):
             edge_coordinates = None
-
 
     if not face_face_connectivity:
         # face_face_connectivity var should have same dimensions as
@@ -333,23 +377,24 @@ def assign_ugrid_topology(ds: xr.Dataset,
                 face_face_connectivity = var_name
                 break
 
-    mesh_attrs.update({
-        "topology_dimension": np.int32(2),
-        "node_coordinates": " ".join(node_coordinates),
-        "face_node_connectivity": face_node_connectivity,
-    })
+    mesh_attrs.update(
+        {
+            "topology_dimension": np.int32(2),
+            "node_coordinates": " ".join(node_coordinates),
+            "face_node_connectivity": face_node_connectivity,
+        }
+    )
 
     if face_coordinates:
         mesh_attrs["face_coordinates"] = " ".join(face_coordinates)
     if face_face_connectivity:
         mesh_attrs["face_face_connectivity"] = face_face_connectivity
 
-
     # check for start_index, and set it if there.
     if start_index is None:
         start_index = int(ds[face_node_connectivity].min())
 
-    if not start_index in (0, 1):
+    if start_index not in (0, 1):
         raise ValueError(f"start_index must be 0 or 1, not {start_index}")
 
     # assign the start_index to all the grid variables
@@ -358,7 +403,7 @@ def assign_ugrid_topology(ds: xr.Dataset,
         if var_name:
             try:
                 var = ds[var_name]
-                var.attrs.setdefault('start_index', start_index)
+                var.attrs.setdefault("start_index", start_index)
             except KeyError:
                 warnings.warn(f"{var_name} in mesh_topology variable, but not in dataset")
 

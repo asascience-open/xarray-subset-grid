@@ -43,7 +43,9 @@ dev = [
   "pytest",
   "pytest-cov",
   "sphinx",
-  "sphinx-rtd-theme"
+  "sphinx-rtd-theme", 
+  "shapely", 
+  "geometry_utils",
 ]
 examples = [
   "fsspec",
