@@ -73,7 +73,7 @@ class UGrid(Grid):
         for var_name in ALL_MESH_VARS:
             if var_name in mesh.attrs:
                 if "coordinates" in var_name:
-                    node_coordinates = mesh.node_coordinates.split(" ")
+                    _node_coordinates = mesh.node_coordinates.split(" ")
                     vars.update(mesh.attrs[var_name].split(" "))
                 else:
                     vars.add(mesh.attrs[var_name])
@@ -134,6 +134,10 @@ class UGrid(Grid):
         else:
             transpose_face_node_connectivity = True
             face_node_connectivity = ds[mesh.face_node_connectivity].T
+        face_node_start_index = face_node_connectivity.attrs.get("start_index", None)
+        if not face_node_start_index:
+            warnings.warn("No start_index found in face_node_connectivity, assuming 0")
+            face_node_start_index = 0
 
         # If any nodes in an element are inside the polygon, the element is
         # inside the polygon so make sure all of the relevent nodes and
@@ -145,7 +149,7 @@ class UGrid(Grid):
 
         # NOTE: UGRIDS can be zero-indexed OR one-indexed!
         #       see the UGRID spec.
-        tris = face_node_connectivity - 1
+        tris = face_node_connectivity - face_node_start_index
         tri_mask = node_inside[tris]
         elements_inside = tri_mask.any(axis=1)
         tri_mask[elements_inside] = True
@@ -187,7 +191,7 @@ class UGrid(Grid):
 def assign_ugrid_topology(
     ds: xr.Dataset,
     *,
-    face_node_connectivity: str,
+    face_node_connectivity: str = None,
     face_face_connectivity: str = None,
     boundary_node_connectivity: str = None,
     face_edge_connectivity: str = None,
@@ -306,10 +310,13 @@ def assign_ugrid_topology(
         mesh_attrs.get("edge_coordinates") if edge_coordinates is None else edge_coordinates
     )
     face_node_connectivity = (
-        mesh_attrs.get("face_node_connectivity")
+        mesh_attrs.get("face_node_connectivity", None)
         if face_node_connectivity is None
         else face_node_connectivity
     )
+    if face_node_connectivity is None:
+        raise ValueError("face_node_connectivity is a required parameter if it is not in the mesh_topology variable")  # noqa: E501
+
     face_face_connectivity = (
         mesh_attrs.get("face_face_connectivity")
         if face_face_connectivity is None
@@ -341,6 +348,7 @@ def assign_ugrid_topology(
         try:
             face_coordinates = ds[face_node_connectivity].cf.coordinates
             face_coordinates = [f"{coord[0]}" for coord in face_coordinates.values()]
+            face_coordinates = " ".join(face_coordinates)
         except AttributeError:
             face_coordinates = None
 
@@ -354,7 +362,7 @@ def assign_ugrid_topology(
             coords = ds.cf.coordinates
             node_lon = [c for c in coords["longitude"] if c not in filter][0]
             node_lat = [c for c in coords["latitude"] if c not in filter][0]
-            node_coordinates = [node_lon, node_lat]
+            node_coordinates = " ".join([node_lon, node_lat])
         except AttributeError:
             raise ValueError(
                 "The dataset does not have cf_compliant node coordinates longitude and latitude coordinates"  # noqa: E501
@@ -380,13 +388,11 @@ def assign_ugrid_topology(
     mesh_attrs.update(
         {
             "topology_dimension": np.int32(2),
-            "node_coordinates": " ".join(node_coordinates),
+            "node_coordinates": node_coordinates,
             "face_node_connectivity": face_node_connectivity,
         }
     )
 
-    if face_coordinates:
-        mesh_attrs["face_coordinates"] = " ".join(face_coordinates)
     if face_face_connectivity:
         mesh_attrs["face_face_connectivity"] = face_face_connectivity
 
