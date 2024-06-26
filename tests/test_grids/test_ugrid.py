@@ -231,7 +231,7 @@ def test_assign_ugrid_topology_no_connectivity():
     """
     ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         ds = ugrid.assign_ugrid_topology(ds, face_face_connectivity='something')
 
     assert True

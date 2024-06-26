@@ -303,9 +303,13 @@ def assign_ugrid_topology(
     node_coordinates = (
         mesh_attrs.get("node_coordinates") if node_coordinates is None else node_coordinates
     )
+    if node_coordinates is not None and isinstance(node_coordinates, str):
+        node_coordinates = node_coordinates.split(" ")
     face_coordinates = (
         mesh_attrs.get("face_coordinates") if face_coordinates is None else face_coordinates
     )
+    if face_coordinates is not None and isinstance(face_coordinates, str):
+        face_coordinates = face_coordinates.split(" ")
     edge_coordinates = (
         mesh_attrs.get("edge_coordinates") if edge_coordinates is None else edge_coordinates
     )
@@ -315,7 +319,9 @@ def assign_ugrid_topology(
         else face_node_connectivity
     )
     if face_node_connectivity is None:
-        raise ValueError("face_node_connectivity is a required parameter if it is not in the mesh_topology variable")  # noqa: E501
+        raise ValueError(
+            "face_node_connectivity is a required parameter if it is not in the mesh_topology variable"  # noqa: E501
+        )
 
     face_face_connectivity = (
         mesh_attrs.get("face_face_connectivity")
@@ -348,7 +354,6 @@ def assign_ugrid_topology(
         try:
             face_coordinates = ds[face_node_connectivity].cf.coordinates
             face_coordinates = [f"{coord[0]}" for coord in face_coordinates.values()]
-            face_coordinates = " ".join(face_coordinates)
         except AttributeError:
             face_coordinates = None
 
@@ -362,7 +367,7 @@ def assign_ugrid_topology(
             coords = ds.cf.coordinates
             node_lon = [c for c in coords["longitude"] if c not in filter][0]
             node_lat = [c for c in coords["latitude"] if c not in filter][0]
-            node_coordinates = " ".join([node_lon, node_lat])
+            node_coordinates = [node_lon, node_lat]
         except AttributeError:
             raise ValueError(
                 "The dataset does not have cf_compliant node coordinates longitude and latitude coordinates"  # noqa: E501
@@ -388,11 +393,13 @@ def assign_ugrid_topology(
     mesh_attrs.update(
         {
             "topology_dimension": np.int32(2),
-            "node_coordinates": node_coordinates,
+            "node_coordinates": " ".join(node_coordinates),
             "face_node_connectivity": face_node_connectivity,
         }
     )
 
+    if face_coordinates:
+        mesh_attrs["face_coordinates"] = " ".join(face_coordinates)
     if face_face_connectivity:
         mesh_attrs["face_face_connectivity"] = face_face_connectivity
 

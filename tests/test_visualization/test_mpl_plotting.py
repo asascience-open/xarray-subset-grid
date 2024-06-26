@@ -5,13 +5,15 @@ hard to test plotting, but at least they don't barf.
 """
 
 from pathlib import Path
-import xarray as xr
-from xarray_subset_grid.grids import ugrid
 
 import pytest
+import xarray as xr
+
+from xarray_subset_grid.grids import ugrid
 
 try:
     import matplotlib.pyplot as plt
+
     from xarray_subset_grid.visualization.mpl_plotting import plot_ugrid
 except ImportError:
     pytestmark = pytest.mark.skip(reason="matplotlib is not installed")
@@ -53,13 +55,10 @@ def test_plot_ugrid_node_numbers():
 
 def test_plot_ugrid_start_index_1():
     ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
-    ds = ugrid.assign_ugrid_topology(ds, face_node_connectivity='nv')
+    ds = ugrid.assign_ugrid_topology(ds, face_node_connectivity="nv")
 
     fig, axis = plt.subplots()
 
     plot_ugrid(axis, ds)
 
     fig.savefig(OUTPUT_DIR / "ugrid_plot_start_index_1")
-
-
-
