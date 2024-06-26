@@ -8,11 +8,11 @@ from pathlib import Path
 import xarray as xr
 from xarray_subset_grid.grids import ugrid
 
-from xarray_subset_grid.visualization.mpl_plotting import plot_ugrid
 import pytest
 
 try:
     import matplotlib.pyplot as plt
+    from xarray_subset_grid.visualization.mpl_plotting import plot_ugrid
 except ImportError:
     pytestmark = pytest.mark.skip(reason="matplotlib is not installed")
 
