@@ -1,5 +1,8 @@
+import warnings
+
 import cf_xarray  # noqa
 import numpy as np
+
 
 def normalize_polygon_x_coords(x, poly):
     """
@@ -22,7 +25,7 @@ def normalize_polygon_x_coords(x, poly):
     x_min, x_max = x.min(), x.max()
 
     poly_x = poly[:, 0]
-    poly_x_min, poly_x_max = poly_x.min(), poly_x.max()
+    _poly_x_min, poly_x_max = poly_x.min(), poly_x.max()
 
     if x_max > 180 and poly_x_max < 0:
         poly_x[poly_x < 0] += 360
@@ -31,6 +34,7 @@ def normalize_polygon_x_coords(x, poly):
 
     poly[:, 0] = poly_x
     return poly
+
 
 def ray_tracing_numpy(x, y, poly):
     """Find vertices inside of the given polygon
@@ -50,9 +54,7 @@ def ray_tracing_numpy(x, y, poly):
     p1x, p1y = poly[0]
     for i in range(n + 1):
         p2x, p2y = poly[i % n]
-        idx = np.nonzero(
-            (y > min(p1y, p2y)) & (y <= max(p1y, p2y)) & (x <= max(p1x, p2x))
-        )[0]
+        idx = np.nonzero((y > min(p1y, p2y)) & (y <= max(p1y, p2y)) & (x <= max(p1x, p2x)))[0]
         if len(idx):
             if p1y != p2y:
                 xints = (y[idx] - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
@@ -69,11 +71,16 @@ def ray_tracing_numpy(x, y, poly):
 # This is defined in ugrid.py
 # this placeholder for backwards compatibility for a brief period
 def assign_ugrid_topology(*args, **kwargs):
-    warnings.warn(DeprecationWarning, "The function `assign_grid_topology` has been moved to the "
-                                      "`grids.ugrid` module. It will not be able to be called from "
-                                      "the utils `module` in the future.")
+    warnings.warn(
+        DeprecationWarning,
+        "The function `assign_grid_topology` has been moved to the "
+        "`grids.ugrid` module. It will not be able to be called from "
+        "the utils `module` in the future.",
+    )
     from .grids.ugrid import assign_ugrid_topology
+
     return assign_ugrid_topology(*args, **kwargs)
+
 
 def format_bytes(num):
     """
@@ -83,10 +90,9 @@ def format_bytes(num):
     """
     # not much to it, but handy for demos, etc.
 
-    step_unit = 1024 #1024 bad the size
+    step_unit = 1024  # 1024 bad the size
 
-    for x in ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB']:
+    for x in ["bytes", "KB", "MB", "GB", "TB", "PB"]:
         if num < step_unit:
-            return "%3.1f %s" % (num, x)
+            return f"{num:3.1f} {x}"
         num /= step_unit
-

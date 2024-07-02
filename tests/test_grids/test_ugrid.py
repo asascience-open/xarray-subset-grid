@@ -221,7 +221,6 @@ Added by the subsetter:
 # topology for TEST_FILE1
 grid_topology = {'node_coordinates': ('lon', 'lat'),
                  'face_node_connectivity': 'nv',
-                 'node_coordinates': ('lon', 'lat'),
                  'face_coordinates': ('lonc', 'latc'),
                  'face_face_connectivity': 'nbe'
                  }
