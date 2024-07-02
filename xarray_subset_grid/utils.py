@@ -1,6 +1,5 @@
 import cf_xarray  # noqa
 import numpy as np
-import xarray as xr
 
 def normalize_polygon_x_coords(x, poly):
     """

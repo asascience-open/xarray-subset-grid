@@ -1,14 +1,10 @@
 import time
 
-import cf_xarray
 import fsspec
-import s3fs
 import shapely
 import thalassa
 import xarray as xr
 import xugrid as xu
-
-import xarray_subset_grid as xrsg
 
 bucket_name = 'noaa-gestofs-pds'
 key = '_para2/stofs_2d_glo.20230819/stofs_2d_glo.t00z.fields.cwl.nc'

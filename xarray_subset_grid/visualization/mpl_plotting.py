@@ -4,8 +4,9 @@ Some MPL based plotting utilities for working with grids.
 NOTE: this could probably be built on existing packages -- worth a look.
 """
 
+from matplotlib.collections import LineCollection
 from matplotlib.tri import Triangulation
-from matplotlib.collections import  LineCollection
+
 
 def plot_ugrid(axes,
                ds,

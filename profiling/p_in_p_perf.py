@@ -44,7 +44,7 @@ geometry_utils
 
 import numpy as np
 
-# Using a 20 vertex polygon -- arbitrary decision as common max for 
+# Using a 20 vertex polygon -- arbitrary decision as common max for
 # bounding poly used for subsetting.
 test_poly = np.array([
     [-69.0842494, 41.8576263],
@@ -90,6 +90,7 @@ rtn_inside = ray_tracing_numpy(test_lon, test_lat, test_poly)
 
 
 from geometry_utils import polygon_inside
+
 geom = polygon_inside(test_poly, test_points)
 # 1000 pts
 # In [11]: %timeit polygon_inside(test_poly, test_points)
@@ -101,7 +102,7 @@ geom = polygon_inside(test_poly, test_points)
 # Do they give the same answer?
 assert np.array_equal(rtn_inside, geom)
 
-from shapely import contains_xy, Polygon
+from shapely import Polygon, contains_xy
 
 sh_poly = Polygon(test_poly)
 

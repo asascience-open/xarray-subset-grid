@@ -2,10 +2,11 @@
 tests for ugrid code
 """
 from pathlib import Path
-import xarray as xr
-from xarray_subset_grid.grids import ugrid
 
 import pytest
+import xarray as xr
+
+from xarray_subset_grid.grids import ugrid
 
 EXAMPLE_DATA = Path(__file__).parent.parent.parent / "examples" / "example_data"
 
