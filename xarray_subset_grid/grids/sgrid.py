@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 import xarray as xr
 
@@ -18,7 +16,8 @@ class SGrid(Grid):
         except KeyError:
             return False
 
-        # For now, if the dataset has a grid topology and not a mesh topology, we assume it's a SGRID
+        # For now, if the dataset has a grid topology and not a mesh topology,
+        # we assume it's a SGRID
         return len(_grid_topology_keys) > 0 and _grid_topology_keys[0] in ds
 
     @property
@@ -56,7 +55,7 @@ class SGrid(Grid):
         return {var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)}
 
     def subset_polygon(
-        self, ds: xr.Dataset, polygon: Union[list[tuple[float, float]], np.ndarray]
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
     ) -> xr.Dataset:
         """Subset the dataset to the grid
         :param ds: The dataset to subset
@@ -111,14 +110,10 @@ class SGrid(Grid):
             # so that we can use it to mask and drop via xr.where, which requires that
             # the mask and data have the same shape and both are DataArrays with matching
             # dimensions
-            ds_subset = ds.assign(
-                subset_mask=xr.DataArray(polygon_mask, dims=mask_dims)
-            )
+            ds_subset = ds.assign(subset_mask=xr.DataArray(polygon_mask, dims=mask_dims))
 
             # Now we can use the mask to subset the data
-            ds_subset = (
-                ds_subset[vars].where(ds_subset.subset_mask, drop=True).drop_encoding()
-            )
+            ds_subset = ds_subset[vars].where(ds_subset.subset_mask, drop=True).drop_encoding()
 
             # Add the subsetted dataset to the list for merging
             ds_out.append(ds_subset)

@@ -1,7 +1,6 @@
-from typing import Optional
 import warnings
-#from typing import Optional, Union
 
+#from typing import Optional, Union
 import numpy as np
 import xarray as xr
 
@@ -20,7 +19,7 @@ def register_grid_impl(grid_impl: Grid, priority: int = 0):
     _grid_impls.insert(priority, grid_impl)
 
 
-def grid_factory(ds: xr.Dataset) -> Optional[Grid]:
+def grid_factory(ds: xr.Dataset) -> Grid | None:
     """
     Get the grid implementation for the given dataset.
     :param ds: The dataset to get the grid implementation for
@@ -37,7 +36,7 @@ class GridDatasetAccessor:
     """Accessor for grid operations on datasets"""
 
     _ds: xr.Dataset
-    _grid: Optional[Grid]
+    _grid: Grid | None
 
     def __init__(self, ds: xr.Dataset):
         """
@@ -48,7 +47,7 @@ class GridDatasetAccessor:
         self._grid = grid_factory(ds)
 
     @property
-    def grid(self) -> Optional[Grid]:
+    def grid(self) -> Grid | None:
         """The recognized grid implementation for the given dataset
         :return: The grid implementation or None if no implementation is found
         """
@@ -100,7 +99,7 @@ class GridDatasetAccessor:
         return self._ds
 
     def subset_polygon(self, polygon: list[tuple[float, float]] | np.ndarray
-                       ) -> Optional[xr.Dataset]:
+                       ) -> xr.Dataset | None:
         """
         Subset the dataset to the grid.
 
@@ -116,7 +115,7 @@ class GridDatasetAccessor:
 
     def subset_bbox(
         self, bbox: tuple[float, float, float, float]
-    ) -> Optional[xr.Dataset]:
+    ) -> xr.Dataset | None:
         """Subset the dataset to the bounding box
 
         This call is forwarded to the grid implementation with the loaded dataset.

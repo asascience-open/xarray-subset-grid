@@ -4,8 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xarray_subset_grid"
-authors = [{ name = "Matthew Iannucci", email = "matt.iannucci@tetratech.com" },
-           { name = "Christopher H. Barker", email = "chris.barker@noaa.gov" }]
+authors = [
+  { name = "Matthew Iannucci", email = "matt.iannucci@tetratech.com" },
+  { name = "Christopher H. Barker", email = "chris.barker@noaa.gov" },
+]
 description = "Subset Xarray datasets in space"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,27 +15,27 @@ keywords = ["xarray"]
 license = { file = "LICENSE" }
 
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Science/Research",
-    "Operating System :: OS Independent",
-    "License :: OSI Approved :: BSD License",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Scientific/Engineering",
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
 ]
 
 dynamic = ["version"]
 
 dependencies = [
-  "numpy", 
-  "xarray>=2023.10.0", 
-  "cf_xarray", 
+  "numpy",
+  "xarray>=2023.10.0",
+  "cf_xarray",
   "dask[complete]",
   "netcdf4",
-  ]
+]
 
 [project.optional-dependencies]
 dev = [
@@ -45,13 +47,7 @@ dev = [
   "sphinx",
   "sphinx-rtd-theme",
 ]
-examples = [
-  "fsspec",
-  "s3fs",
-  "zarr",
-  "matplotlib",
-  "h5netcdf"
-]
+examples = ["fsspec", "s3fs", "zarr", "matplotlib", "h5netcdf"]
 
 [project.urls]
 "Homepage" = "https://github.com/asascience-open/xarray-subset-grid"
@@ -64,12 +60,10 @@ write_to = "xarray_subset_grid/_version.py"
 
 [tool.ruff]
 builtins = ["ellipsis"]
-extend-exclude = [
-    "xarray_subset_grid/_version.py"
-]
+extend-exclude = ["xarray_subset_grid/_version.py"]
 target-version = "py310"
 # Use a longer line length.
-line-length = 95
+line-length = 100
 
 [tool.ruff.lint]
 ignore = [
@@ -77,12 +71,12 @@ ignore = [
   "E731", # do not assign a lambda expression, use a def
 ]
 select = [
-  "F", # Pyflakes
-  "E", # Pycodestyle
+  "F",   # Pyflakes
+  "E",   # Pycodestyle
   "W",
   "TID", # flake8-tidy-imports (absolute imports)
-  "I", # isort
-  "UP", # Pyupgrade
+  "I",   # isort
+  "UP",  # Pyupgrade
 ]
 extend-safe-fixes = [
   "TID252", # absolute imports
@@ -104,7 +98,7 @@ default = { solve-group = "default" }
 dev = { features = ["dev"], solve-group = "default" }
 examples = { features = ["examples"], solve-group = "default" }
 all = { features = ["dev", "examples"], solve-group = "default" }
-test310 = ["dev", "py310"] # implicit: test310 = ["dev", "py310", "default"]
+test310 = ["dev", "py310"]                                        # implicit: test310 = ["dev", "py310", "default"]
 test311 = ["dev", "py311"]
 test312 = ["dev", "py312"]
 
@@ -134,7 +128,9 @@ pytest-cov = "*"
 sphinx = "*"
 sphinx-rtd-theme = "*"
 
+
 [tool.pixi.feature.dev.tasks]
+lint = "ruff check"
 test = "pytest tests/"
 
 [tool.pixi.feature.examples.dependencies]

@@ -2,10 +2,11 @@
 tests for ugrid code
 """
 from pathlib import Path
-import xarray as xr
-from xarray_subset_grid.grids import ugrid
 
 import pytest
+import xarray as xr
+
+from xarray_subset_grid.grids import ugrid
 
 EXAMPLE_DATA = Path(__file__).parent.parent.parent / "examples" / "example_data"
 
@@ -220,7 +221,6 @@ Added by the subsetter:
 # topology for TEST_FILE1
 grid_topology = {'node_coordinates': ('lon', 'lat'),
                  'face_node_connectivity': 'nv',
-                 'node_coordinates': ('lon', 'lat'),
                  'face_coordinates': ('lonc', 'latc'),
                  'face_face_connectivity': 'nbe'
                  }

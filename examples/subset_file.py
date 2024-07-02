@@ -2,7 +2,6 @@ import cf_xarray # noqa
 import numpy as np
 import xarray as xr
 
-import xarray_subset_grid.accessor
 from xarray_subset_grid.grids import ugrid
 from xarray_subset_grid.utils import format_bytes
 from xarray_subset_grid.visualization.mpl_plotting import plot_ugrid

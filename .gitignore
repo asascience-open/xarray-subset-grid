@@ -164,3 +164,4 @@ xarray_subset_grid/_version.py
 .pixi
 *.egg-info
 
+.ruff_cache/
