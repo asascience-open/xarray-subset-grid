@@ -4,30 +4,118 @@ Subset Xarray datasets in space while retaining the original grid for complex gr
 
 ## Installation
 
+### `pip compatible`
+
 This package is not yet released on pypi, for now install using git:
 
 ```
 pip install xarray_subset_grid@git+https://github.com/asascience-open/xarray-subset-grid.git
 ```
 
-Or better yet: clone the project from git and build / install it from there.
-
+Or clone the project from git and build / install it from there.
 
 ## Usage
 
-*Coming Soon*
+This package is designed to be used in conjuction with [`xarray`](https://xarray.dev/). Given a [CF Compliant](https://cfconventions.org/) `xarray` dataset named `ds`, this package can be accessed using the `subset_grid` accessor:
 
-For now, see the [example notebooks](./examples/)
+```python
+# Get the interprested grid class
+grid = ds.subset_grid
 
-## API Design
+# subset to only include temperature
+ds_temp = ds.subset_grid.subset_vars(['temp'])
 
-The API for this package is very much a **work in progress**. 
+# subset by bounding box
+ds_subset_bbox = ds.subset_grid.subset_bbox([-72, 32, -70, 35])
 
-Specifically, there are decisions still to be made around the most efficient way to deal with the xarray accessor: should the grid implementations hold references to the datasets or should they stay static and not require a reference to a given dataset so they can be reused without side effects. 
+# or by polygon
+poly = np.array([
+    [-72, 32],
+    [-72, 33], 
+    [-73, 33], 
+    [-73, 31], 
+    [-72, 32],
+])
+ds_subset_poly = ds.subset_grid.subset_polygon(poly)
+```
 
-The grid implementations should also be exposed correctly so that they can be used without the xarray accessor as well.
+For full usage, see the [example notebooks](./examples/)
 
-## Use with conda
+## Development
+
+### `pip compatible`
+
+First, create a new `virtualenv` and activate it:
+
+```bash
+python -m venv venv
+source venv/bin.activate
+```
+
+Then install the project in local edit mode:
+
+```bash
+pip install -e .
+```
+
+Once installed, the tests can be run: 
+
+```bash
+python -m pytest
+```
+
+Or alternatively run the notebooks in the same `virtualenv`
+
+### `pixi`
+
+
+Learn about `pixi` here: https://prefix.dev/
+
+See the pixi docs for details, but for this setup:
+
+There are three "environments" set up for pixi:
+
+- `default`
+- `dev`
+- `examples`
+
+And two "tasks": 
+
+- `lint`
+- `test`
+
+To run the tests in an isolated environment:
+
+```bash
+pixi run -e dev test
+```
+
+To run a shell to do dev work:
+
+```bash
+pixi shell -e dev
+```
+
+That will set up a conda environment with all the develop dependencies.
+
+To run a shell in which you can run the examples:
+
+```bash
+pixi shell -e examples
+```
+To run a shell with everything (dev and example deps:
+
+```bash
+pixi shell -e all
+```
+
+Finally, to when the `pyproject.toml` is updated, be sure to update the `pixi` lockfile:
+
+```bash
+pixi install
+```
+
+### `conda`
 
 If you are using (or want to use) conda, you can install the dependencies with:
 
@@ -44,52 +132,3 @@ conda install --file conda_requirements_dev.txt
 ```
 
 (requirements should all be on the conda-forge channel)
-
-## pixi
-
-Another option for using conda packages -- this project has been set up to use the pixi environment management system
-
-https://prefix.dev/
-
-To use:
-
-See the pixi docs for details, but for this setup:
-
-There are three "environments" set up for pixi:
-
-- `default`
-- `dev`
-- `examples`
-
-And one "task": `test`
-
-To run the tests in an isolated environment:
-
-```
-pixi run -e dev test
-```
-
-To run a shell to do dev work:
-
-```
-pixi shell -e dev
-```
-
-That will set up a conda environment with all the develop dependencies.
-
-To run a shell in which you can run the examples:
-
-```
-pixi shell -e examples
-```
-To run a shell with everything (dev and example deps:
-
-```
-pixi shell -e all
-```
-
-
-
-
-
-
