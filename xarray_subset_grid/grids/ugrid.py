@@ -1,3 +1,4 @@
+from typing import Optional
 import warnings
 
 import numpy as np
@@ -126,9 +127,13 @@ class UGrid(Grid):
         x_var, y_var = mesh.node_coordinates.split(" ")
         x, y = ds[x_var], ds[y_var]
 
-        # NOTE: When the first dimension is "nele", the face_node_connectivity
+        face_dimension = mesh.attrs.get("face_dimension", None)
+        if not face_dimension:
+            raise ValueError("face_dimension is required to subset UGRID datasets")
+
+        # NOTE: When the first dimension is face_dimension, the face_node_connectivity
         #       is indexed by element first, then vertex. When the first dimension
-        if ds[mesh.face_node_connectivity].dims[0] == "nele":
+        if ds[mesh.face_node_connectivity].dims[0] == face_dimension:
             transpose_face_node_connectivity = False
             face_node_connectivity = ds[mesh.face_node_connectivity]
         else:
@@ -159,14 +164,12 @@ class UGrid(Grid):
         # Re-index the nodes and elements to remove the masked ones
         selected_nodes = np.sort(np.unique(tris[elements_inside].values.flatten()))
         selected_elements = np.sort(np.unique(np.where(elements_inside)))
-        face_node_new = np.searchsorted(
-            selected_nodes, face_node_connectivity[selected_elements]
-        )
+        face_node_new = np.searchsorted(selected_nodes, face_node_connectivity[selected_elements])
         if transpose_face_node_connectivity:
             face_node_new = face_node_new.T
 
         if has_face_face_connectivity:
-            if ds[mesh.face_node_connectivity].dims[0] == "nele":
+            if ds[mesh.face_node_connectivity].dims[0] == face_dimension:
                 transpose_face_face_connectivity = False
                 face_face_connectivity = ds[mesh.face_face_connectivity]
             else:
@@ -181,7 +184,7 @@ class UGrid(Grid):
 
         # Subset using xarrays select indexing, and overwrite the face_node_connectivity
         # and face_face_connectivity (if available) with the new indices
-        ds_subset = ds.sel(node=selected_nodes, nele=selected_elements)
+        ds_subset = ds.sel({'node': selected_nodes, face_dimension: selected_elements})
         ds_subset[mesh.face_node_connectivity][:] = face_node_new
         if has_face_face_connectivity:
             ds_subset[mesh.face_face_connectivity][:] = face_face_new
@@ -191,16 +194,18 @@ class UGrid(Grid):
 def assign_ugrid_topology(
     ds: xr.Dataset,
     *,
-    face_node_connectivity: str = None,
-    face_face_connectivity: str = None,
-    boundary_node_connectivity: str = None,
+    face_node_connectivity: str | None = None,
+    face_face_connectivity: str | None = None,
+    boundary_node_connectivity: str | None = None,
     face_edge_connectivity: str = None,
-    edge_node_connectivity: str = None,
-    edge_face_connectivity: str = None,
-    node_coordinates: str = None,
-    face_coordinates: str = None,
-    edge_coordinates: str = None,
-    start_index: int = None,
+    edge_node_connectivity: str | None = None,
+    edge_face_connectivity: str | None = None,
+    node_coordinates: str | None = None,
+    face_coordinates: str | None = None,
+    edge_coordinates: str | None = None,
+    face_dimension: str | None = None,
+    edge_dimension: str | None = None,
+    start_index: int | None = None,
 ) -> xr.Dataset:
     # Should this be "make entire dataset UGRID compliant ?"
     #  That would mean that the grid variables should all get metadata,
@@ -249,6 +254,8 @@ def assign_ugrid_topology(
         node_coordinates: str = None,
         face_coordinates: str = None,
         edge_coordinates: str = None,
+        face_dimension: str = None,
+        edge_dimension: str = None,
         start_index: int = None,
 
     (See the UGRID conventions for descriptions of these)
@@ -293,9 +300,7 @@ def assign_ugrid_topology(
         mesh_attrs = ds["mesh"].attrs
     else:
         if len(mesh_vars) > 1:
-            raise ValueError(
-                f"This dataset has more than one mesh_topology variable: {mesh_vars}"
-            )
+            raise ValueError(f"This dataset has more than one mesh_topology variable: {mesh_vars}")
         mesh_attrs = ds[mesh_vars[0]].attrs
 
     # update local variables with existing mesh
@@ -348,6 +353,8 @@ def assign_ugrid_topology(
         if edge_node_connectivity is None
         else edge_node_connectivity
     )
+    face_dimension = mesh_attrs.get("face_dimension") if face_dimension is None else face_dimension
+    edge_dimension = mesh_attrs.get("edge_dimension") if edge_dimension is None else edge_dimension
 
     # find the coordinates
     if not face_coordinates:
@@ -402,6 +409,21 @@ def assign_ugrid_topology(
         mesh_attrs["face_coordinates"] = " ".join(face_coordinates)
     if face_face_connectivity:
         mesh_attrs["face_face_connectivity"] = face_face_connectivity
+
+    if face_dimension:
+        mesh_attrs["face_dimension"] = face_dimension
+    else:
+        # The face_dimension attribute specifies which netcdf dimension is used to
+        # indicate the index of the face in the connectivity arrays. This is needed
+        # because some applications store the data with the fastest varying index
+        # first, and some with that index last. The default is to use the num_faces
+        # as fastest dimension; e.g. a (num_faces, 3) array for triangles,
+        # but some applications might use a (3, num_faces) order, in which case
+        # the face_dimension attribute is required to help the client code disambiguate.
+        dims = ds[face_node_connectivity].dims
+        mapping = [(dim, ds[dim].size) for dim in dims]
+        face_dimension = next(x[0] for x in mapping if x[1] != 3 and x[1] != 4)
+        mesh_attrs["face_dimension"] = face_dimension
 
     # check for start_index, and set it if there.
     if start_index is None:
