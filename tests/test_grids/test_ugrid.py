@@ -355,7 +355,7 @@ def test_grid_vars():
 
     ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
 
-    grid_vars = ds.subset_grid.grid_vars
+    grid_vars = ds.xsg.grid_vars
 
     # ['mesh', 'nv', 'lon', 'lat', 'lonc', 'latc']
     assert grid_vars == set(['mesh', 'nv', 'nbe', 'lon', 'lat', 'lonc', 'latc'])
@@ -370,7 +370,7 @@ def test_data_vars():
     ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
     ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
 
-    data_vars = ds.subset_grid.data_vars
+    data_vars = ds.xsg.data_vars
 
     assert set(data_vars) == set(['h',
                                   'zeta',
@@ -395,7 +395,7 @@ def test_extra_vars():
     ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
 
 
-    extra_vars = ds.subset_grid.extra_vars
+    extra_vars = ds.xsg.extra_vars
 
     print([*ds])
     print(f"{extra_vars=}")
@@ -409,7 +409,7 @@ def test_coords():
     ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
     ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
 
-    coords = ds.subset_grid.coords
+    coords = ds.xsg.coords
 
     print(f'{coords=}')
     print(f'{ds.coords=}')

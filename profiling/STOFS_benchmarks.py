@@ -30,7 +30,7 @@ def info(ds):
 
 print("Subsetting methods comparison")
 start = time.time()
-ads = ds.subset_grid.grid.subset_bbox(ds, bbox)
+ads = ds.xsg.grid.subset_bbox(ds, bbox)
 print(f"Xarray-subset-grid - {time.time-start} sec")
 
 start = time.time()
