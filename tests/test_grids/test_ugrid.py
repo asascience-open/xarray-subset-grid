@@ -259,6 +259,7 @@ def test_assign_ugrid_topology_min():
     assert mesh['face_node_connectivity'] == 'nv'
     assert mesh['face_coordinates'] == 'lonc latc'
     assert mesh['face_face_connectivity'] == 'nbe'
+    assert mesh['face_dimension'] == 'nele'
 
 
 def test_assign_ugrid_topology_dict():
@@ -284,6 +285,8 @@ def test_assign_ugrid_topology_dict():
     assert mesh['face_coordinates'] == 'lonc latc'
     assert mesh['node_coordinates'] == 'lon lat'
     assert mesh['face_face_connectivity'] == 'nbe'
+    assert mesh['face_dimension'] == 'nele'
+
 
 def test_assign_ugrid_topology_existing_mesh_var():
     """
