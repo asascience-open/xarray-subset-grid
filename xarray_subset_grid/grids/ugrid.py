@@ -183,7 +183,11 @@ class UGrid(Grid):
 
         # Subset using xarrays select indexing, and overwrite the face_node_connectivity
         # and face_face_connectivity (if available) with the new indices
+<<<<<<< HEAD
         ds_subset = ds.sel({"node": selected_nodes, face_dimension: selected_elements})
+=======
+        ds_subset = ds.sel(node=selected_nodes, nele=selected_elements)
+>>>>>>> fa4edbf (Remove drop_encoding for now)
         ds_subset[mesh.face_node_connectivity][:] = face_node_new
         if has_face_face_connectivity:
             ds_subset[mesh.face_face_connectivity][:] = face_face_new
