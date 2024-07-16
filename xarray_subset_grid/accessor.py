@@ -1,6 +1,6 @@
 import warnings
 
-#from typing import Optional, Union
+# from typing import Optional, Union
 import numpy as np
 import xarray as xr
 
@@ -30,6 +30,7 @@ def grid_factory(ds: xr.Dataset) -> Grid | None:
             return grid_impl()
     warnings.warn("no grid type found in this dataset")
     return None
+
 
 @xr.register_dataset_accessor("xsg")
 class GridDatasetAccessor:
@@ -98,8 +99,40 @@ class GridDatasetAccessor:
             return self._grid.subset_vars(self._ds, vars)
         return self._ds
 
-    def subset_polygon(self, polygon: list[tuple[float, float]] | np.ndarray
-                       ) -> xr.Dataset | None:
+    @property
+    def has_vertical_levels(self) -> bool:
+        """Check if the dataset has vertical coordinates"""
+        if self._grid:
+            return self._grid.has_vertical_levels(self._ds)
+        return False
+
+    def subset_vertical_level(self, level: float, method: str | None = None) -> xr.Dataset:
+        """Subset the dataset to the vertical level
+
+        :param level: The vertical level to subset to
+        :param method: The method to use for the selection, this is the
+            same as the method in xarray.Dataset.sel
+        :return: The subsetted dataset
+        """
+        if self._grid:
+            return self._grid.subset_vertical_level(self._ds, level, method)
+        return self._ds
+
+    def subset_vertical_levels(
+        self, levels: tuple[float, float], method: str | None = None
+    ) -> xr.Dataset:
+        """Subset the dataset to the vertical level
+
+        :param levels: The vertical levels to subset to
+        :param method: The method to use for the selection, this is the
+            same as the method in xarray.Dataset.sel
+        :return: The subsetted dataset
+        """
+        if self._grid:
+            return self._grid.subset_vertical_levels(self._ds, levels, method)
+        return self._ds
+
+    def subset_polygon(self, polygon: list[tuple[float, float]] | np.ndarray) -> xr.Dataset | None:
         """
         Subset the dataset to the grid.
 
@@ -113,9 +146,7 @@ class GridDatasetAccessor:
             return self._grid.subset_polygon(self._ds, polygon)
         return None
 
-    def subset_bbox(
-        self, bbox: tuple[float, float, float, float]
-    ) -> xr.Dataset | None:
+    def subset_bbox(self, bbox: tuple[float, float, float, float]) -> xr.Dataset | None:
         """Subset the dataset to the bounding box
 
         This call is forwarded to the grid implementation with the loaded dataset.

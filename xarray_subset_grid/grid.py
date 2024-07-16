@@ -52,6 +52,49 @@ class Grid(ABC):
         subset = list(self.grid_vars(ds)) + list(vars)
         return ds[subset]
 
+    def has_vertical_levels(self, ds: xr.Dataset) -> bool:
+        """Check if the dataset has vertical coordinates"""
+        return ds.cf.coordinates.get("vertical", None) is not None
+
+    def subset_vertical_level(
+        self, ds: xr.Dataset, level: float, method: str | None = None
+    ) -> xr.Dataset:
+        """Subset the dataset to the vertical level
+
+        :param ds: The dataset to subset
+        :param level: The vertical level to subset to
+        :param method: The method to use for the selection, this is the
+            same as the method in xarray.Dataset.sel
+        """
+        if not self.has_vertical_levels(ds):
+            return ds
+
+        vertical_coords = ds.cf.coordinates["vertical"]
+        selection = {coord: level for coord in vertical_coords}
+        return ds.sel(selection, method=method)
+
+    def subset_vertical_levels(
+        self, ds: xr.Dataset, levels: tuple[float, float], method: str | None = None
+    ) -> xr.Dataset:
+        """Subset the dataset to the vertical level
+
+        :param ds: The dataset to subset
+        :param levels: The vertical levels to subset to. This is a tuple
+            with the minimum and maximum level. The minimum must be smaller
+            than the maximum.
+        :param method: The method to use for the selection, this is the
+            same as the method in xarray.Dataset.sel
+        """
+        if not self.has_vertical_levels(ds):
+            return ds
+
+        if levels[0] > levels[1]:
+            raise ValueError("The minimum level must be smaller than the maximum level")
+
+        vertical_coords = ds.cf.coordinates["vertical"]
+        selection = {coord: slice(levels[0], levels[1]) for coord in vertical_coords}
+        return ds.sel(selection, method=method)
+
     @abstractmethod
     def subset_polygon(
         self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
@@ -63,9 +106,7 @@ class Grid(ABC):
         """
         return ds
 
-    def subset_bbox(
-        self, ds: xr.Dataset, bbox: tuple[float, float, float, float]
-    ) -> xr.Dataset:
+    def subset_bbox(self, ds: xr.Dataset, bbox: tuple[float, float, float, float]) -> xr.Dataset:
         """Subset the dataset to the bounding box
         :param ds: The dataset to subset
         :param bbox: The bounding box to subset to
