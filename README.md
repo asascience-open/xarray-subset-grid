@@ -16,17 +16,17 @@ Or clone the project from git and build / install it from there.
 
 ## Usage
 
-This package is designed to be used in conjuction with [`xarray`](https://xarray.dev/). Given a [CF Compliant](https://cfconventions.org/) `xarray` dataset named `ds`, this package can be accessed using the `subset_grid` accessor:
+This package is designed to be used in conjuction with [`xarray`](https://xarray.dev/). Given a [CF Compliant](https://cfconventions.org/) `xarray` dataset named `ds`, this package can be accessed using the `xsg` accessor:
 
 ```python
 # Get the interprested grid class
-grid = ds.subset_grid
+grid = ds.xsg
 
 # subset to only include temperature
-ds_temp = ds.subset_grid.subset_vars(['temp'])
+ds_temp = ds.xsg.subset_vars(['temp'])
 
 # subset by bounding box
-ds_subset_bbox = ds.subset_grid.subset_bbox([-72, 32, -70, 35])
+ds_subset_bbox = ds.xsg.subset_bbox([-72, 32, -70, 35])
 
 # or by polygon
 poly = np.array([
@@ -36,7 +36,7 @@ poly = np.array([
     [-73, 31], 
     [-72, 32],
 ])
-ds_subset_poly = ds.subset_grid.subset_polygon(poly)
+ds_subset_poly = ds.xsg.subset_polygon(poly)
 ```
 
 For full usage, see the [example notebooks](./examples/)
