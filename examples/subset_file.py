@@ -66,16 +66,16 @@ print(f"Dataset size: {format_bytes(ds.nbytes)}")
 print("about to subset the vars")
 
 print("The data variables are:")
-print(ds.subset_grid.data_vars)
+print(ds.xsg.data_vars)
 
-ds = ds.subset_grid.subset_vars(['zeta', 'u', 'v'])
+ds = ds.xsg.subset_vars(['zeta', 'u', 'v'])
 
 print("Now the data variables are:")
-print(ds.subset_grid.data_vars)
+print(ds.xsg.data_vars)
 print(f"Dataset size: {format_bytes(ds.nbytes)}")
 
 # now to do the spatial subset:
-ds_sub = ds.subset_grid.subset_polygon(polygon)
+ds_sub = ds.xsg.subset_polygon(polygon)
 
 bb = (ds_sub['lon'].data.min(),
       ds_sub['lat'].data.min(),
@@ -85,9 +85,9 @@ bb = (ds_sub['lon'].data.min(),
 print(f"Bounding box is: {bb}")
 print(f"Dataset size: {format_bytes(ds_sub.nbytes)}")
 print("Now the data variables are:")
-print(ds_sub.subset_grid.data_vars)
+print(ds_sub.xsg.data_vars)
 print("And the grid variables are:")
-print(ds_sub.subset_grid.grid_vars)
+print(ds_sub.xsg.grid_vars)
 
 #save out the subset
 ds_sub.to_netcdf("small_subset.nc")

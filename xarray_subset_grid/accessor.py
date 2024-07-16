@@ -31,7 +31,7 @@ def grid_factory(ds: xr.Dataset) -> Grid | None:
     warnings.warn("no grid type found in this dataset")
     return None
 
-@xr.register_dataset_accessor("subset_grid")
+@xr.register_dataset_accessor("xsg")
 class GridDatasetAccessor:
     """Accessor for grid operations on datasets"""
 
