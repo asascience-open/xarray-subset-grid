@@ -154,14 +154,15 @@ class UGrid(Grid):
         # NOTE: UGRIDS can be zero-indexed OR one-indexed!
         #       see the UGRID spec.
         tris = face_node_connectivity - face_node_start_index
-        tri_mask = node_inside[tris]
+        valid_tris = tris.where(tris >= 0, drop=False).astype(int)
+        tri_mask = node_inside[valid_tris]
         elements_inside = tri_mask.any(axis=1)
         tri_mask[elements_inside] = True
 
-        node_inside[tris] = tri_mask
+        node_inside[valid_tris] = tri_mask
 
         # Re-index the nodes and elements to remove the masked ones
-        selected_nodes = np.sort(np.unique(tris[elements_inside].values.flatten()))
+        selected_nodes = np.sort(np.unique(valid_tris[elements_inside].values.flatten()))
         selected_elements = np.sort(np.unique(np.where(elements_inside)))
         face_node_new = np.searchsorted(selected_nodes, face_node_connectivity[selected_elements])
         if transpose_face_node_connectivity:
