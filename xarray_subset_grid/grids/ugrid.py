@@ -153,7 +153,7 @@ class UGrid(Grid):
 
         # NOTE: UGRIDS can be zero-indexed OR one-indexed!
         #       see the UGRID spec.
-        tris = face_node_connectivity - face_node_start_index
+        tris = face_node_connectivity.fillna(-1) - face_node_start_index
         valid_tris = tris.where(tris >= 0, drop=False).astype(int)
         tri_mask = node_inside[valid_tris]
         elements_inside = tri_mask.any(axis=1)
