@@ -69,9 +69,12 @@ class Grid(ABC):
         if not self.has_vertical_levels(ds):
             return ds
 
-        vertical_coords = ds.cf.coordinates["vertical"]
-        selection = {coord: level for coord in vertical_coords}
-        return ds.sel(selection, method=method)
+        if all([i in ds.indexes for i in ds.cf.coordinates["vertical"]]):
+            vertical_coords = ds.cf.coordinates["vertical"]
+            selection = {coord: level for coord in vertical_coords}
+            return ds.sel(selection, method=method)
+        else:
+            raise ValueError("The dataset does not have vertical coordinates that are indexible")
 
     def subset_vertical_levels(
         self, ds: xr.Dataset, levels: tuple[float, float], method: str | None = None
@@ -91,9 +94,12 @@ class Grid(ABC):
         if levels[0] > levels[1]:
             raise ValueError("The minimum level must be smaller than the maximum level")
 
-        vertical_coords = ds.cf.coordinates["vertical"]
-        selection = {coord: slice(levels[0], levels[1]) for coord in vertical_coords}
-        return ds.sel(selection, method=method)
+        if all([i in ds.indexes for i in ds.cf.coordinates["vertical"]]):
+            vertical_coords = ds.cf.coordinates["vertical"]
+            selection = {coord: slice(levels[0], levels[1]) for coord in vertical_coords}
+            return ds.sel(selection, method=method)
+        else:
+            raise ValueError("The dataset does not have vertical coordinates that are indexible")
 
     @abstractmethod
     def subset_polygon(
