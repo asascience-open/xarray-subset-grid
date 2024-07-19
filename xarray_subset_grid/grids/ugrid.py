@@ -125,6 +125,7 @@ class UGrid(Grid):
         has_face_face_connectivity = "face_face_connectivity" in mesh.attrs
         x_var, y_var = mesh.node_coordinates.split(" ")
         x, y = ds[x_var], ds[y_var]
+        node_dimension = x.dims[0]
 
         face_dimension = mesh.attrs.get("face_dimension", None)
         if not face_dimension:
@@ -189,7 +190,7 @@ class UGrid(Grid):
 
         # Subset using xarrays select indexing, and overwrite the face_node_connectivity
         # and face_face_connectivity (if available) with the new indices
-        ds_subset = ds.sel({"node": selected_nodes, face_dimension: selected_elements})
+        ds_subset = ds.sel({node_dimension: selected_nodes, face_dimension: selected_elements})
         ds_subset[mesh.face_node_connectivity][:] = face_node_new
         if has_face_face_connectivity:
             ds_subset[mesh.face_face_connectivity][:] = face_face_new
