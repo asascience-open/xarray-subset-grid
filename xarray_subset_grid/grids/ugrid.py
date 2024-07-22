@@ -163,7 +163,9 @@ class UGrid(Grid):
         # can't use uints because of the -1 fill value
         int_type = np.min_scalar_type(-1 * np.max(node_inside.shape))
         print('int type', int_type)
+        print('tris max', tris.max().values)
         valid_tris = tris.where(tris >= 0, drop=False).astype(int_type)
+        print('valid tris max', valid_tris.max().values)
         print('valid tris', valid_tris.shape)
         print('node inside', node_inside.shape)
         tri_mask = node_inside[valid_tris]
