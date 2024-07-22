@@ -161,7 +161,7 @@ class UGrid(Grid):
         print('tris', tris.shape)
         # Store the index as the smallest possible signed integer type, we
         # can't use uints because of the -1 fill value
-        int_type = np.min_scalar_type(-1 * np.max(tris.shape))
+        int_type = np.min_scalar_type(-1 * np.max(node_inside.shape))
         print('int type', int_type)
         valid_tris = tris.where(tris >= 0, drop=False).astype(int_type)
         print('valid tris', valid_tris.shape)
