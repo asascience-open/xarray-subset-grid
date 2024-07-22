@@ -1,6 +1,7 @@
 """
 tests for ugrid code
 """
+
 from pathlib import Path
 
 import pytest
@@ -219,11 +220,13 @@ Added by the subsetter:
 """
 
 # topology for TEST_FILE1
-grid_topology = {'node_coordinates': ('lon', 'lat'),
-                 'face_node_connectivity': 'nv',
-                 'face_coordinates': ('lonc', 'latc'),
-                 'face_face_connectivity': 'nbe'
-                 }
+grid_topology = {
+    "node_coordinates": ("lon", "lat"),
+    "face_node_connectivity": "nv",
+    "face_coordinates": ("lonc", "latc"),
+    "face_face_connectivity": "nbe",
+}
+
 
 def test_assign_ugrid_topology_no_connectivity():
     """
@@ -232,7 +235,7 @@ def test_assign_ugrid_topology_no_connectivity():
     ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
 
     with pytest.raises(ValueError):
-        ds = ugrid.assign_ugrid_topology(ds, face_face_connectivity='something')
+        ds = ugrid.assign_ugrid_topology(ds, face_face_connectivity="something")
 
     assert True
 
@@ -248,18 +251,18 @@ def test_assign_ugrid_topology_min():
 
     # make sure it's not there to start with
     with pytest.raises(KeyError):
-        ds['mesh']
+        ds["mesh"]
 
-    ds = ugrid.assign_ugrid_topology(ds, face_node_connectivity='nv')
+    ds = ugrid.assign_ugrid_topology(ds, face_node_connectivity="nv")
 
     # there are others, but these are the ones that really matter.
-    mesh = ds['mesh'].attrs
-    assert mesh['cf_role'] == 'mesh_topology'
-    assert mesh['node_coordinates'] == 'lon lat'
-    assert mesh['face_node_connectivity'] == 'nv'
-    assert mesh['face_coordinates'] == 'lonc latc'
-    assert mesh['face_face_connectivity'] == 'nbe'
-    assert mesh['face_dimension'] == 'nele'
+    mesh = ds["mesh"].attrs
+    assert mesh["cf_role"] == "mesh_topology"
+    assert mesh["node_coordinates"] == "lon lat"
+    assert mesh["face_node_connectivity"] == "nv"
+    assert mesh["face_coordinates"] == "lonc latc"
+    assert mesh["face_face_connectivity"] == "nbe"
+    assert mesh["face_dimension"] == "nele"
 
 
 def test_assign_ugrid_topology_dict():
@@ -273,19 +276,19 @@ def test_assign_ugrid_topology_dict():
 
     # make sure it's not there to start with
     with pytest.raises(KeyError):
-        ds['mesh']
+        ds["mesh"]
 
     ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
 
     # there are others, but these are the ones that really matter.
-    mesh = ds['mesh'].attrs
-    assert mesh['cf_role'] == 'mesh_topology'
-    assert mesh['node_coordinates'] == 'lon lat'
-    assert mesh['face_node_connectivity'] == 'nv'
-    assert mesh['face_coordinates'] == 'lonc latc'
-    assert mesh['node_coordinates'] == 'lon lat'
-    assert mesh['face_face_connectivity'] == 'nbe'
-    assert mesh['face_dimension'] == 'nele'
+    mesh = ds["mesh"].attrs
+    assert mesh["cf_role"] == "mesh_topology"
+    assert mesh["node_coordinates"] == "lon lat"
+    assert mesh["face_node_connectivity"] == "nv"
+    assert mesh["face_coordinates"] == "lonc latc"
+    assert mesh["node_coordinates"] == "lon lat"
+    assert mesh["face_face_connectivity"] == "nbe"
+    assert mesh["face_dimension"] == "nele"
 
 
 def test_assign_ugrid_topology_existing_mesh_var():
@@ -310,10 +313,10 @@ def test_assign_ugrid_topology_existing_mesh_var():
     ds = xr.open_dataset(EXAMPLE_DATA / "small_ugrid_zero_based.nc")
 
     # assigning the one that's already there -- should be non-destructive
-    ds_new = ugrid.assign_ugrid_topology(ds, face_node_connectivity='mesh_face_nodes')
+    ds_new = ugrid.assign_ugrid_topology(ds, face_node_connectivity="mesh_face_nodes")
 
-    old_mesh_var = ds['mesh']
-    new_mesh_var = ds_new['mesh']
+    old_mesh_var = ds["mesh"]
+    new_mesh_var = ds_new["mesh"]
 
     assert old_mesh_var.attrs == new_mesh_var.attrs
 
@@ -322,27 +325,28 @@ def test_assign_ugrid_topology_start_index_one():
     ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
     ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
     # bit fragile, but easy to write the test
-    assert ds['nv'].attrs['start_index'] == 1
-    assert ds['nbe'].attrs['start_index'] == 1
+    assert ds["nv"].attrs["start_index"] == 1
+    assert ds["nbe"].attrs["start_index"] == 1
 
 
 def test_assign_ugrid_topology_start_index_zero_specify():
     ds = xr.open_dataset(EXAMPLE_DATA / "small_ugrid_zero_based.nc")
-    ds = ugrid.assign_ugrid_topology(ds, face_node_connectivity='mesh_face_nodes', start_index=0)
+    ds = ugrid.assign_ugrid_topology(ds, face_node_connectivity="mesh_face_nodes", start_index=0)
 
     # a bit fragile, but easy to write the test
-    assert ds['mesh_face_nodes'].attrs['start_index'] == 0
-    assert ds['mesh_edge_nodes'].attrs['start_index'] == 0
-    assert ds['mesh_boundary_nodes'].attrs['start_index'] == 0
+    assert ds["mesh_face_nodes"].attrs["start_index"] == 0
+    assert ds["mesh_edge_nodes"].attrs["start_index"] == 0
+    assert ds["mesh_boundary_nodes"].attrs["start_index"] == 0
+
 
 def test_assign_ugrid_topology_start_index_zero_infer():
     ds = xr.open_dataset(EXAMPLE_DATA / "small_ugrid_zero_based.nc")
-    ds = ugrid.assign_ugrid_topology(ds, face_node_connectivity='mesh_face_nodes')
+    ds = ugrid.assign_ugrid_topology(ds, face_node_connectivity="mesh_face_nodes")
 
     # a bit fragile, but easy to write the test
-    assert ds['mesh_face_nodes'].attrs['start_index'] == 0
-    assert ds['mesh_edge_nodes'].attrs['start_index'] == 0
-    assert ds['mesh_boundary_nodes'].attrs['start_index'] == 0
+    assert ds["mesh_face_nodes"].attrs["start_index"] == 0
+    assert ds["mesh_edge_nodes"].attrs["start_index"] == 0
+    assert ds["mesh_boundary_nodes"].attrs["start_index"] == 0
 
 
 # NOTE: these tests are probably not complete -- but they are something.
@@ -358,7 +362,7 @@ def test_grid_vars():
     grid_vars = ds.xsg.grid_vars
 
     # ['mesh', 'nv', 'lon', 'lat', 'lonc', 'latc']
-    assert grid_vars == set(['mesh', 'nv', 'nbe', 'lon', 'lat', 'lonc', 'latc'])
+    assert grid_vars == set(["mesh", "nv", "nbe", "lon", "lat", "lonc", "latc"])
 
 
 def test_data_vars():
@@ -372,17 +376,20 @@ def test_data_vars():
 
     data_vars = ds.xsg.data_vars
 
-    assert set(data_vars) == set(['h',
-                                  'zeta',
-                                  'temp',
-                                  'salinity',
-                                  'u',
-                                  'v',
-                                  'uwind_speed',
-                                  'vwind_speed',
-                                  'wet_nodes',
-                                  'wet_cells'
-    ])
+    assert set(data_vars) == set(
+        [
+            "h",
+            "zeta",
+            "temp",
+            "salinity",
+            "u",
+            "v",
+            "uwind_speed",
+            "vwind_speed",
+            "wet_nodes",
+            "wet_cells",
+        ]
+    )
 
 
 def test_extra_vars():
@@ -394,32 +401,48 @@ def test_extra_vars():
     ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
     ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
 
-
     extra_vars = ds.xsg.extra_vars
 
     print([*ds])
     print(f"{extra_vars=}")
-    assert extra_vars == set(['nf_type',
-                              'Times',
-                              ])
+    assert extra_vars == set(
+        [
+            "nf_type",
+            "Times",
+        ]
+    )
 
 
 def test_coords():
-
     ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
     ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
 
     coords = ds.xsg.coords
 
-    print(f'{coords=}')
-    print(f'{ds.coords=}')
+    print(f"{coords=}")
+    print(f"{ds.coords=}")
 
-    assert set(coords) == set(['lon',
-                               'lat',
-                               'lonc',
-                               'latc',
-                               'time',
-                               'siglay',
-                               'siglev',
-                               ])
+    assert set(coords) == set(
+        [
+            "lon",
+            "lat",
+            "lonc",
+            "latc",
+            "time",
+            "siglay",
+            "siglev",
+        ]
+    )
 
+
+def test_vertical_levels():
+    ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
+    ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
+
+    assert ds.xsg.has_vertical_levels is True
+
+    ds_subset = ds.xsg.subset_vertical_level(0.0)
+    assert ds_subset["siglay"].dims == ("node",)
+
+    ds_subset2 = ds.xsg.subset_vertical_levels((0, 0.2), method="nearest")
+    assert ds_subset2["siglay"].dims == ("siglay", "node",)
