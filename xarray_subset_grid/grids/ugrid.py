@@ -158,8 +158,9 @@ class UGrid(Grid):
         #       per the UGRID spec. We set these to -1 and only slice the
         #       valid elements.
         tris = face_node_connectivity.fillna(-1) - face_node_start_index
-        # Store the index as the smallest possible type
-        int_type = np.min_scalar_type(np.max(tris.shape))
+        # Store the index as the smallest possible signed integer type, we
+        # can't use uints because of the -1 fill value
+        int_type = np.min_scalar_type(-1 * np.max(tris.shape))
         valid_tris = tris.where(tris >= 0, drop=False).astype(int_type)
         tri_mask = node_inside[valid_tris]
         elements_inside = tri_mask.any(axis=1)
