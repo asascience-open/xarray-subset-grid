@@ -130,6 +130,9 @@ class UGrid(Grid):
         face_dimension = mesh.attrs.get("face_dimension", None)
         if not face_dimension:
             raise ValueError("face_dimension is required to subset UGRID datasets")
+        face_node_indices_dimension = next(
+            d for d in ds[mesh.face_node_connectivity].dims if d != face_dimension
+        )
 
         # NOTE: When the first dimension is face_dimension, the face_node_connectivity
         #       is indexed by element first, then vertex. When the first dimension
@@ -158,18 +161,24 @@ class UGrid(Grid):
         #       per the UGRID spec. We set these to -1 and only slice the
         #       valid elements.
         tris = face_node_connectivity.fillna(-1) - face_node_start_index
-        # Store the index as the smallest possible signed integer type, we
-        # can't use uints because of the -1 fill value
-        int_type = np.min_scalar_type(-1 * np.max(node_inside.shape))
-        try:
-            indexer = (tris >= 0).compute()
-            valid_tris = tris.where(indexer, drop=True).astype(int_type)
-        except Exception:
-            valid_tris = tris.where(tris >= 0, drop=True).astype(int_type)
+
+        # It is possible that the last index in the face_node_connectivity
+        # is masked for elements with > 3 nodes. We fill these with the first
+        # index in the face_node_connectivity because it will get filtered out
+        # when we slice with the unique nodes in the next step.
+        first = tris.sel({face_node_indices_dimension: 0})
+        last = tris.sel({face_node_indices_dimension: -1})
+        filled_last = last.where(last >= 0, first)
+        tris.loc[{face_node_indices_dimension: -1}] = filled_last
+
+        # Store the index as the smallest possible signed integer type
+        int_type = np.min_scalar_type(np.max(node_inside.shape))
+        valid_tris = tris.astype(int_type)
+
+        # Mask the elements that are not inside the polygon
         tri_mask = node_inside[valid_tris]
         elements_inside = tri_mask.any(axis=1)
         tri_mask[elements_inside] = True
-
         node_inside[valid_tris] = tri_mask
 
         # Re-index the nodes and elements to remove the masked ones
