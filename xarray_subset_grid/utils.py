@@ -2,6 +2,7 @@ import warnings
 
 import cf_xarray  # noqa
 import numpy as np
+import xarray as xr
 
 
 def normalize_polygon_x_coords(x, poly):
@@ -96,3 +97,35 @@ def format_bytes(num):
         if num < step_unit:
             return f"{num:3.1f} {x}"
         num /= step_unit
+
+
+def compute_2d_subset_mask(
+    lat: xr.DataArray, lon: xr.DataArray, polygon: list[tuple[float, float]] | np.ndarray
+) -> xr.DataArray:
+    """Compute a 2D mask for a 2D dataset
+
+    This method assumes that the lat and lon coordinates are 2D and that the
+    polygon is a 2D polygon. It assumes that the lat and lon coordinates are
+    the same shape and names
+    """
+    mask_dims = lon.dims
+    lat_vals = lat.values
+    lon_vals = lon.values
+
+    # Find the subset of the coordinates that are inside the polygon and reshape
+    # to match the original dimension shape
+    x = np.array(lon_vals.flat)
+    polygon = normalize_polygon_x_coords(x, polygon)
+    polygon_mask = ray_tracing_numpy(x, lat_vals.flat, polygon).reshape(lon_vals.shape)
+
+    # Adjust the mask to only mask the rows and columns that are completely
+    # outside the polygon. If the row and column both touch the target polygon
+    # then we want to keep them
+    polygon_mask = np.where(polygon_mask, 1, 0)
+    polygon_row_mask = np.all(polygon_mask == 0, axis=0)
+    polygon_col_mask = np.all(polygon_mask == 0, axis=1)
+    polygon_mask[:, ~polygon_row_mask] += 1
+    polygon_mask[~polygon_col_mask, :] += 1
+    polygon_mask = np.where(polygon_mask > 1, True, False)
+
+    return xr.DataArray(polygon_mask, dims=mask_dims)
