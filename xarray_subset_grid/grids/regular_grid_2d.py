@@ -14,9 +14,10 @@ class RegularGrid2d(Grid):
             return False
 
         # Make sure the coordinates are 1D and match
-        lat_dim = ds[lat].dims
-        lon_dim = ds[lon].dims
-        return lat_dim == lon_dim and len(lat_dim) == 2
+        lat_dim = ds[lat[0]].dims
+        ndim = ds[lat[0]].ndim
+        lon_dim = ds[lon[0]].dims
+        return lat_dim == lon_dim and ndim == 2
 
     @property
     def name(self):
@@ -29,8 +30,8 @@ class RegularGrid2d(Grid):
         These variables are used to define the grid and thus should be kept
         when subsetting the dataset
         """
-        lat = ds.cf.coordinates["latitude"]
-        lon = ds.cf.coordinates["longitude"]
+        lat = ds.cf.coordinates["latitude"][0]
+        lon = ds.cf.coordinates["longitude"][0]
         return {lat, lon}
 
     def data_vars(self, ds):
@@ -40,8 +41,8 @@ class RegularGrid2d(Grid):
         data analysis. These can be discarded when subsetting the dataset
         when they are not needed.
         """
-        lat = ds.cf.coordinates["latitude"]
-        lon = ds.cf.coordinates["longitude"]
+        lat = ds.cf.coordinates["latitude"][0]
+        lon = ds.cf.coordinates["longitude"][0]
         return {
             var
             for var in ds.data_vars

@@ -2,11 +2,7 @@ import numpy as np
 import xarray as xr
 
 from xarray_subset_grid.grid import Grid
-from xarray_subset_grid.utils import (
-    compute_2d_subset_mask,
-    normalize_polygon_x_coords,
-    ray_tracing_numpy,
-)
+from xarray_subset_grid.utils import compute_2d_subset_mask
 
 
 class SGrid(Grid):
