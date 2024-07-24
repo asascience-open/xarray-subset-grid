@@ -56,6 +56,32 @@ class Grid(ABC):
         """Check if the dataset has vertical coordinates"""
         return ds.cf.coordinates.get("vertical", None) is not None
 
+    def subset_surface_level(self, ds: xr.Dataset, method: str | None) -> xr.Dataset:
+        """Subset the dataset to the surface level"""
+        return self.subset_vertical_level(ds, 0, method=method)
+
+    def subset_bottom_level(self, ds: xr.Dataset, method: str | None) -> xr.Dataset:
+        """Subset the dataset to the bottom level according to the datasets CF metadata
+        and available vertical coordinates
+        """
+        positive_direction = ds.cf.coordinates["vertical"].get("positive", "up")
+        # Get the lowest level available according to the positive direction
+        if positive_direction == "down":
+            return self.subset_vertical_level(ds, float("inf"), method=method)
+        else:
+            return self.subset_vertical_level(ds, float("-inf"), method=method)
+
+    def subset_top_level(self, ds: xr.Dataset, method: str | None) -> xr.Dataset:
+        """Subset the dataset to the top level according to the datasets CF metadata
+        and available vertical coordinates
+        """
+        positive_direction = ds.cf.coordinates["vertical"].get("positive", "up")
+        # Get the highest level available according to the positive direction
+        if positive_direction == "down":
+            return self.subset_vertical_level(ds, float("-inf"), method=method)
+        else:
+            return self.subset_vertical_level(ds, float("inf"), method=method)
+
     def subset_vertical_level(
         self, ds: xr.Dataset, level: float, method: str | None = None
     ) -> xr.Dataset:
