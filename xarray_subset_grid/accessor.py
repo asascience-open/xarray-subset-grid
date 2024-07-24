@@ -106,6 +106,28 @@ class GridDatasetAccessor:
             return self._grid.has_vertical_levels(self._ds)
         return False
 
+    def subset_surface_level(self, method: str | None) -> xr.Dataset:
+        """Subset the dataset to the surface level"""
+        if self._grid:
+            return self._grid.subset_surface_level(self._ds, method)
+        return self._ds
+
+    def subset_bottom_level(self) -> xr.Dataset:
+        """Subset the dataset to the bottom level according to the datasets CF metadata
+        and available vertical coordinates using nearest neighbor selection
+        """
+        if self._grid:
+            return self._grid.subset_bottom_level(self._ds)
+        return self._ds
+
+    def subset_top_level(self) -> xr.Dataset:
+        """Subset the dataset to the top level according to the datasets CF metadata
+        and available vertical coordinates using nearest neighbor selection
+        """
+        if self._grid:
+            return self._grid.subset_top_level(self._ds)
+        return self._ds
+
     def subset_vertical_level(self, level: float, method: str | None = None) -> xr.Dataset:
         """Subset the dataset to the vertical level
 

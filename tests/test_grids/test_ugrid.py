@@ -4,9 +4,11 @@ tests for ugrid code
 
 from pathlib import Path
 
+import numpy as np
 import pytest
 import xarray as xr
 
+from xarray_subset_grid.grid import FLOAT_MAX, FLOAT_MIN
 from xarray_subset_grid.grids import ugrid
 
 EXAMPLE_DATA = Path(__file__).parent.parent.parent / "examples" / "example_data"
@@ -443,6 +445,21 @@ def test_vertical_levels():
 
     ds_subset = ds.xsg.subset_vertical_level(0.0)
     assert ds_subset["siglay"].dims == ("node",)
+    assert np.isclose(ds_subset["siglay"].isel(node = 0).values, -0.025)
+
+    ds_surface = ds.xsg.subset_surface_level(method='nearest')
+    assert ds_surface["siglay"].dims == ("node",)
+    assert np.isclose(ds_surface["siglay"].isel(node = 0).values, -0.025)
+
+    ds_bottom = ds.xsg.subset_bottom_level()
+    assert ds_bottom["siglay"].dims == ("node",)
+    #assert np.isclose(ds_bottom["siglay"].isel(node = 0).values, -0.975)
+    print(FLOAT_MIN, FLOAT_MAX)
+    print('bottom value', ds_bottom["siglay"].isel(node = 0).values)
+
+    ds_top = ds.xsg.subset_top_level()
+    assert ds_top["siglay"].dims == ("node",)
+    assert np.isclose(ds_top["siglay"].isel(node = 0).values, -0.025)
 
     ds_subset2 = ds.xsg.subset_vertical_levels((0, 0.2), method="nearest")
     assert ds_subset2["siglay"].dims == ("siglay", "node",)
