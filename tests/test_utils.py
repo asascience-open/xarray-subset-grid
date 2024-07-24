@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from xarray_subset_grid.utils import (
+    normalize_bbox_x_coords,
     normalize_polygon_x_coords,
     ray_tracing_numpy,
 )
@@ -65,31 +66,28 @@ def test_normalize_x_coords(lons, poly, norm_poly):
 
     assert np.allclose(normalized_polygon, norm_poly)
 
-    # normalized_polygon = normalize_polygon_x_coords(x2, polygon)
-    # assert np.allclose(
-    #     normalized_polygon,
-    #     np.array(
-    #         [
-    #             [-126, 41],
-    #             [-126, 41],
-    #             [-110, 39],
-    #             [-70, 41],
-    #         ]
-    #     ),
-    # )
 
-    # normalized_polygon = normalize_polygon_x_coords(x3, polygon)
-    # assert np.allclose(
-    #     normalized_polygon,
-    #     np.array(
-    #         [
-    #             [234, 41],
-    #             [234, 41],
-    #             [250, 39],
-    #             [290, 41],
-    #         ]
-    #     ),
-    # )
+bbox1_180 = [-73, 39, -70, 41]
+bbox1_360 = [287, 39, 290, 41]
+bbox2_360 = [234, 39, 290, 41]
+bbox2_180 = [-126, 39, -70, 41]
+
+
+@pytest.mark.parametrize(
+    "lons, bbox, norm_bbox",
+    [
+        ([-85, -84, -83, 10], bbox1_180, bbox1_180),  # x1
+        ([60, 45, 85, 70], bbox1_180, bbox1_180),  # x2
+        ([190, 200, 220, 250, 260], bbox1_180, bbox1_360),  # x3
+        ([-85, -84, -83, 10], bbox2_360, bbox2_180),  # x1
+        ([60, 45, 85, 70], bbox2_360, bbox2_360),  # x2
+        ([190, 200, 220, 250, 260], bbox2_360, bbox2_360),  # x3
+    ],
+)
+def test_normalize_x_coords_bbox(lons, bbox, norm_bbox):
+    lons = np.array(lons)
+    normalized_polygon = normalize_bbox_x_coords(lons, bbox)
+    assert np.allclose(normalized_polygon, norm_bbox)
 
 
 def test_ray_tracing_numpy():
