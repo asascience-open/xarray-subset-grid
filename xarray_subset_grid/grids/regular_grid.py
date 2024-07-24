@@ -2,7 +2,11 @@ import numpy as np
 import xarray as xr
 
 from xarray_subset_grid.grid import Grid
-from xarray_subset_grid.utils import normalize_polygon_x_coords, ray_tracing_numpy
+from xarray_subset_grid.utils import (
+    normalize_bbox_x_coords,
+    normalize_polygon_x_coords,
+    ray_tracing_numpy,
+)
 
 
 class RegularGrid(Grid):
@@ -17,10 +21,9 @@ class RegularGrid(Grid):
             return False
 
         # Make sure the coordinates are 1D and match
-        lat_dim = ds[lat[0]].dims
-        ndim = ds[lon[0]].ndim
-        lon_dim = ds[lon[0]].dims
-        return lat_dim == lon_dim and ndim == 1
+        lat_ndim = ds[lat[0]].ndim
+        lon_ndim = ds[lon[0]].ndim
+        return lat_ndim == lon_ndim and lon_ndim == 1
 
     @property
     def name(self) -> str:
@@ -81,4 +84,5 @@ class RegularGrid(Grid):
         :param bbox: The bounding box to subset to
         :return: The subsetted dataset
         """
+        bbox = normalize_bbox_x_coords(ds.cf["longitude"].values, bbox)
         return ds.cf.sel(lon=slice(bbox[0], bbox[2]), lat=slice(bbox[1], bbox[3]))

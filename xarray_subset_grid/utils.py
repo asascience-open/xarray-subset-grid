@@ -37,6 +37,28 @@ def normalize_polygon_x_coords(x, poly):
     return poly
 
 
+def normalize_bbox_x_coords(x, bbox):
+    """Normalize the bbox x coordinates (longitude) to the
+    same coord system as used by given x coordinates.
+
+    e.g. If the longitude values are between 0 and 360, we need to normalize
+    the bbox x coordinates to be between 0 and 360. Vice versa if the
+    longitude values are between -180 and 180.
+    """
+    x_min, x_max = x.min(), x.max()
+
+    bbox_x_min, bbox_x_max = bbox[0], bbox[2]
+
+    if x_max > 180 and bbox_x_max < 0:
+        bbox_x_min += 360
+        bbox_x_max += 360
+    elif x_min < 0 and bbox_x_max > 180:
+        bbox_x_min -= 360
+        bbox_x_max -= 360
+
+    return bbox_x_min, bbox[1], bbox_x_max, bbox[3]
+
+
 def ray_tracing_numpy(x, y, poly):
     """Find vertices inside of the given polygon
 
