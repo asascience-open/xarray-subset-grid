@@ -30,7 +30,7 @@ class FVCOMGrid(UGrid):
     def name(self) -> str:
         """Name of the grid type"""
         return "fvcom"
-    
+
     def subset_bottom_level(self, ds: xr.Dataset) -> xr.Dataset:
         if not self.has_vertical_levels(ds):
             return ds

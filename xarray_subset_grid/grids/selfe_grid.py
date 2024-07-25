@@ -1,3 +1,4 @@
+import numpy as np
 import xarray as xr
 
 from xarray_subset_grid.grids.ugrid import UGrid
@@ -21,6 +22,32 @@ class SELFEGrid(UGrid):
     def name(self) -> str:
         return "selfe"
 
+    def subset_bottom_level(self, ds: xr.Dataset) -> xr.Dataset:
+        if not self.has_vertical_levels(ds):
+            return ds
+
+        positive_direction = self.vertical_positive_direction(ds)
+
+        if positive_direction == "up":
+            index = ds.cf["sigma"].argmin().values
+        else:
+            index = ds.cf["sigma"].argmax().values
+
+        return ds.isel(sigma=index, nv=index)
+
+    def subset_top_level(self, ds: xr.Dataset) -> xr.Dataset:
+        if not self.has_vertical_levels(ds):
+            return ds
+
+        positive_direction = self.vertical_positive_direction(ds)
+
+        if positive_direction == "up":
+            index = ds.cf["sigma"].argmax().values
+        else:
+            index = ds.cf["sigma"].argmin().values
+
+        return ds.isel(sigma=index, nv=index)
+
     def subset_vertical_level(
         self, ds: xr.Dataset, level: float, method: str | None = "nearest"
     ) -> xr.Dataset:
@@ -34,9 +61,8 @@ class SELFEGrid(UGrid):
         if not self.has_vertical_levels(ds):
             return ds
 
-        vertical_coords = ds.cf.coordinates["vertical"]
-        selection = {coord: level for coord in vertical_coords}
-        return ds.sel(selection, method=method)
+        index = int(np.absolute(ds.cf["sigma"] - level).argmin().values)
+        return ds.isel(sigma=index, nv=index)
 
     def subset_vertical_levels(
         self, ds: xr.Dataset, levels: tuple[float, float], method: str | None = "nearest"
@@ -56,6 +82,5 @@ class SELFEGrid(UGrid):
         if levels[0] >= levels[1]:
             raise ValueError("The minimum level must be smaller than the maximum level")
 
-        vertical_coords = ds.cf.coordinates["vertical"]
-        selection = {coord: slice(levels[0], levels[1]) for coord in vertical_coords}
-        return ds.sel(selection, method=method)
+        indexes = [int(np.absolute(ds.cf["sigma"] - level).argmin().values) for level in levels]
+        return ds.isel(sigma=slice(indexes[0], indexes[1]), nv=slice(indexes[0], indexes[1]))
