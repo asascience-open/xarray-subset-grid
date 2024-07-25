@@ -5,9 +5,9 @@ import numpy as np
 import xarray as xr
 
 from xarray_subset_grid.grid import Grid
-from xarray_subset_grid.grids import FVCOMGrid, RegularGrid, RegularGrid2d, SGrid, UGrid
+from xarray_subset_grid.grids import FVCOMGrid, RegularGrid, RegularGrid2d, SELFEGrid, SGrid, UGrid
 
-_grid_impls = [FVCOMGrid, UGrid, SGrid, RegularGrid2d, RegularGrid]
+_grid_impls = [FVCOMGrid, SELFEGrid, UGrid, SGrid, RegularGrid2d, RegularGrid]
 
 
 def register_grid_impl(grid_impl: Grid, priority: int = 0):

@@ -59,7 +59,12 @@ class Grid(ABC):
         """Check if the dataset has vertical coordinates"""
         return ds.cf.coordinates.get("vertical", None) is not None
 
-    def subset_surface_level(self, ds: xr.Dataset, method: str | None) -> xr.Dataset:
+    def vertical_positive_direction(self, ds: xr.Dataset) -> str:
+        """Get the positive direction of the vertical coordinate"""
+        vertical_coords = ds.cf.coordinates["vertical"]
+        return ds[vertical_coords[0]].attrs.get("positive", "up")
+
+    def subset_surface_level(self, ds: xr.Dataset, method: str | None = "nearest") -> xr.Dataset:
         """Subset the dataset to the surface level"""
         return self.subset_vertical_level(ds, 0, method=method)
 
@@ -67,20 +72,18 @@ class Grid(ABC):
         """Subset the dataset to the bottom level according to the datasets CF metadata
         and available vertical coordinates using nearest neighbor selection
         """
-        vertical_coords = ds.cf.coordinates["vertical"][0]
-        positive_direction = ds[vertical_coords].attrs.get("positive", "up")
+        positive_direction = self.vertical_positive_direction(ds)
         # Get the lowest level available according to the positive direction
         if positive_direction == "down":
             return self.subset_vertical_level(ds, FLOAT_MAX, method="nearest")
         else:
-            return self.subset_vertical_level(ds, -0.975, method="nearest")
+            return self.subset_vertical_level(ds, FLOAT_MIN, method="nearest")
 
     def subset_top_level(self, ds: xr.Dataset) -> xr.Dataset:
         """Subset the dataset to the top level according to the datasets CF metadata
         and available vertical coordinates using nearest neighbor selection
         """
-        vertical_coords = ds.cf.coordinates["vertical"][0]
-        positive_direction = ds[vertical_coords].attrs.get("positive", "up")
+        positive_direction = self.vertical_positive_direction(ds)
         # Get the highest level available according to the positive direction
         if positive_direction == "down":
             return self.subset_vertical_level(ds, FLOAT_MIN, method="nearest")
@@ -88,7 +91,7 @@ class Grid(ABC):
             return self.subset_vertical_level(ds, FLOAT_MAX, method="nearest")
 
     def subset_vertical_level(
-        self, ds: xr.Dataset, level: float, method: str | None = None
+        self, ds: xr.Dataset, level: float, method: str | None = "nearest"
     ) -> xr.Dataset:
         """Subset the dataset to the vertical level
 
@@ -105,7 +108,7 @@ class Grid(ABC):
         return ds.sel(selection, method=method)
 
     def subset_vertical_levels(
-        self, ds: xr.Dataset, levels: tuple[float, float], method: str | None = None
+        self, ds: xr.Dataset, levels: tuple[float, float], method: str | None = "nearest"
     ) -> xr.Dataset:
         """Subset the dataset to the vertical level
 
