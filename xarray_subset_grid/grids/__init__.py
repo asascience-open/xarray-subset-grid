@@ -1,3 +1,4 @@
+from .fvcom_grid import FVCOMGrid #noqa
 from .regular_grid import RegularGrid #noqa
 from .regular_grid_2d import RegularGrid2d #noqa
 from .sgrid import SGrid #noqa
