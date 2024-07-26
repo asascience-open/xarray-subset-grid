@@ -4,6 +4,9 @@ from collections.abc import Iterable
 import numpy as np
 import xarray as xr
 
+FLOAT_MAX = np.finfo(np.float32).max
+FLOAT_MIN = np.finfo(np.float32).min
+
 
 class Grid(ABC):
     """Abstract class for grid types"""
@@ -56,8 +59,39 @@ class Grid(ABC):
         """Check if the dataset has vertical coordinates"""
         return ds.cf.coordinates.get("vertical", None) is not None
 
+    def vertical_positive_direction(self, ds: xr.Dataset) -> str:
+        """Get the positive direction of the vertical coordinate"""
+        vertical_coords = ds.cf.coordinates["vertical"]
+        return ds[vertical_coords[0]].attrs.get("positive", "up")
+
+    def subset_surface_level(self, ds: xr.Dataset, method: str | None = "nearest") -> xr.Dataset:
+        """Subset the dataset to the surface level"""
+        return self.subset_vertical_level(ds, 0, method=method)
+
+    def subset_bottom_level(self, ds: xr.Dataset) -> xr.Dataset:
+        """Subset the dataset to the bottom level according to the datasets CF metadata
+        and available vertical coordinates using nearest neighbor selection
+        """
+        positive_direction = self.vertical_positive_direction(ds)
+        # Get the lowest level available according to the positive direction
+        if positive_direction == "down":
+            return self.subset_vertical_level(ds, FLOAT_MAX, method="nearest")
+        else:
+            return self.subset_vertical_level(ds, FLOAT_MIN, method="nearest")
+
+    def subset_top_level(self, ds: xr.Dataset) -> xr.Dataset:
+        """Subset the dataset to the top level according to the datasets CF metadata
+        and available vertical coordinates using nearest neighbor selection
+        """
+        positive_direction = self.vertical_positive_direction(ds)
+        # Get the highest level available according to the positive direction
+        if positive_direction == "down":
+            return self.subset_vertical_level(ds, FLOAT_MIN, method="nearest")
+        else:
+            return self.subset_vertical_level(ds, FLOAT_MAX, method="nearest")
+
     def subset_vertical_level(
-        self, ds: xr.Dataset, level: float, method: str | None = None
+        self, ds: xr.Dataset, level: float, method: str | None = "nearest"
     ) -> xr.Dataset:
         """Subset the dataset to the vertical level
 
@@ -70,20 +104,11 @@ class Grid(ABC):
             return ds
 
         vertical_coords = ds.cf.coordinates["vertical"]
-        if all([i in ds.indexes for i in vertical_coords]):
-            selection = {coord: level for coord in vertical_coords}
-            return ds.sel(selection, method=method)
-        else:
-            # Otherwise, the vertical coordinates are not indexible, so we have to find the
-            # closest levels manually, then slice the dataset using the found level
-            selections = {}
-            for coord in vertical_coords:
-                elevation_index = int(np.absolute(ds[coord] - level).argmin().values)
-                selections[coord] = elevation_index
-            return ds.isel(selections)
+        selection = {coord: level for coord in vertical_coords}
+        return ds.sel(selection, method=method)
 
     def subset_vertical_levels(
-        self, ds: xr.Dataset, levels: tuple[float, float], method: str | None = None
+        self, ds: xr.Dataset, levels: tuple[float, float], method: str | None = "nearest"
     ) -> xr.Dataset:
         """Subset the dataset to the vertical level
 
@@ -101,20 +126,8 @@ class Grid(ABC):
             raise ValueError("The minimum level must be smaller than the maximum level")
 
         vertical_coords = ds.cf.coordinates["vertical"]
-        if all([i in ds.indexes for i in vertical_coords]):
-            selection = {coord: slice(levels[0], levels[1]) for coord in vertical_coords}
-            return ds.sel(selection, method=method)
-        else:
-            # Otherwise, the vertical coordinates are not indexible, so we have to find the
-            # closest levels manually, then slice the dataset using the found levels
-            selections = {}
-            for coord in vertical_coords:
-                da_elevations = ds[coord]
-                elevation_indexes = [
-                    int(np.absolute(da_elevations - level).argmin().values) for level in levels
-                ]
-                selections[coord] = slice(*elevation_indexes)
-            return ds.isel(selections)
+        selection = {coord: slice(levels[0], levels[1]) for coord in vertical_coords}
+        return ds.sel(selection, method=method)
 
     @abstractmethod
     def subset_polygon(
