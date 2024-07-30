@@ -4,6 +4,8 @@ from collections.abc import Iterable
 import numpy as np
 import xarray as xr
 
+from xarray_subset_grid.selector import Selector
+
 FLOAT_MAX = np.finfo(np.float32).max
 FLOAT_MIN = np.finfo(np.float32).min
 
@@ -130,6 +132,10 @@ class Grid(ABC):
         return ds.sel(selection, method=method)
 
     @abstractmethod
+    def get_selector(self, ds: xr.Dataset) -> Selector:
+        """Get a subset selector for the dataset"""
+        raise NotImplementedError
+
     def subset_polygon(
         self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
     ) -> xr.Dataset:
@@ -138,7 +144,7 @@ class Grid(ABC):
         :param polygon: The polygon to subset to
         :return: The subsetted dataset
         """
-        return ds
+        return self.get_selector(ds).subset_polygon(ds, polygon)
 
     def subset_bbox(self, ds: xr.Dataset, bbox: tuple[float, float, float, float]) -> xr.Dataset:
         """Subset the dataset to the bounding box
@@ -146,13 +152,4 @@ class Grid(ABC):
         :param bbox: The bounding box to subset to
         :return: The subsetted dataset
         """
-        polygon = np.array(
-            [
-                [bbox[0], bbox[3]],
-                [bbox[0], bbox[1]],
-                [bbox[2], bbox[1]],
-                [bbox[2], bbox[3]],
-                [bbox[0], bbox[3]],
-            ]
-        )
-        return self.subset_polygon(ds, polygon)
+        return self.get_selector(ds).subset_bbox(ds, bbox)

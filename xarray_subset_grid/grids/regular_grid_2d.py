@@ -1,5 +1,25 @@
+from xarray import Dataset
+
 from xarray_subset_grid.grid import Grid
+from xarray_subset_grid.selector import Selector
 from xarray_subset_grid.utils import compute_2d_subset_mask
+
+
+class RegularGrid2dSelector(Selector):
+    def subset_polygon(self, ds, polygon):
+        lat = ds.cf["latitude"]
+        lon = ds.cf["longitude"]
+        subset_mask = compute_2d_subset_mask(lat=lat, lon=lon, polygon=polygon)
+
+        # First, we need to add the mask as a variable in the dataset
+        # so that we can use it to mask and drop via xr.where, which requires that
+        # the mask and data have the same shape and both are DataArrays with matching
+        # dimensions
+        ds_subset = ds.assign(subset_mask=subset_mask)
+
+        # Now we can use the mask to subset the data
+        ds_subset = ds_subset.where(ds_subset.subset_mask, drop=True).drop_encoding()
+        return ds_subset
 
 
 class RegularGrid2d(Grid):
@@ -51,22 +71,5 @@ class RegularGrid2d(Grid):
             and "longitude" in var.cf.coordinates
         }
 
-    def subset_polygon(self, ds, polygon):
-        """Subset the dataset to the grid
-        :param ds: The dataset to subset
-        :param polygon: The polygon to subset to
-        :return: The subsetted dataset
-        """
-        lat = ds.cf["latitude"]
-        lon = ds.cf["longitude"]
-        subset_mask = compute_2d_subset_mask(lat=lat, lon=lon, polygon=polygon)
-
-        # First, we need to add the mask as a variable in the dataset
-        # so that we can use it to mask and drop via xr.where, which requires that
-        # the mask and data have the same shape and both are DataArrays with matching
-        # dimensions
-        ds_subset = ds.assign(subset_mask=subset_mask)
-
-        # Now we can use the mask to subset the data
-        ds_subset = ds_subset.where(ds_subset.subset_mask, drop=True).drop_encoding()
-        return ds_subset
+    def get_subset_selector(self, ds: Dataset) -> Selector:
+        return super().get_selector()

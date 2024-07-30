@@ -2,11 +2,36 @@ import numpy as np
 import xarray as xr
 
 from xarray_subset_grid.grid import Grid
+from xarray_subset_grid.selector import Selector
 from xarray_subset_grid.utils import (
     normalize_bbox_x_coords,
     normalize_polygon_x_coords,
     ray_tracing_numpy,
 )
+
+
+class RegularGridSelector(Selector):
+    """Selector implementation for regular lat/lng grids"""
+
+    def subset_polygon(
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
+    ) -> xr.Dataset:
+        lat = ds.cf["latitude"]
+        lon = ds.cf["longitude"]
+
+        x = np.array(lon.flat)
+        polygon = normalize_polygon_x_coords(x, polygon)
+        polygon_mask = ray_tracing_numpy(x, lat.flat, polygon).reshape(lon.shape)
+
+        ds_subset = ds.cf.isel(
+            lon=polygon_mask,
+            lat=polygon_mask,
+        )
+        return ds_subset
+
+    def subset_bbox(self, ds: xr.Dataset, bbox: tuple[float, float, float, float]) -> xr.Dataset:
+        bbox = normalize_bbox_x_coords(ds.cf["longitude"].values, bbox)
+        return ds.cf.sel(lon=slice(bbox[0], bbox[2]), lat=slice(bbox[1], bbox[3]))
 
 
 class RegularGrid(Grid):
@@ -57,32 +82,5 @@ class RegularGrid(Grid):
             and "longitude" in var.cf.coordinates
         }
 
-    def subset_polygon(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
-    ) -> xr.Dataset:
-        """Subset the dataset to the grid
-        :param ds: The dataset to subset
-        :param polygon: The polygon to subset to
-        :return: The subsetted dataset
-        """
-        lat = ds.cf["latitude"]
-        lon = ds.cf["longitude"]
-
-        x = np.array(lon.flat)
-        polygon = normalize_polygon_x_coords(x, polygon)
-        polygon_mask = ray_tracing_numpy(x, lat.flat, polygon).reshape(lon.shape)
-
-        ds_subset = ds.cf.isel(
-            lon=polygon_mask,
-            lat=polygon_mask,
-        )
-        return ds_subset
-
-    def subset_bbox(self, ds: xr.Dataset, bbox: tuple[float, float, float, float]) -> xr.Dataset:
-        """Subset the dataset to the bounding box
-        :param ds: The dataset to subset
-        :param bbox: The bounding box to subset to
-        :return: The subsetted dataset
-        """
-        bbox = normalize_bbox_x_coords(ds.cf["longitude"].values, bbox)
-        return ds.cf.sel(lon=slice(bbox[0], bbox[2]), lat=slice(bbox[1], bbox[3]))
+    def get_selector(self, ds: xr.Dataset) -> Selector:
+        return RegularGridSelector()

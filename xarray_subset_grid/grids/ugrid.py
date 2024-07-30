@@ -4,6 +4,7 @@ import numpy as np
 import xarray as xr
 
 from xarray_subset_grid.grid import Grid
+from xarray_subset_grid.selector import Selector
 from xarray_subset_grid.utils import (
     normalize_polygon_x_coords,
     ray_tracing_numpy,
@@ -20,6 +21,109 @@ ALL_MESH_VARS = (
     "edge_face_connectivity",
     "edge_node_connectivity",
 )
+
+
+class UGridSelector(Selector):
+    def __init__(self, ds: xr.Dataset) -> None:
+        super().__init__()
+
+    def subset_polygon(
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
+    ) -> xr.Dataset:
+        # For this grid type, we find all nodes that are connected to elements that are inside
+        # the polygon. To do this, we first find all nodes that are inside the polygon and then
+        # find all elements that are connected to those nodes.
+        try:
+            mesh = ds.cf["mesh_topology"]
+        except KeyError as err:
+            raise ValueError("Dataset has no mesh topology variable") from err
+        has_face_face_connectivity = "face_face_connectivity" in mesh.attrs
+        x_var, y_var = mesh.node_coordinates.split(" ")
+        x, y = ds[x_var], ds[y_var]
+        node_dimension = x.dims[0]
+
+        face_dimension = mesh.attrs.get("face_dimension", None)
+        if not face_dimension:
+            raise ValueError("face_dimension is required to subset UGRID datasets")
+        face_node_indices_dimension = next(
+            d for d in ds[mesh.face_node_connectivity].dims if d != face_dimension
+        )
+
+        # NOTE: When the first dimension is face_dimension, the face_node_connectivity
+        #       is indexed by element first, then vertex. When the first dimension
+        if ds[mesh.face_node_connectivity].dims[0] == face_dimension:
+            transpose_face_node_connectivity = False
+            face_node_connectivity = ds[mesh.face_node_connectivity]
+        else:
+            transpose_face_node_connectivity = True
+            face_node_connectivity = ds[mesh.face_node_connectivity].T
+        face_node_start_index = face_node_connectivity.attrs.get("start_index", None)
+        if not face_node_start_index:
+            warnings.warn("No start_index found in face_node_connectivity, assuming 0")
+            face_node_start_index = 0
+
+        # If any nodes in an element are inside the polygon, the element is
+        # inside the polygon so make sure all of the relevent nodes and
+        # elements are unmasked
+        x = x.values
+        y = y.values
+        polygon = normalize_polygon_x_coords(x, polygon)
+        node_inside = ray_tracing_numpy(x, y, polygon)
+
+        # NOTE: UGRIDS can be zero-indexed OR one-indexed!
+        #       see the UGRID spec.
+        # NOTE: The face_node_connectivity may contain masked elements as
+        #       per the UGRID spec. We set these to -1 and only slice the
+        #       valid elements.
+        tris = face_node_connectivity.fillna(-1) - face_node_start_index
+
+        # It is possible that the last index in the face_node_connectivity
+        # is masked for elements with > 3 nodes. We fill these with the first
+        # index in the face_node_connectivity because it will get filtered out
+        # when we slice with the unique nodes in the next step.
+        first = tris.sel({face_node_indices_dimension: 0})
+        last = tris.sel({face_node_indices_dimension: -1})
+        filled_last = last.where(last >= 0, first)
+        tris.loc[{face_node_indices_dimension: -1}] = filled_last
+
+        # Store the index as the smallest possible signed integer type
+        int_type = np.min_scalar_type(np.max(node_inside.shape))
+        valid_tris = tris.astype(int_type)
+
+        # Mask the elements that are not inside the polygon
+        tri_mask = node_inside[valid_tris]
+        elements_inside = tri_mask.any(axis=1)
+        tri_mask[elements_inside] = True
+        node_inside[valid_tris] = tri_mask
+
+        # Re-index the nodes and elements to remove the masked ones
+        selected_nodes = np.sort(np.unique(valid_tris[elements_inside].values.flatten()))
+        selected_elements = np.sort(np.unique(np.where(elements_inside)))
+        face_node_new = np.searchsorted(selected_nodes, face_node_connectivity[selected_elements])
+        if transpose_face_node_connectivity:
+            face_node_new = face_node_new.T
+
+        if has_face_face_connectivity:
+            if ds[mesh.face_node_connectivity].dims[0] == face_dimension:
+                transpose_face_face_connectivity = False
+                face_face_connectivity = ds[mesh.face_face_connectivity]
+            else:
+                transpose_face_face_connectivity = True
+                face_face_connectivity = ds[mesh.face_face_connectivity].T
+            face_face_new = np.searchsorted(
+                selected_elements, face_face_connectivity[selected_elements]
+            )
+
+            if transpose_face_face_connectivity:
+                face_face_new = face_face_new.T
+
+        # Subset using xarrays select indexing, and overwrite the face_node_connectivity
+        # and face_face_connectivity (if available) with the new indices
+        ds_subset = ds.sel({node_dimension: selected_nodes, face_dimension: selected_elements})
+        ds_subset[mesh.face_node_connectivity][:] = face_node_new
+        if has_face_face_connectivity:
+            ds_subset[mesh.face_face_connectivity][:] = face_face_new
+        return ds_subset
 
 
 class UGrid(Grid):

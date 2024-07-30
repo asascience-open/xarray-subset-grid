@@ -2,7 +2,76 @@ import numpy as np
 import xarray as xr
 
 from xarray_subset_grid.grid import Grid
+from xarray_subset_grid.selector import Selector
 from xarray_subset_grid.utils import compute_2d_subset_mask
+
+
+class SGridSelector(Selector):
+
+    dims: list[tuple[list[str], list[str]]]
+    grid_topology_key: str
+    grid_topology: xr.DataArray
+
+
+    def __init__(self, ds: xr.Dataset) -> None:
+        super().__init__()
+
+        self.grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
+        self.grid_topology = ds[self.grid_topology_key]
+        self.dims = _get_sgrid_dim_coord_names(self.grid_topology)
+
+    def subset_polygon(
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
+    ) -> xr.Dataset:
+        """Subset the dataset to the grid
+        :param ds: The dataset to subset
+        :param polygon: The polygon to subset to
+        :return: The subsetted dataset
+        """
+        ds_out = []
+
+        for dim, coord in self.dims:
+            # Get the variables that have the dimensions
+            unique_dims = set(dim)
+            vars = [k for k in ds.variables if unique_dims.issubset(set(ds[k].dims))]
+
+            # If the dataset has already been subset and there are no variables with
+            # the dimensions, we can skip this dimension set
+            if len(vars) == 0:
+                continue
+
+            # Get the coordinates for the dimension
+            lon: xr.DataArray | None = None
+            lat: xr.DataArray | None = None
+            for c in coord:
+                if "lon" in ds[c].attrs.get("standard_name", ""):
+                    lon = ds[c]
+                elif "lat" in ds[c].attrs.get("standard_name", ""):
+                    lat = ds[c]
+
+            if lon is None or lat is None:
+                raise ValueError(f"Could not find lon and lat for dimension {dim}")
+
+            subset_mask = compute_2d_subset_mask(lat=lat, lon=lon, polygon=polygon)
+
+            # First, we need to add the mask as a variable in the dataset
+            # so that we can use it to mask and drop via xr.where, which requires that
+            # the mask and data have the same shape and both are DataArrays with matching
+            # dimensions
+            ds_subset = ds.assign(subset_mask=subset_mask)
+
+            # Now we can use the mask to subset the data
+            ds_subset = ds_subset[vars].where(ds_subset.subset_mask, drop=True).drop_encoding()
+
+            # Add the subsetted dataset to the list for merging
+            ds_out.append(ds_subset)
+
+        # Merge the subsetted datasets
+        ds_out = xr.merge(ds_out)
+
+        ds_out = ds_out.assign({self.grid_topology_key: self.grid_topology})
+
+        return ds_out
 
 
 class SGrid(Grid):
@@ -54,62 +123,8 @@ class SGrid(Grid):
 
         return {var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)}
 
-    def subset_polygon(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
-    ) -> xr.Dataset:
-        """Subset the dataset to the grid
-        :param ds: The dataset to subset
-        :param polygon: The polygon to subset to
-        :return: The subsetted dataset
-        """
-        grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
-        grid_topology = ds[grid_topology_key]
-        dims = _get_sgrid_dim_coord_names(grid_topology)
-
-        ds_out = []
-
-        for dim, coord in dims:
-            # Get the variables that have the dimensions
-            unique_dims = set(dim)
-            vars = [k for k in ds.variables if unique_dims.issubset(set(ds[k].dims))]
-
-            # If the dataset has already been subset and there are no variables with
-            # the dimensions, we can skip this dimension set
-            if len(vars) == 0:
-                continue
-
-            # Get the coordinates for the dimension
-            lon: xr.DataArray | None = None
-            lat: xr.DataArray | None = None
-            for c in coord:
-                if "lon" in ds[c].attrs.get("standard_name", ""):
-                    lon = ds[c]
-                elif "lat" in ds[c].attrs.get("standard_name", ""):
-                    lat = ds[c]
-
-            if lon is None or lat is None:
-                raise ValueError(f"Could not find lon and lat for dimension {dim}")
-
-            subset_mask = compute_2d_subset_mask(lat=lat, lon=lon, polygon=polygon)
-
-            # First, we need to add the mask as a variable in the dataset
-            # so that we can use it to mask and drop via xr.where, which requires that
-            # the mask and data have the same shape and both are DataArrays with matching
-            # dimensions
-            ds_subset = ds.assign(subset_mask=subset_mask)
-
-            # Now we can use the mask to subset the data
-            ds_subset = ds_subset[vars].where(ds_subset.subset_mask, drop=True).drop_encoding()
-
-            # Add the subsetted dataset to the list for merging
-            ds_out.append(ds_subset)
-
-        # Merge the subsetted datasets
-        ds_out = xr.merge(ds_out)
-
-        ds_out = ds_out.assign({grid_topology_key: grid_topology})
-
-        return ds_out
+    def get_selector(self, ds: xr.Dataset) -> Selector:
+        return SGridSelector(ds)
 
 
 def _get_sgrid_dim_coord_names(
