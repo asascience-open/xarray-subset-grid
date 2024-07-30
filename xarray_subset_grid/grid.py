@@ -4,6 +4,8 @@ from collections.abc import Iterable
 import numpy as np
 import xarray as xr
 
+from xarray_subset_grid.selector import Selector
+
 FLOAT_MAX = np.finfo(np.float32).max
 FLOAT_MIN = np.finfo(np.float32).min
 
@@ -130,21 +132,27 @@ class Grid(ABC):
         return ds.sel(selection, method=method)
 
     @abstractmethod
-    def subset_polygon(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
-    ) -> xr.Dataset:
-        """Subset the dataset to the grid
-        :param ds: The dataset to subset
-        :param polygon: The polygon to subset to
-        :return: The subsetted dataset
-        """
-        return ds
+    def compute_polygon_subset_selector(
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]]
+    ) -> Selector:
+        """Compute the subset selector for the polygon
 
-    def subset_bbox(self, ds: xr.Dataset, bbox: tuple[float, float, float, float]) -> xr.Dataset:
-        """Subset the dataset to the bounding box
-        :param ds: The dataset to subset
-        :param bbox: The bounding box to subset to
-        :return: The subsetted dataset
+        This method will return a Selector that can be used to subset the
+        dataset to the polygon. The selector will contain all the logic needed to subset
+        a dataset with the same grid type to the polygon.
+        """
+        raise NotImplementedError()
+
+    def compute_bbox_subset_selector(
+        self,
+        ds: xr.Dataset,
+        bbox: tuple[float, float, float, float],
+    ) -> Selector:
+        """Compute the subset selector for the bounding box
+
+        This method will return a Selector that can be used to subset the
+        dataset to the bounding box. The selector will contain all the logic needed to subset
+        a dataset with the same grid type to the bounding box.
         """
         polygon = np.array(
             [
@@ -155,4 +163,24 @@ class Grid(ABC):
                 [bbox[0], bbox[3]],
             ]
         )
-        return self.subset_polygon(ds, polygon)
+        return self.compute_polygon_subset_selector(ds, polygon)
+
+    def subset_polygon(
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
+    ) -> xr.Dataset:
+        """Subset the dataset to the grid
+        :param ds: The dataset to subset
+        :param polygon: The polygon to subset to
+        :return: The subsetted dataset
+        """
+        selector = self.compute_polygon_subset_selector(ds, polygon)
+        return selector.select(ds)
+
+    def subset_bbox(self, ds: xr.Dataset, bbox: tuple[float, float, float, float]) -> xr.Dataset:
+        """Subset the dataset to the bounding box
+        :param ds: The dataset to subset
+        :param bbox: The bounding box to subset to
+        :return: The subsetted dataset
+        """
+        selector = self.compute_bbox_subset_selector(ds, bbox)
+        return selector.select(ds)

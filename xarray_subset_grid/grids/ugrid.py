@@ -164,14 +164,9 @@ class UGrid(Grid):
 
         return data_vars
 
-    def subset_polygon(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
-    ) -> xr.Dataset:
-        """Subset the dataset to the grid
-        :param ds: The dataset to subset
-        :param polygon: The polygon to subset to
-        :return: The subsetted dataset
-        """
+    def compute_polygon_subset_selector(
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]]
+    ) -> Selector:
         # For this grid type, we find all nodes that are connected to elements that are inside
         # the polygon. To do this, we first find all nodes that are inside the polygon and then
         # find all elements that are connected to those nodes.
@@ -259,7 +254,7 @@ class UGrid(Grid):
             if transpose_face_face_connectivity:
                 face_face_new = face_face_new.T
 
-        selector = UGridSelector(
+        return UGridSelector(
             polygon=polygon,
             node_dimension=node_dimension,
             selected_nodes=selected_nodes,
@@ -272,8 +267,6 @@ class UGrid(Grid):
             else None,
             face_face_connectivity=face_face_new if has_face_face_connectivity else None,
         )
-
-        return selector.select(ds)
 
 
 def assign_ugrid_topology(

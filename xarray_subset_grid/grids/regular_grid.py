@@ -95,14 +95,9 @@ class RegularGrid(Grid):
             and "longitude" in var.cf.coordinates
         }
 
-    def subset_polygon(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
-    ) -> xr.Dataset:
-        """Subset the dataset to the grid
-        :param ds: The dataset to subset
-        :param polygon: The polygon to subset to
-        :return: The subsetted dataset
-        """
+    def compute_polygon_subset_selector(
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]]
+    ) -> Selector:
         lat = ds.cf["latitude"]
         lon = ds.cf["longitude"]
 
@@ -111,14 +106,13 @@ class RegularGrid(Grid):
         polygon_mask = ray_tracing_numpy(x, lat.flat, polygon).reshape(lon.shape)
 
         selector = RegularGridPolygonSelector(polygon, polygon_mask)
-        return selector.select(ds)
+        return selector
 
-    def subset_bbox(self, ds: xr.Dataset, bbox: tuple[float, float, float, float]) -> xr.Dataset:
-        """Subset the dataset to the bounding box
-        :param ds: The dataset to subset
-        :param bbox: The bounding box to subset to
-        :return: The subsetted dataset
-        """
+    def compute_bbox_subset_selector(
+        self,
+        ds: xr.Dataset,
+        bbox: tuple[float, float, float, float],
+    ) -> Selector:
         bbox = normalize_bbox_x_coords(ds.cf["longitude"].values, bbox)
         selector = RegularGridBBoxSelector(bbox)
-        return selector.select(ds)
+        return selector

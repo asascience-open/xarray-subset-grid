@@ -94,14 +94,9 @@ class SGrid(Grid):
 
         return {var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)}
 
-    def subset_polygon(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
-    ) -> xr.Dataset:
-        """Subset the dataset to the grid
-        :param ds: The dataset to subset
-        :param polygon: The polygon to subset to
-        :return: The subsetted dataset
-        """
+    def compute_polygon_subset_selector(
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]]
+    ) -> Selector:
         grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
         grid_topology = ds[grid_topology_key]
         dims = _get_sgrid_dim_coord_names(grid_topology)
@@ -133,8 +128,7 @@ class SGrid(Grid):
 
             subset_masks.append((vars, subset_mask))
 
-        selector = SGridSelector(polygon=polygon, subset_masks=subset_masks)
-        return selector.select(ds)
+        return SGridSelector(polygon=polygon, subset_masks=subset_masks)
 
 
 def _get_sgrid_dim_coord_names(

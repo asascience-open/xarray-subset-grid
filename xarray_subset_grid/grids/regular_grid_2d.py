@@ -77,17 +77,11 @@ class RegularGrid2d(Grid):
             and "longitude" in var.cf.coordinates
         }
 
-    def subset_polygon(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
-    ) -> xr.Dataset:
-        """Subset the dataset to the grid
-        :param ds: The dataset to subset
-        :param polygon: The polygon to subset to
-        :return: The subsetted dataset
-        """
+    def compute_polygon_subset_selector(
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]]
+    ) -> Selector:
         lat = ds.cf["latitude"]
         lon = ds.cf["longitude"]
         subset_mask = compute_2d_subset_mask(lat=lat, lon=lon, polygon=polygon)
 
-        selector = RegularGrid2dSelector(polygon=polygon, subset_mask=subset_mask)
-        return selector.select(ds)
+        return RegularGrid2dSelector(polygon=polygon, subset_mask=subset_mask)
