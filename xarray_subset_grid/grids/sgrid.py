@@ -8,6 +8,10 @@ from xarray_subset_grid.utils import compute_2d_subset_mask
 class SGrid(Grid):
     """Grid implementation for SGRID datasets"""
 
+    _grid_topology_key: str
+    _grid_topology: xr.DataArray
+    _dims: list[tuple[list[str], list[str]]]
+
     @staticmethod
     def recognize(ds: xr.Dataset) -> bool:
         """Recognize if the dataset matches the given grid"""
@@ -20,6 +24,12 @@ class SGrid(Grid):
         # we assume it's a SGRID
         return len(_grid_topology_keys) > 0 and _grid_topology_keys[0] in ds
 
+    def __init__(self, ds: xr.Dataset):
+        self._grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
+        self._grid_topology = ds[self._grid_topology_key]
+        self._dims = _get_sgrid_dim_coord_names(self._grid_topology)
+
+
     @property
     def name(self) -> str:
         """Name of the grid type"""
@@ -31,10 +41,8 @@ class SGrid(Grid):
         These variables are used to define the grid and thus should be kept
         when subsetting the dataset
         """
-        grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
-        grid_topology = ds[grid_topology_key]
-        grid_coords = [grid_topology_key]
-        for _dims, coords in _get_sgrid_dim_coord_names(grid_topology):
+        grid_coords = [self._grid_topology_key]
+        for _dims, coords in self._dims:
             grid_coords.extend(coords)
         return set(grid_coords)
 
@@ -45,10 +53,8 @@ class SGrid(Grid):
         data analysis. These can be discarded when subsetting the dataset
         when they are not needed.
         """
-        grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
-        grid_topology = ds[grid_topology_key]
         dims = []
-        for dims, _coords in _get_sgrid_dim_coord_names(grid_topology):
+        for dims, _coords in self._dims:
             dims.extend(dims)
         dims = set(dims)
 
@@ -62,13 +68,9 @@ class SGrid(Grid):
         :param polygon: The polygon to subset to
         :return: The subsetted dataset
         """
-        grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
-        grid_topology = ds[grid_topology_key]
-        dims = _get_sgrid_dim_coord_names(grid_topology)
-
         ds_out = []
 
-        for dim, coord in dims:
+        for dim, coord in self._dims:
             # Get the variables that have the dimensions
             unique_dims = set(dim)
             vars = [k for k in ds.variables if unique_dims.issubset(set(ds[k].dims))]
@@ -107,7 +109,7 @@ class SGrid(Grid):
         # Merge the subsetted datasets
         ds_out = xr.merge(ds_out)
 
-        ds_out = ds_out.assign({grid_topology_key: grid_topology})
+        ds_out = ds_out.assign({self._grid_topology_key: self._grid_topology})
 
         return ds_out
 
