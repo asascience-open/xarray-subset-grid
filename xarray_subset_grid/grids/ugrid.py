@@ -4,6 +4,7 @@ import numpy as np
 import xarray as xr
 
 from xarray_subset_grid.grid import Grid
+from xarray_subset_grid.selector import Selector
 from xarray_subset_grid.utils import (
     normalize_polygon_x_coords,
     ray_tracing_numpy,
@@ -20,6 +21,62 @@ ALL_MESH_VARS = (
     "edge_face_connectivity",
     "edge_node_connectivity",
 )
+
+
+class UGridSelector(Selector):
+    polygon: list[tuple[float, float]] | np.ndarray
+
+    _node_dimension: str
+    _selected_nodes: np.ndarray
+
+    _face_dimension: str
+    _selected_elements: np.ndarray
+
+    _face_node_connectivity_key: str
+    _face_node_connectivity: np.ndarray
+
+    _face_face_connectivity_key: str | None
+    _face_face_connectivity: np.ndarray | None
+
+    def __init__(
+        self,
+        polygon: list[tuple[float, float]] | np.ndarray,
+        node_dimension: str,
+        selected_nodes: np.ndarray,
+        face_dimension: str,
+        selected_elements: np.ndarray,
+        face_node_connectivity_key: str,
+        face_node_connectivity: np.ndarray,
+        face_face_connectivity_key: str | None = None,
+        face_face_connectivity: np.ndarray | None = None,
+    ):
+        super().__init__()
+        self.polygon = polygon
+        self._node_dimension = node_dimension
+        self._selected_nodes = selected_nodes
+        self._face_dimension = face_dimension
+        self._selected_elements = selected_elements
+        self._face_node_connectivity_key = face_node_connectivity_key
+        self._face_node_connectivity = face_node_connectivity
+        self._face_face_connectivity_key = face_face_connectivity_key
+        self._face_face_connectivity = face_face_connectivity
+
+    def select(self, ds: xr.Dataset) -> xr.Dataset:
+        # Subset using xarrays select indexing, and overwrite the face_node_connectivity
+        # and face_face_connectivity (if available) with the new indices
+        ds_subset = ds.sel(
+            {
+                self._node_dimension: self._selected_nodes,
+                self._face_dimension: self._selected_elements,
+            }
+        )
+        ds_subset[self._face_node_connectivity_key][:] = self._face_node_connectivity
+        if (
+            self._face_face_connectivity is not None
+            and self._face_face_connectivity_key is not None
+        ):
+            ds_subset[self._face_face_connectivity_key][:] = self._face_face_connectivity
+        return ds_subset
 
 
 class UGrid(Grid):
@@ -202,13 +259,21 @@ class UGrid(Grid):
             if transpose_face_face_connectivity:
                 face_face_new = face_face_new.T
 
-        # Subset using xarrays select indexing, and overwrite the face_node_connectivity
-        # and face_face_connectivity (if available) with the new indices
-        ds_subset = ds.sel({node_dimension: selected_nodes, face_dimension: selected_elements})
-        ds_subset[mesh.face_node_connectivity][:] = face_node_new
-        if has_face_face_connectivity:
-            ds_subset[mesh.face_face_connectivity][:] = face_face_new
-        return ds_subset
+        selector = UGridSelector(
+            polygon=polygon,
+            node_dimension=node_dimension,
+            selected_nodes=selected_nodes,
+            face_dimension=face_dimension,
+            selected_elements=selected_elements,
+            face_node_connectivity_key=mesh.face_node_connectivity,
+            face_node_connectivity=face_node_new,
+            face_face_connectivity_key=mesh.face_face_connectivity
+            if has_face_face_connectivity
+            else None,
+            face_face_connectivity=face_face_new if has_face_face_connectivity else None,
+        )
+
+        return selector.select(ds)
 
 
 def assign_ugrid_topology(

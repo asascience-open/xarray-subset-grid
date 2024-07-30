@@ -1,12 +1,38 @@
+import numpy as np
+import xarray as xr
+
 from xarray_subset_grid.grid import Grid
+from xarray_subset_grid.selector import Selector
 from xarray_subset_grid.utils import compute_2d_subset_mask
+
+
+class RegularGrid2dSelector(Selector):
+    polygon: list[tuple[float, float]] | np.ndarray
+    _subset_mask: xr.DataArray
+
+    def __init__(self, polygon: list[tuple[float, float]] | np.ndarray, subset_mask: xr.DataArray):
+        super().__init__()
+        self.polygon = polygon
+        self._subset_mask = subset_mask
+
+    def select(self, ds: xr.Dataset) -> xr.Dataset:
+        # First, we need to add the mask as a variable in the dataset
+        # so that we can use it to mask and drop via xr.where, which requires that
+        # the mask and data have the same shape and both are DataArrays with matching
+        # dimensions
+        ds_subset = ds.assign(subset_mask=self._subset_mask)
+
+        # Now we can use the mask to subset the data
+        ds_subset = ds_subset.where(ds_subset.subset_mask, drop=True).drop_encoding()
+        ds_subset.drop_vars("subset_mask")
+        return ds_subset
 
 
 class RegularGrid2d(Grid):
     """Grid implementation for 2D regular grids"""
 
     @staticmethod
-    def recognize(ds):
+    def recognize(ds) -> bool:
         """Recognize if the dataset matches the given grid"""
         lat = ds.cf.coordinates.get("latitude", None)
         lon = ds.cf.coordinates.get("longitude", None)
@@ -20,11 +46,11 @@ class RegularGrid2d(Grid):
         return lat_dim == lon_dim and ndim == 2
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Name of the grid type"""
         return "regular_grid_2d"
 
-    def grid_vars(self, ds):
+    def grid_vars(self, ds: xr.Dataset) -> set[str]:
         """Set of grid variables
 
         These variables are used to define the grid and thus should be kept
@@ -34,7 +60,7 @@ class RegularGrid2d(Grid):
         lon = ds.cf.coordinates["longitude"][0]
         return {lat, lon}
 
-    def data_vars(self, ds):
+    def data_vars(self, ds: xr.Dataset) -> set[str]:
         """Set of data variables
 
         These variables exist on the grid and are available to used for
@@ -51,7 +77,9 @@ class RegularGrid2d(Grid):
             and "longitude" in var.cf.coordinates
         }
 
-    def subset_polygon(self, ds, polygon):
+    def subset_polygon(
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
+    ) -> xr.Dataset:
         """Subset the dataset to the grid
         :param ds: The dataset to subset
         :param polygon: The polygon to subset to
@@ -61,12 +89,5 @@ class RegularGrid2d(Grid):
         lon = ds.cf["longitude"]
         subset_mask = compute_2d_subset_mask(lat=lat, lon=lon, polygon=polygon)
 
-        # First, we need to add the mask as a variable in the dataset
-        # so that we can use it to mask and drop via xr.where, which requires that
-        # the mask and data have the same shape and both are DataArrays with matching
-        # dimensions
-        ds_subset = ds.assign(subset_mask=subset_mask)
-
-        # Now we can use the mask to subset the data
-        ds_subset = ds_subset.where(ds_subset.subset_mask, drop=True).drop_encoding()
-        return ds_subset
+        selector = RegularGrid2dSelector(polygon=polygon, subset_mask=subset_mask)
+        return selector.select(ds)

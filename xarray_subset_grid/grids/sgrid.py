@@ -2,7 +2,47 @@ import numpy as np
 import xarray as xr
 
 from xarray_subset_grid.grid import Grid
+from xarray_subset_grid.selector import Selector
 from xarray_subset_grid.utils import compute_2d_subset_mask
+
+
+class SGridSelector(Selector):
+    polygon: list[tuple[float, float]] | np.ndarray
+
+    _grid_topology_key: str
+    _grid_topology: xr.DataArray
+    _subset_masks: list[tuple[list[str], xr.DataArray]]
+
+    def __init__(
+        self,
+        polygon: list[tuple[float, float]] | np.ndarray,
+        subset_masks: list[tuple[list[str], xr.DataArray]],
+    ):
+        super().__init__()
+        self.polygon = polygon
+        self._subset_masks = subset_masks
+
+    def select(self, ds: xr.Dataset) -> xr.Dataset:
+        ds_out = []
+        for mask in self._subset_masks:
+            # First, we need to add the mask as a variable in the dataset
+            # so that we can use it to mask and drop via xr.where, which requires that
+            # the mask and data have the same shape and both are DataArrays with matching
+            # dimensions
+            ds_subset = ds.assign(subset_mask=mask[1])
+
+            # Now we can use the mask to subset the data
+            ds_subset = ds_subset[mask[0]].where(ds_subset.subset_mask, drop=True).drop_encoding()
+            ds_subset = ds_subset.drop_vars("subset_mask")
+
+            # Add the subsetted dataset to the list for merging
+            ds_out.append(ds_subset)
+
+        # Merge the subsetted datasets
+        ds_out = xr.merge(ds_out)
+
+        ds_out = ds_out.assign({self._grid_topology_key: self._grid_topology})
+        return ds_out
 
 
 class SGrid(Grid):
@@ -66,8 +106,7 @@ class SGrid(Grid):
         grid_topology = ds[grid_topology_key]
         dims = _get_sgrid_dim_coord_names(grid_topology)
 
-        ds_out = []
-
+        subset_masks: list[tuple[list[str], xr.DataArray]] = []
         for dim, coord in dims:
             # Get the variables that have the dimensions
             unique_dims = set(dim)
@@ -92,24 +131,10 @@ class SGrid(Grid):
 
             subset_mask = compute_2d_subset_mask(lat=lat, lon=lon, polygon=polygon)
 
-            # First, we need to add the mask as a variable in the dataset
-            # so that we can use it to mask and drop via xr.where, which requires that
-            # the mask and data have the same shape and both are DataArrays with matching
-            # dimensions
-            ds_subset = ds.assign(subset_mask=subset_mask)
+            subset_masks.append((vars, subset_mask))
 
-            # Now we can use the mask to subset the data
-            ds_subset = ds_subset[vars].where(ds_subset.subset_mask, drop=True).drop_encoding()
-
-            # Add the subsetted dataset to the list for merging
-            ds_out.append(ds_subset)
-
-        # Merge the subsetted datasets
-        ds_out = xr.merge(ds_out)
-
-        ds_out = ds_out.assign({grid_topology_key: grid_topology})
-
-        return ds_out
+        selector = SGridSelector(polygon=polygon, subset_masks=subset_masks)
+        return selector.select(ds)
 
 
 def _get_sgrid_dim_coord_names(
