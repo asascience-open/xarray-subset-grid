@@ -16,10 +16,14 @@ class SGridSelector(Selector):
     def __init__(
         self,
         polygon: list[tuple[float, float]] | np.ndarray,
+        grid_topology_key: str,
+        grid_topology: xr.DataArray,
         subset_masks: list[tuple[list[str], xr.DataArray]],
     ):
         super().__init__()
         self.polygon = polygon
+        self._grid_topology_key = grid_topology_key
+        self._grid_topology = grid_topology
         self._subset_masks = subset_masks
 
     def select(self, ds: xr.Dataset) -> xr.Dataset:
@@ -33,7 +37,6 @@ class SGridSelector(Selector):
 
             # Now we can use the mask to subset the data
             ds_subset = ds_subset[mask[0]].where(ds_subset.subset_mask, drop=True).drop_encoding()
-            ds_subset = ds_subset.drop_vars("subset_mask")
 
             # Add the subsetted dataset to the list for merging
             ds_out.append(ds_subset)
@@ -94,14 +97,9 @@ class SGrid(Grid):
 
         return {var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)}
 
-    def subset_polygon(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
-    ) -> xr.Dataset:
-        """Subset the dataset to the grid
-        :param ds: The dataset to subset
-        :param polygon: The polygon to subset to
-        :return: The subsetted dataset
-        """
+    def compute_polygon_subset_selector(
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]]
+    ) -> Selector:
         grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
         grid_topology = ds[grid_topology_key]
         dims = _get_sgrid_dim_coord_names(grid_topology)
@@ -133,8 +131,12 @@ class SGrid(Grid):
 
             subset_masks.append((vars, subset_mask))
 
-        selector = SGridSelector(polygon=polygon, subset_masks=subset_masks)
-        return selector.select(ds)
+        return SGridSelector(
+            polygon=polygon,
+            grid_topology_key=grid_topology_key,
+            grid_topology=grid_topology,
+            subset_masks=subset_masks,
+        )
 
 
 def _get_sgrid_dim_coord_names(
