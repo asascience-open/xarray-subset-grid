@@ -1,0 +1,8 @@
+sphinx 
+sphinx-autodoc-typehints
+myst_nb
+xarray_subset_grid@git+https://github.com/asascience-open/xarray-subset-grid.git
+sphinxcontrib-bibtex
+matplotlib
+cf_xarray
+xarray
