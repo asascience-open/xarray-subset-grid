@@ -139,7 +139,9 @@ class Grid(ABC):
 
         This method will return a Selector that can be used to subset the
         dataset to the polygon. The selector will contain all the logic needed to subset
-        a dataset with the same grid type to the polygon.
+        a dataset with the same grid type to the polygon. Once returned, the user
+        can call the select method on the selector to subset the dataset as many times
+        as needed without recomputing the selector.
         """
         raise NotImplementedError()
 
@@ -152,7 +154,9 @@ class Grid(ABC):
 
         This method will return a Selector that can be used to subset the
         dataset to the bounding box. The selector will contain all the logic needed to subset
-        a dataset with the same grid type to the bounding box.
+        a dataset with the same grid type to the bounding box. Once returned, the user
+        can call the select method on the selector to subset the dataset as many times
+        as needed without recomputing the selector.
         """
         polygon = np.array(
             [
@@ -169,6 +173,12 @@ class Grid(ABC):
         self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
     ) -> xr.Dataset:
         """Subset the dataset to the grid
+
+        This is a conveinence method that will compute the subset selector
+        for the polygon and then apply it to the dataset. This is useful for
+        one off subsetting operations where the user does not want to keep
+        the selector around for later use.
+
         :param ds: The dataset to subset
         :param polygon: The polygon to subset to
         :return: The subsetted dataset
@@ -178,6 +188,12 @@ class Grid(ABC):
 
     def subset_bbox(self, ds: xr.Dataset, bbox: tuple[float, float, float, float]) -> xr.Dataset:
         """Subset the dataset to the bounding box
+
+        This is a conveinence method that will compute the subset selector
+        for the polygon and then apply it to the dataset. This is useful for
+        one off subsetting operations where the user does not want to keep
+        the selector around for later use.
+
         :param ds: The dataset to subset
         :param bbox: The bounding box to subset to
         :return: The subsetted dataset
