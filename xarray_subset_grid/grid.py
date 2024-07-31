@@ -11,69 +11,70 @@ FLOAT_MIN = np.finfo(np.float32).min
 
 
 class Grid(ABC):
-    """Abstract class for grid types"""
+    """Abstract class for grid types."""
 
     @staticmethod
     @abstractmethod
     def recognize(ds: xr.Dataset) -> bool:
-        """Recognize if the dataset matches the given grid"""
+        """Recognize if the dataset matches the given grid."""
         return False
 
     @property
     @abstractmethod
     def name(self) -> str:
-        """Name of the grid type"""
+        """Name of the grid type."""
         return "grid"
 
     @abstractmethod
     def grid_vars(self, ds: xr.Dataset) -> list[str]:
-        """List of grid variables
+        """List of grid variables.
 
-        These variables are used to define the grid and thus should be kept
-        when subsetting the dataset
+        These variables are used to define the grid and thus should be
+        kept when subsetting the dataset
         """
         return set()
 
     @abstractmethod
     def data_vars(self, ds: xr.Dataset) -> set[str]:
-        """List of data variables
+        """List of data variables.
 
         These variables exist on the grid and are available to used for
-        data analysis. These can be discarded when subsetting the dataset
-        when they are not needed.
+        data analysis. These can be discarded when subsetting the
+        dataset when they are not needed.
         """
         return set()
 
     def extra_vars(self, ds: xr.Dataset) -> set[str]:
         """List of variables that are not grid vars or data vars.
 
-        These variables area ll the ones in the dataset that are not used
-        to specify the grid, nor data on the grid.
+        These variables area ll the ones in the dataset that are not
+        used to specify the grid, nor data on the grid.
         """
         return set(ds.data_vars) - self.data_vars(ds) - self.grid_vars(ds)
 
     def subset_vars(self, ds: xr.Dataset, vars: Iterable[str]) -> xr.Dataset:
-        """Subset the dataset to the given variables, keeping the grid variables as well"""
+        """Subset the dataset to the given variables, keeping the grid
+        variables as well."""
         subset = list(self.grid_vars(ds)) + list(vars)
         return ds[subset]
 
     def has_vertical_levels(self, ds: xr.Dataset) -> bool:
-        """Check if the dataset has vertical coordinates"""
+        """Check if the dataset has vertical coordinates."""
         return ds.cf.coordinates.get("vertical", None) is not None
 
     def vertical_positive_direction(self, ds: xr.Dataset) -> str:
-        """Get the positive direction of the vertical coordinate"""
+        """Get the positive direction of the vertical coordinate."""
         vertical_coords = ds.cf.coordinates["vertical"]
         return ds[vertical_coords[0]].attrs.get("positive", "up")
 
     def subset_surface_level(self, ds: xr.Dataset, method: str | None = "nearest") -> xr.Dataset:
-        """Subset the dataset to the surface level"""
+        """Subset the dataset to the surface level."""
         return self.subset_vertical_level(ds, 0, method=method)
 
     def subset_bottom_level(self, ds: xr.Dataset) -> xr.Dataset:
-        """Subset the dataset to the bottom level according to the datasets CF metadata
-        and available vertical coordinates using nearest neighbor selection
-        """
+        """Subset the dataset to the bottom level according to the datasets CF
+        metadata and available vertical coordinates using nearest neighbor
+        selection."""
         positive_direction = self.vertical_positive_direction(ds)
         # Get the lowest level available according to the positive direction
         if positive_direction == "down":
@@ -82,9 +83,9 @@ class Grid(ABC):
             return self.subset_vertical_level(ds, FLOAT_MIN, method="nearest")
 
     def subset_top_level(self, ds: xr.Dataset) -> xr.Dataset:
-        """Subset the dataset to the top level according to the datasets CF metadata
-        and available vertical coordinates using nearest neighbor selection
-        """
+        """Subset the dataset to the top level according to the datasets CF
+        metadata and available vertical coordinates using nearest neighbor
+        selection."""
         positive_direction = self.vertical_positive_direction(ds)
         # Get the highest level available according to the positive direction
         if positive_direction == "down":
@@ -95,7 +96,7 @@ class Grid(ABC):
     def subset_vertical_level(
         self, ds: xr.Dataset, level: float, method: str | None = "nearest"
     ) -> xr.Dataset:
-        """Subset the dataset to the vertical level
+        """Subset the dataset to the vertical level.
 
         :param ds: The dataset to subset
         :param level: The vertical level to subset to
@@ -112,12 +113,12 @@ class Grid(ABC):
     def subset_vertical_levels(
         self, ds: xr.Dataset, levels: tuple[float, float], method: str | None = "nearest"
     ) -> xr.Dataset:
-        """Subset the dataset to the vertical level
+        """Subset the dataset to the vertical level.
 
         :param ds: The dataset to subset
         :param levels: The vertical levels to subset to. This is a tuple
-            with the minimum and maximum level. The minimum must be smaller
-            than the maximum.
+            with the minimum and maximum level. The minimum must be
+            smaller than the maximum.
         :param method: The method to use for the selection, this is the
             same as the method in xarray.Dataset.sel
         """
@@ -135,13 +136,14 @@ class Grid(ABC):
     def compute_polygon_subset_selector(
         self, ds: xr.Dataset, polygon: list[tuple[float, float]]
     ) -> Selector:
-        """Compute the subset selector for the polygon
+        """Compute the subset selector for the polygon.
 
-        This method will return a Selector that can be used to subset the
-        dataset to the polygon. The selector will contain all the logic needed to subset
-        a dataset with the same grid type to the polygon. Once returned, the user
-        can call the select method on the selector to subset the dataset as many times
-        as needed without recomputing the selector.
+        This method will return a Selector that can be used to subset
+        the dataset to the polygon. The selector will contain all the
+        logic needed to subset a dataset with the same grid type to the
+        polygon. Once returned, the user can call the select method on
+        the selector to subset the dataset as many times as needed
+        without recomputing the selector.
         """
         raise NotImplementedError()
 
@@ -150,13 +152,14 @@ class Grid(ABC):
         ds: xr.Dataset,
         bbox: tuple[float, float, float, float],
     ) -> Selector:
-        """Compute the subset selector for the bounding box
+        """Compute the subset selector for the bounding box.
 
-        This method will return a Selector that can be used to subset the
-        dataset to the bounding box. The selector will contain all the logic needed to subset
-        a dataset with the same grid type to the bounding box. Once returned, the user
-        can call the select method on the selector to subset the dataset as many times
-        as needed without recomputing the selector.
+        This method will return a Selector that can be used to subset
+        the dataset to the bounding box. The selector will contain all
+        the logic needed to subset a dataset with the same grid type to
+        the bounding box. Once returned, the user can call the select
+        method on the selector to subset the dataset as many times as
+        needed without recomputing the selector.
         """
         polygon = np.array(
             [
@@ -172,12 +175,12 @@ class Grid(ABC):
     def subset_polygon(
         self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
     ) -> xr.Dataset:
-        """Subset the dataset to the grid
+        """Subset the dataset to the grid.
 
-        This is a conveinence method that will compute the subset selector
-        for the polygon and then apply it to the dataset. This is useful for
-        one off subsetting operations where the user does not want to keep
-        the selector around for later use.
+        This is a conveinence method that will compute the subset
+        selector for the polygon and then apply it to the dataset. This
+        is useful for one off subsetting operations where the user does
+        not want to keep the selector around for later use.
 
         :param ds: The dataset to subset
         :param polygon: The polygon to subset to
@@ -187,12 +190,12 @@ class Grid(ABC):
         return selector.select(ds)
 
     def subset_bbox(self, ds: xr.Dataset, bbox: tuple[float, float, float, float]) -> xr.Dataset:
-        """Subset the dataset to the bounding box
+        """Subset the dataset to the bounding box.
 
-        This is a conveinence method that will compute the subset selector
-        for the polygon and then apply it to the dataset. This is useful for
-        one off subsetting operations where the user does not want to keep
-        the selector around for later use.
+        This is a conveinence method that will compute the subset
+        selector for the polygon and then apply it to the dataset. This
+        is useful for one off subsetting operations where the user does
+        not want to keep the selector around for later use.
 
         :param ds: The dataset to subset
         :param bbox: The bounding box to subset to

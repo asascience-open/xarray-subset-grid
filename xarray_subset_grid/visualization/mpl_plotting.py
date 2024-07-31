@@ -1,5 +1,4 @@
-"""
-Some MPL based plotting utilities for working with grids.
+"""Some MPL based plotting utilities for working with grids.
 
 NOTE: this could probably be built on existing packages -- worth a look.
 """
@@ -9,8 +8,7 @@ from matplotlib.tri import Triangulation
 
 
 def plot_ugrid(axes, ds, nodes=False, node_numbers=False, face_numbers=False):
-    """
-    Plot a UGRID in the provided MPL axes
+    """Plot a UGRID in the provided MPL axes.
 
     Note: this doesn't plot data on the gird, just the grid itself
 
@@ -23,7 +21,6 @@ def plot_ugrid(axes, ds, nodes=False, node_numbers=False, face_numbers=False):
     :param node_numbers=False: If True, plot the node numbers
 
     :param face_numbers=False: If True, plot the face numbers
-
     """
 
     mesh_defs = ds[ds.cf.cf_roles["mesh_topology"][0]].attrs

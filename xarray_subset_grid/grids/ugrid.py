@@ -80,31 +80,36 @@ class UGridSelector(Selector):
 
 
 class UGrid(Grid):
-    """Grid implementation for UGRID datasets
+    """Grid implementation for UGRID datasets.
 
-    UGRID is a grid type that is used to represent unstructured grids. It is used to represent
-    grids where the elements are not regular, such as triangular or quadrilateral grids.
-    UGRID is a standard that is used in the oceanographic community.
+    UGRID is a grid type that is used to represent unstructured grids.
+    It is used to represent grids where the elements are not regular,
+    such as triangular or quadrilateral grids. UGRID is a standard that
+    is used in the oceanographic community.
 
-    In this specific grid implementation, we assume that the dataset has a variable
-    that describes the mesh with the mesh_topology cf_role. This variable should have
-    a face_node_connectivity attribute that describes the connectivity of the nodes
-    to the elements. The face_node_connectivity attribute should be a 2D array where the
-    first dimension is the number of elements and the second dimension is the number of nodes
-    per element. The values in the array should be the indices of the nodes in the node
-    variable that are connected to the element.
-
-    The face_face_connectivity attribute is optional and describes the connectivity of the
-    elements to each other. It should be a 2D array where the first dimension is the number
-    of elements and the second dimension is the number of elements that are connected
+    In this specific grid implementation, we assume that the dataset has
+    a variable that describes the mesh with the mesh_topology cf_role.
+    This variable should have a face_node_connectivity attribute that
+    describes the connectivity of the nodes to the elements. The
+    face_node_connectivity attribute should be a 2D array where the
+    first dimension is the number of elements and the second dimension
+    is the number of nodes per element. The values in the array should
+    be the indices of the nodes in the node variable that are connected
     to the element.
 
-    # TODO: Abstract away common subsetting methods to functions that can be cached for reuse
+    The face_face_connectivity attribute is optional and describes the
+    connectivity of the elements to each other. It should be a 2D array
+    where the first dimension is the number of elements and the second
+    dimension is the number of elements that are connected to the
+    element.
+
+    # TODO: Abstract away common subsetting methods to functions that
+    can be cached for reuse
     """
 
     @staticmethod
     def recognize(ds: xr.Dataset) -> bool:
-        """Recognize if the dataset matches the given grid"""
+        """Recognize if the dataset matches the given grid."""
         try:
             mesh_key = ds.cf.cf_roles["mesh_topology"][0]
             mesh = ds[mesh_key]
@@ -115,15 +120,14 @@ class UGrid(Grid):
 
     @property
     def name(self) -> str:
-        """Name of the grid type"""
+        """Name of the grid type."""
         return "ugrid"
 
     def grid_vars(self, ds: xr.Dataset) -> set[str]:
-        """
-        List of grid variables
+        """List of grid variables.
 
-        These variables are used to define the grid and thus should be kept
-        when subsetting the dataset
+        These variables are used to define the grid and thus should be
+        kept when subsetting the dataset
         """
         mesh = ds.cf["mesh_topology"]
         vars = {mesh.name}
@@ -137,12 +141,11 @@ class UGrid(Grid):
         return vars
 
     def data_vars(self, ds: xr.Dataset) -> set[str]:
-        """
-        Set of data variables
+        """Set of data variables.
 
         These variables exist on the grid and are available to used for
-        data analysis. These can be discarded when subsetting the dataset
-        when they are not needed.
+        data analysis. These can be discarded when subsetting the
+        dataset when they are not needed.
 
         Then all grid_vars are excluded as well.
         """
@@ -290,8 +293,7 @@ def assign_ugrid_topology(
     #  such as "location"
     #  and we'd need to clean up coordinates that shouldn't be coordinates.
     #  ("node is one that's in the UGRID test file")
-    """
-    Assign the UGRID topology to the dataset
+    """Assign the UGRID topology to the dataset.
 
     Only the face_node_connectivity parameter is required.
     The face_face_connectivity parameter is optional.

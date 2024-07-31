@@ -6,9 +6,8 @@ import xarray as xr
 
 
 def normalize_polygon_x_coords(x, poly):
-    """
-    Normalize the polygon x coordinates (longitude) to the
-    same coord system as used by given x coordinates.
+    """Normalize the polygon x coordinates (longitude) to the same coord system
+    as used by given x coordinates.
 
     e.g. If the longitude values are between 0 and 360, we need to normalize
     the polygon x coordinates to be between 0 and 360. Vice versa if the
@@ -38,12 +37,12 @@ def normalize_polygon_x_coords(x, poly):
 
 
 def normalize_bbox_x_coords(x, bbox):
-    """Normalize the bbox x coordinates (longitude) to the
-    same coord system as used by given x coordinates.
+    """Normalize the bbox x coordinates (longitude) to the same coord system as
+    used by given x coordinates.
 
-    e.g. If the longitude values are between 0 and 360, we need to normalize
-    the bbox x coordinates to be between 0 and 360. Vice versa if the
-    longitude values are between -180 and 180.
+    e.g. If the longitude values are between 0 and 360, we need to
+    normalize the bbox x coordinates to be between 0 and 360. Vice versa
+    if the longitude values are between -180 and 180.
     """
     x_min, x_max = x.min(), x.max()
 
@@ -60,7 +59,7 @@ def normalize_bbox_x_coords(x, bbox):
 
 
 def ray_tracing_numpy(x, y, poly):
-    """Find vertices inside of the given polygon
+    """Find vertices inside of the given polygon.
 
     From: https://stackoverflow.com/a/57999874
 
@@ -106,8 +105,9 @@ def assign_ugrid_topology(*args, **kwargs):
 
 
 def format_bytes(num):
-    """
-    This function will convert bytes to MB.... GB... etc
+    """This function will convert bytes to MB....
+
+    GB... etc
     from:
     https://stackoverflow.com/questions/12523586/python-format-size-application-converting-b-to-kb-mb-gb-tb
     """
@@ -124,11 +124,11 @@ def format_bytes(num):
 def compute_2d_subset_mask(
     lat: xr.DataArray, lon: xr.DataArray, polygon: list[tuple[float, float]] | np.ndarray
 ) -> xr.DataArray:
-    """Compute a 2D mask for a 2D dataset
+    """Compute a 2D mask for a 2D dataset.
 
-    This method assumes that the lat and lon coordinates are 2D and that the
-    polygon is a 2D polygon. It assumes that the lat and lon coordinates are
-    the same shape and names
+    This method assumes that the lat and lon coordinates are 2D and that
+    the polygon is a 2D polygon. It assumes that the lat and lon
+    coordinates are the same shape and names
     """
     mask_dims = lon.dims
     lat_vals = lat.values
