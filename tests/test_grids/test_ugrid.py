@@ -10,7 +10,7 @@ import xarray as xr
 
 from xarray_subset_grid.grids import ugrid
 
-EXAMPLE_DATA = Path(__file__).parent.parent.parent / "examples" / "example_data"
+EXAMPLE_DATA = Path(__file__).parent.parent.parent / "docs" / "examples" / "example_data"
 
 TEST_FILE1 = EXAMPLE_DATA / "SFBOFS_subset1.nc"
 

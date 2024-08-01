@@ -8,7 +8,7 @@ from xarray_subset_grid.visualization.mpl_plotting import plot_ugrid
 
 import matplotlib.pyplot as plt
 
-FILENAME = "example_data/SFBOFS_subset1.nc"
+FILENAME = "docs/examples/example_data/SFBOFS_subset1.nc"
 
 # polygon to subset to
 
