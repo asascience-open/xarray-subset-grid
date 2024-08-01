@@ -29,11 +29,11 @@ class RegularGrid2dSelector(Selector):
 
 
 class RegularGrid2d(Grid):
-    """Grid implementation for 2D regular grids"""
+    """Grid implementation for 2D regular grids."""
 
     @staticmethod
     def recognize(ds) -> bool:
-        """Recognize if the dataset matches the given grid"""
+        """Recognize if the dataset matches the given grid."""
         lat = ds.cf.coordinates.get("latitude", None)
         lon = ds.cf.coordinates.get("longitude", None)
         if lat is None or lon is None:
@@ -47,25 +47,25 @@ class RegularGrid2d(Grid):
 
     @property
     def name(self) -> str:
-        """Name of the grid type"""
+        """Name of the grid type."""
         return "regular_grid_2d"
 
     def grid_vars(self, ds: xr.Dataset) -> set[str]:
-        """Set of grid variables
+        """Set of grid variables.
 
-        These variables are used to define the grid and thus should be kept
-        when subsetting the dataset
+        These variables are used to define the grid and thus should be
+        kept when subsetting the dataset
         """
         lat = ds.cf.coordinates["latitude"][0]
         lon = ds.cf.coordinates["longitude"][0]
         return {lat, lon}
 
     def data_vars(self, ds: xr.Dataset) -> set[str]:
-        """Set of data variables
+        """Set of data variables.
 
         These variables exist on the grid and are available to used for
-        data analysis. These can be discarded when subsetting the dataset
-        when they are not needed.
+        data analysis. These can be discarded when subsetting the
+        dataset when they are not needed.
         """
         lat = ds.cf.coordinates["latitude"][0]
         lon = ds.cf.coordinates["longitude"][0]

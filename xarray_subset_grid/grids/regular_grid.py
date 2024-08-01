@@ -11,7 +11,7 @@ from xarray_subset_grid.utils import (
 
 
 class RegularGridPolygonSelector(Selector):
-    """Selector for regular lat/lng grids"""
+    """Selector for regular lat/lng grids."""
 
     polygon: list[tuple[float, float]] | np.ndarray
     _polygon_mask: xr.DataArray
@@ -21,7 +21,7 @@ class RegularGridPolygonSelector(Selector):
         self.polygon_mask = mask
 
     def select(self, ds: xr.Dataset) -> xr.Dataset:
-        """Perform the selection on the dataset"""
+        """Perform the selection on the dataset."""
         ds_subset = ds.cf.isel(
             lon=self._polygon_mask,
             lat=self._polygon_mask,
@@ -30,7 +30,7 @@ class RegularGridPolygonSelector(Selector):
 
 
 class RegularGridBBoxSelector(Selector):
-    """Selector for regular lat/lng grids"""
+    """Selector for regular lat/lng grids."""
 
     bbox: tuple[float, float, float, float]
     _longitude_selection: slice
@@ -43,16 +43,16 @@ class RegularGridBBoxSelector(Selector):
         self._latitude_selection = slice(bbox[1], bbox[3])
 
     def select(self, ds: xr.Dataset) -> xr.Dataset:
-        """Perform the selection on the dataset"""
+        """Perform the selection on the dataset."""
         ds.cf.sel(lon=self._longitude_selection, lat=self._latitude_selection)
 
 
 class RegularGrid(Grid):
-    """Grid implementation for regular lat/lng grids"""
+    """Grid implementation for regular lat/lng grids."""
 
     @staticmethod
     def recognize(ds: xr.Dataset) -> bool:
-        """Recognize if the dataset matches the given grid"""
+        """Recognize if the dataset matches the given grid."""
         lat = ds.cf.coordinates.get("latitude", None)
         lon = ds.cf.coordinates.get("longitude", None)
         if lat is None or lon is None:
@@ -65,25 +65,25 @@ class RegularGrid(Grid):
 
     @property
     def name(self) -> str:
-        """Name of the grid type"""
+        """Name of the grid type."""
         return "regular_grid"
 
     def grid_vars(self, ds: xr.Dataset) -> set[str]:
-        """Set of grid variables
+        """Set of grid variables.
 
-        These variables are used to define the grid and thus should be kept
-        when subsetting the dataset
+        These variables are used to define the grid and thus should be
+        kept when subsetting the dataset
         """
         lat = ds.cf.coordinates["latitude"][0]
         lon = ds.cf.coordinates["longitude"][0]
         return {lat, lon}
 
     def data_vars(self, ds: xr.Dataset) -> set[str]:
-        """Set of data variables
+        """Set of data variables.
 
         These variables exist on the grid and are available to used for
-        data analysis. These can be discarded when subsetting the dataset
-        when they are not needed.
+        data analysis. These can be discarded when subsetting the
+        dataset when they are not needed.
         """
         lat = ds.cf.coordinates["latitude"][0]
         lon = ds.cf.coordinates["longitude"][0]

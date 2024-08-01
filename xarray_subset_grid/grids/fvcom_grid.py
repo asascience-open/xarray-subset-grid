@@ -5,11 +5,12 @@ from xarray_subset_grid.grids.ugrid import UGrid
 
 
 class FVCOMGrid(UGrid):
-    """Grid implementation for FVCOM datasets, extending the UGrid implementation"""
+    """Grid implementation for FVCOM datasets, extending the UGrid
+    implementation."""
 
     @staticmethod
     def recognize(ds: xr.Dataset) -> bool:
-        """Recognize if the dataset matches the given grid"""
+        """Recognize if the dataset matches the given grid."""
         is_ugrid = UGrid.recognize(ds)
         if not is_ugrid:
             return False
@@ -28,7 +29,7 @@ class FVCOMGrid(UGrid):
 
     @property
     def name(self) -> str:
-        """Name of the grid type"""
+        """Name of the grid type."""
         return "fvcom"
 
     def subset_bottom_level(self, ds: xr.Dataset) -> xr.Dataset:
@@ -82,7 +83,7 @@ class FVCOMGrid(UGrid):
     def subset_vertical_level(
         self, ds: xr.Dataset, level: float, method: str | None = None
     ) -> xr.Dataset:
-        """Subset the dataset to the vertical level
+        """Subset the dataset to the vertical level.
 
         :param ds: The dataset to subset
         :param level: The vertical level to subset to
@@ -107,12 +108,12 @@ class FVCOMGrid(UGrid):
     def subset_vertical_levels(
         self, ds: xr.Dataset, levels: tuple[float, float], method: str | None = "nearest"
     ) -> xr.Dataset:
-        """Subset the dataset to the vertical level
+        """Subset the dataset to the vertical level.
 
         :param ds: The dataset to subset
         :param levels: The vertical levels to subset to. This is a tuple
-            with the minimum and maximum level. The minimum must be smaller
-            than the maximum.
+            with the minimum and maximum level. The minimum must be
+            smaller than the maximum.
         :param method: The method to use for the selection, this is the
             same as the method in xarray.Dataset.sel
         """

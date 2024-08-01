@@ -49,11 +49,11 @@ class SGridSelector(Selector):
 
 
 class SGrid(Grid):
-    """Grid implementation for SGRID datasets"""
+    """Grid implementation for SGRID datasets."""
 
     @staticmethod
     def recognize(ds: xr.Dataset) -> bool:
-        """Recognize if the dataset matches the given grid"""
+        """Recognize if the dataset matches the given grid."""
         try:
             _grid_topology_keys = ds.cf.cf_roles["grid_topology"]
         except KeyError:
@@ -65,14 +65,14 @@ class SGrid(Grid):
 
     @property
     def name(self) -> str:
-        """Name of the grid type"""
+        """Name of the grid type."""
         return "sgrid"
 
     def grid_vars(self, ds: xr.Dataset) -> set[str]:
-        """Set of grid variables
+        """Set of grid variables.
 
-        These variables are used to define the grid and thus should be kept
-        when subsetting the dataset
+        These variables are used to define the grid and thus should be
+        kept when subsetting the dataset
         """
         grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
         grid_topology = ds[grid_topology_key]
@@ -82,11 +82,11 @@ class SGrid(Grid):
         return set(grid_coords)
 
     def data_vars(self, ds: xr.Dataset) -> set[str]:
-        """Set of data variables
+        """Set of data variables.
 
         These variables exist on the grid and are available to used for
-        data analysis. These can be discarded when subsetting the dataset
-        when they are not needed.
+        data analysis. These can be discarded when subsetting the
+        dataset when they are not needed.
         """
         grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
         grid_topology = ds[grid_topology_key]
@@ -142,9 +142,10 @@ class SGrid(Grid):
 def _get_sgrid_dim_coord_names(
     grid_topology: xr.DataArray,
 ) -> list[tuple[list[str], list[str]]]:
-    """Get the names of the dimensions that are coordinates
+    """Get the names of the dimensions that are coordinates.
 
-    This is really hacky and possibly not a long term solution, but it is our generic best start
+    This is really hacky and possibly not a long term solution, but it
+    is our generic best start
     """
     dims = []
     coords = []
