@@ -4,10 +4,12 @@ tests for ugrid code
 
 from pathlib import Path
 
+import fsspec
 import numpy as np
 import pytest
 import xarray as xr
 
+from xarray_subset_grid import Selector
 from xarray_subset_grid.grids import ugrid
 
 EXAMPLE_DATA = Path(__file__).parent.parent.parent / "docs" / "examples" / "example_data"
@@ -463,3 +465,42 @@ def test_vertical_levels():
         "siglay",
         "node",
     )
+
+
+def test_3d_selector():
+    bbox = (-70, 40, -60, 55)
+    name = "northeastUSA3d"
+
+    fs = fsspec.filesystem("s3", anon=True)
+    ds = xr.open_dataset(
+        fs.open("s3://noaa-nos-stofs3d-pds/STOFS-3D-Atl-shadow-VIMS/20240716/out2d_20240717.nc"),
+        chunks={},
+        engine="h5netcdf",
+        drop_variables=["nvel"],
+    )
+    ds = ugrid.assign_ugrid_topology(ds)
+
+    bbox_selector = ds.xsg.grid.compute_bbox_subset_selector(ds, bbox, name)
+    loaded_selector = Selector(EXAMPLE_DATA / "northeastUSA3d_076e4d62.pkl")
+
+    assert bbox_selector == loaded_selector
+
+
+def test_2d_selector():
+    bbox = (-70, 40, -60, 50)
+    name = "northeastUSA2d"
+
+    fs = fsspec.filesystem("s3", anon=True)
+    ds = xr.open_dataset(
+        fs.open(
+            "s3://noaa-gestofs-pds/stofs_2d_glo.20240807/stofs_2d_glo.t06z.fields.cwl.nc"
+        ),
+        chunks={},
+        drop_variables=['nvel']
+    )
+    ds = ugrid.assign_ugrid_topology(ds)
+
+    bbox_selector = ds.xsg.grid.compute_bbox_subset_selector(ds, bbox, name)
+    loaded_selector = Selector(EXAMPLE_DATA / "northeastUSA2d_bb3d126e.pkl")
+
+    assert bbox_selector == loaded_selector
