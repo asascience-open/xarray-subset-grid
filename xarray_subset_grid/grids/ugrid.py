@@ -40,6 +40,7 @@ class UGridSelector(Selector):
 
     def __init__(
         self,
+        name: str,
         polygon: list[tuple[float, float]] | np.ndarray,
         node_dimension: str,
         selected_nodes: np.ndarray,
@@ -51,6 +52,7 @@ class UGridSelector(Selector):
         face_face_connectivity: np.ndarray | None = None,
     ):
         super().__init__()
+        self.name = name
         self.polygon = polygon
         self._node_dimension = node_dimension
         self._selected_nodes = selected_nodes
@@ -168,8 +170,12 @@ class UGrid(Grid):
         return data_vars
 
     def compute_polygon_subset_selector(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]]
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str = None
     ) -> Selector:
+
+        if selector := self.selector_exists(polygon, UGridSelector):
+            return selector
+
         # For this grid type, we find all nodes that are connected to elements that are inside
         # the polygon. To do this, we first find all nodes that are inside the polygon and then
         # find all elements that are connected to those nodes.
@@ -258,6 +264,7 @@ class UGrid(Grid):
                 face_face_new = face_face_new.T
 
         return UGridSelector(
+            name=name or 'selector',
             polygon=polygon,
             node_dimension=node_dimension,
             selected_nodes=selected_nodes,
