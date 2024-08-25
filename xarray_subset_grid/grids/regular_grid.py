@@ -103,12 +103,6 @@ class RegularGrid(Grid):
         self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str = None
     ) -> Selector:
 
-        if selector := (
-            self.selector_exists(polygon, RegularGridBBoxSelector) or
-            self.selector_exists(polygon, RegularGridPolygonSelector)
-            ):
-            return selector
-
         lat = ds.cf["latitude"]
         lon = ds.cf["longitude"]
 

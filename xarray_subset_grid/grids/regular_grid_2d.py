@@ -84,9 +84,6 @@ class RegularGrid2d(Grid):
         self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str = None
     ) -> Selector:
 
-        if selector := self.selector_exists(polygon, RegularGrid2dSelector):
-            return selector
-
         lat = ds.cf["latitude"]
         lon = ds.cf["longitude"]
         subset_mask = compute_2d_subset_mask(lat=lat, lon=lon, polygon=polygon)

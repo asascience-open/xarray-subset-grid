@@ -173,9 +173,6 @@ class UGrid(Grid):
         self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str = None
     ) -> Selector:
 
-        if selector := self.selector_exists(polygon, UGridSelector):
-            return selector
-
         # For this grid type, we find all nodes that are connected to elements that are inside
         # the polygon. To do this, we first find all nodes that are inside the polygon and then
         # find all elements that are connected to those nodes.

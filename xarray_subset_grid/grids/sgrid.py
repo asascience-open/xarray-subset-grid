@@ -103,9 +103,6 @@ class SGrid(Grid):
         self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str = None
     ) -> Selector:
 
-        if selector := self.selector_exists(polygon, SGridSelector):
-            return selector
-
         grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
         grid_topology = ds[grid_topology_key]
         dims = _get_sgrid_dim_coord_names(grid_topology)
