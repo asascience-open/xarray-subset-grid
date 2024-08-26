@@ -16,8 +16,12 @@ class RegularGridPolygonSelector(Selector):
     polygon: list[tuple[float, float]] | np.ndarray
     _polygon_mask: xr.DataArray
 
-    def __init__(self, polygon: list[tuple[float, float]] | np.ndarray, mask: xr.DataArray):
+    def __init__(
+        self, polygon: list[tuple[float, float]] | np.ndarray, mask: xr.DataArray, name: str
+        ):
         super().__init__()
+        self.name = name
+        self.polygon = polygon
         self.polygon_mask = mask
 
     def select(self, ds: xr.Dataset) -> xr.Dataset:
@@ -96,8 +100,9 @@ class RegularGrid(Grid):
         }
 
     def compute_polygon_subset_selector(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]]
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str = None
     ) -> Selector:
+
         lat = ds.cf["latitude"]
         lon = ds.cf["longitude"]
 
@@ -105,7 +110,11 @@ class RegularGrid(Grid):
         polygon = normalize_polygon_x_coords(x, polygon)
         polygon_mask = ray_tracing_numpy(x, lat.flat, polygon).reshape(lon.shape)
 
-        selector = RegularGridPolygonSelector(polygon, polygon_mask)
+        selector = RegularGridPolygonSelector(
+            polygon=polygon,
+            mask=polygon_mask,
+            name=name or 'selector'
+            )
         return selector
 
     def compute_bbox_subset_selector(

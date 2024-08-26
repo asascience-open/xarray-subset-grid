@@ -134,8 +134,8 @@ class Grid(ABC):
 
     @abstractmethod
     def compute_polygon_subset_selector(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]]
-    ) -> Selector:
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str = None
+) -> Selector:
         """Compute the subset selector for the polygon.
 
         This method will return a Selector that can be used to subset
@@ -151,6 +151,7 @@ class Grid(ABC):
         self,
         ds: xr.Dataset,
         bbox: tuple[float, float, float, float],
+        name: str = None
     ) -> Selector:
         """Compute the subset selector for the bounding box.
 
@@ -170,7 +171,7 @@ class Grid(ABC):
                 [bbox[0], bbox[3]],
             ]
         )
-        return self.compute_polygon_subset_selector(ds, polygon)
+        return self.compute_polygon_subset_selector(ds, polygon, name)
 
     def subset_polygon(
         self, ds: xr.Dataset, polygon: list[tuple[float, float]] | np.ndarray
@@ -189,10 +190,12 @@ class Grid(ABC):
         selector = self.compute_polygon_subset_selector(ds, polygon)
         return selector.select(ds)
 
-    def subset_bbox(self, ds: xr.Dataset, bbox: tuple[float, float, float, float]) -> xr.Dataset:
+    def subset_bbox(
+        self, ds: xr.Dataset, bbox: tuple[float, float, float, float]
+        ) -> xr.Dataset:
         """Subset the dataset to the bounding box.
 
-        This is a conveinence method that will compute the subset
+        This is a convenience method that will compute the subset
         selector for the polygon and then apply it to the dataset. This
         is useful for one off subsetting operations where the user does
         not want to keep the selector around for later use.
