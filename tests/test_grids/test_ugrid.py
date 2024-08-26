@@ -481,7 +481,10 @@ def test_3d_selector():
     ds = ugrid.assign_ugrid_topology(ds)
 
     bbox_selector = ds.xsg.grid.compute_bbox_subset_selector(ds, bbox, name)
-    loaded_selector = Selector(EXAMPLE_DATA / "northeastUSA3d_076e4d62.pkl")
+
+    filepath = EXAMPLE_DATA / "northeastUSA3d_076e4d62.pkl"
+    selector_bytes = open(filepath, "rb").read()
+    loaded_selector = Selector(selector_bytes)
 
     assert bbox_selector == loaded_selector
 
@@ -492,15 +495,16 @@ def test_2d_selector():
 
     fs = fsspec.filesystem("s3", anon=True)
     ds = xr.open_dataset(
-        fs.open(
-            "s3://noaa-gestofs-pds/stofs_2d_glo.20240807/stofs_2d_glo.t06z.fields.cwl.nc"
-        ),
+        fs.open("s3://noaa-gestofs-pds/stofs_2d_glo.20240807/stofs_2d_glo.t06z.fields.cwl.nc"),
         chunks={},
-        drop_variables=['nvel']
+        drop_variables=["nvel"],
     )
     ds = ugrid.assign_ugrid_topology(ds)
 
     bbox_selector = ds.xsg.grid.compute_bbox_subset_selector(ds, bbox, name)
-    loaded_selector = Selector(EXAMPLE_DATA / "northeastUSA2d_bb3d126e.pkl")
+
+    filepath = EXAMPLE_DATA / "northeastUSA2d_bb3d126e.pkl"
+    selector_bytes = open(filepath, "rb").read()
+    loaded_selector = Selector(selector_bytes)
 
     assert bbox_selector == loaded_selector

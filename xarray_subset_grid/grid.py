@@ -1,5 +1,3 @@
-import hashlib
-import os
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 
@@ -208,12 +206,3 @@ class Grid(ABC):
         """
         selector = self.compute_bbox_subset_selector(ds, bbox)
         return selector.select(ds)
-
-    def selector_exists(self, polygon, selector_class):
-        hashname = hashlib.md5(str(polygon).encode()).hexdigest()[:8]
-        for filename in os.listdir("."):
-            if filename.endswith(f"{hashname}.pkl"):
-                selector = Selector(path=filename)
-                if isinstance(selector, selector_class):
-                    return selector
-        return False

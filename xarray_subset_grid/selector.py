@@ -1,3 +1,4 @@
+import hashlib
 import pickle
 from abc import abstractmethod
 
@@ -15,12 +16,13 @@ class Selector:
     select should return a new xarray dataset that is a subset of the
     input dataset and must be implemented by the subclass.
     """
-    def __init__(self, bytes = None):
+
+    def __init__(self, bytes=None):
         """Initialize the Selector instance.
         If a bytes object is provided, attempt to load the selector.
         """
         if bytes:
-            instance = self.load(bytes)
+            instance = self.load_from_bytes(bytes)
             self.__dict__.update(instance.__dict__)
             self.__class__ = instance.__class__
 
@@ -49,26 +51,10 @@ class Selector:
         """
         raise NotImplementedError()
 
-    # def get_cache_filename(self, polygon=None):
-    #     if not polygon:
-    #         polygon = self.polygon
-    #     hashname = hashlib.md5(str(polygon).encode()).hexdigest()
-    #     filename = f"{self.name}_{hashname[:8]}.pkl"
-    #     return filename
-
-    # def save(self):
-    #     """Save the selector to the cache file."""
-    #     filename = self.get_cache_filename()
-    #     with open(filename, "wb") as f:
-    #         pickle.dump(self, f)
-    #     return filename
-
-    # def load(self, path):
-    #     if os.path.exists(path) and os.path.isfile(path):
-    #         with open(path, "rb") as f:
-    #             return pickle.load(f)
-    #     else:
-    #       raise FileNotFoundError(f"The file '{path}' does not exist.")
+    def get_hashname(self):
+        hash = hashlib.md5(str(self.polygon).encode()).hexdigest()
+        hashname = f"{self.name}_{hash[:8]}.pkl"
+        return hashname
 
     def save_to_bytes(self):
         """Return a bytes object representing the serialized selector."""
