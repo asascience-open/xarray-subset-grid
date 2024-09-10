@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import os
 
 from xarray_subset_grid.utils import (
     normalize_bbox_x_coords,
@@ -8,6 +9,13 @@ from xarray_subset_grid.utils import (
 )
 
 # normalize_polygon_x_coords tests.
+
+def get_test_file_dir():
+    """
+    returns the test file dir path
+    """
+    test_file_dir = os.path.join(os.path.dirname(__file__), 'test_data')
+    return test_file_dir
 
 poly1_180 = np.array(
     [

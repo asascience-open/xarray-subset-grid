@@ -123,9 +123,16 @@ class SGrid(Grid):
         
         node_mask = compute_2d_subset_mask(lat=node_lat, lon=node_lon, polygon=polygon)
         msk = np.where(node_mask)
-        subset_masks.append(([node_coords[0], node_coords[1]], node_mask))
+        index_bounding_box = np.array([[msk[0].min(), msk[0].max()+1], [msk[1].min(), msk[1].max()+1]])
+        # quick and dirty add a 1 node pad around the psi mask. This is to ensure the entire polygon is covered.
+        index_bounding_box[0,0] = max(0, index_bounding_box[0,0] - 1)
+        index_bounding_box[0,1] = min(node_lon.shape[0], index_bounding_box[0,1] + 1)
+        index_bounding_box[1,0] = max(0, index_bounding_box[1,0] - 1)
+        index_bounding_box[1,1] = min(node_lon.shape[1], index_bounding_box[1,1] + 1)
+        node_mask[index_bounding_box[0][0]:index_bounding_box[0][1],
+                  index_bounding_box[1][0]:index_bounding_box[1][1]] = True
         
-        index_bounding_box = [[msk[0].min(), msk[0].max()], [msk[1].min(), msk[1].max()]]
+        subset_masks.append(([node_coords[0], node_coords[1]], node_mask))
         for s in ('face', 'edge1', 'edge2'):
             dims = grid_topology.attrs.get(f"{s}_dimensions", None)
             coords = grid_topology.attrs.get(f"{s}_coordinates", None).split()
@@ -143,8 +150,8 @@ class SGrid(Grid):
             arranged_padding = [padding[d] for d in lon.dims]
             arranged_padding = [0 if p == 'none' or p == 'low' else 1 for p in arranged_padding]
             mask = np.zeros(lon.shape, dtype=bool)
-            mask[index_bounding_box[0][0]:index_bounding_box[0][1] + arranged_padding[0] + 1,
-                 index_bounding_box[1][0]:index_bounding_box[1][1] + arranged_padding[1] + 1] = True
+            mask[index_bounding_box[0][0]:index_bounding_box[0][1] + arranged_padding[0],
+                 index_bounding_box[1][0]:index_bounding_box[1][1] + arranged_padding[1]] = True
             xr_mask = xr.DataArray(mask, dims=lon.dims)
             subset_masks.append(([coords[0], coords[1]], xr_mask))
             
