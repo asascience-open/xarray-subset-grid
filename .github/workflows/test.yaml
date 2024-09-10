@@ -1,5 +1,5 @@
 name: test
-on: [push]
+on: [push, pull_request]
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -16,7 +16,7 @@ jobs:
           cache: true
           # auth-host: prefix.dev
           # auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
-      - run: pixi run --environment ${{ matrix.environment }} lint
+      - run: pixi run --environment test312 lint
       - run: pixi run --environment ${{ matrix.environment }} test
 
 
