@@ -6,6 +6,14 @@ import xarray as xr
 import xarray_subset_grid.accessor  # noqa: F401
 from xarray_subset_grid.utils import ray_tracing_numpy
 # open dataset as zarr object using fsspec reference file system and xarray
+
+from xarray_subset_grid.utils import get_test_file_dir
+
+from gridded import Variable, VectorVariable
+
+test_dir = get_test_file_dir()
+sample_sgrid_file = os.path.join(test_dir, 'arakawa_c_test_grid.nc')
+
 def test_polygon_subset():
     '''
     This is a basic integration test for the subsetting of a ROMS sgrid dataset using a polygon.
@@ -52,3 +60,17 @@ def test_polygon_subset():
     assert ds_subset['lon_rho'][0,0] < ds_subset['lon_psi'][0,0] and ds_subset['lon_rho'][0,1] > ds_subset['lon_psi'][0,0]
     
     #ds_subset.temp_sur.isel(ocean_time=0).plot(x="lon_rho", y="lat_rho")
+    
+def test_polygon_subset_2(): 
+    ds = xr.open_dataset(sample_sgrid_file)
+    polygon = np.array(
+        [6.5, 37.5],
+        [6.5, 39.5],
+        [9.5, 40.5],
+        [8.5, 37.5],
+        [6.5, 37.5]
+    )
+    ds_subset = ds.xsg.subset_polygon(polygon)
+    
+    breakpoint()
+    
