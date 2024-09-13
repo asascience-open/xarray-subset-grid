@@ -1,3 +1,9 @@
+env:
+  # I got these from: https://github.com/prefix-dev/setup-pixi/blob/main/README.md
+  # they seem to keep it pretty up to date
+  SETUP_PIXI_VERSION: v0.8.1
+  PIXI_VERSION: v0.29.0
+
 name: test
 on: [push, pull_request]
 jobs:
@@ -10,9 +16,9 @@ jobs:
         environment: [test310, test311, test312]
     steps:
       - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@v0.7.0
+      - uses: prefix-dev/setup-pixi@SETUP_PIXI_VERSION
         with:
-          pixi-version: v0.22.0
+          pixi-version: PIXI_VERSION
           cache: true
           # auth-host: prefix.dev
           # auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
@@ -24,9 +30,9 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@v0.7.0
+      - uses: prefix-dev/setup-pixi@SETUP_PIXI_VERSION
         with:
-          pixi-version: v0.22.0
+          pixi-version: PIXI_VERSION
           cache: true
           # auth-host: prefix.dev
           # auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
