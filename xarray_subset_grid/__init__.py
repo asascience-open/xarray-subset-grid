@@ -6,3 +6,9 @@ from . import accessor  # noqa
 from .selector import Selector
 
 __all__ = ['Selector']
+
+try:
+    from ._version import __version__
+except ImportError:
+    __version__ = "version_unknown"
+
