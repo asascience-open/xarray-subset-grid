@@ -107,7 +107,7 @@ class SGrid(Grid):
         grid_topology = ds[grid_topology_key]
         dims = _get_sgrid_dim_coord_names(grid_topology)
         subset_masks: list[tuple[list[str], xr.DataArray]] = []
-        
+
         node_dims = grid_topology.attrs["node_dimensions"].split()
         node_coords = grid_topology.attrs["node_coordinates"].split()
 
@@ -120,23 +120,25 @@ class SGrid(Grid):
                 node_lat = ds[c]
         if node_lon is None or node_lat is None:
             raise ValueError(f"Could not find lon and lat for dimension {node_dims}")
-        
+
         node_mask = compute_2d_subset_mask(lat=node_lat, lon=node_lon, polygon=polygon)
         msk = np.where(node_mask)
-        index_bounding_box = np.array([[msk[0].min(), msk[0].max()+1], [msk[1].min(), msk[1].max()+1]])
-        # quick and dirty add a 1 node pad around the psi mask. This is to ensure the entire polygon is covered.
+        index_bounding_box = np.array([[msk[0].min(), msk[0].max()+1],
+                                       [msk[1].min(), msk[1].max()+1]])
+        # quick and dirty add a 1 node pad around the psi mask.
+        # This is to ensure the entire polygon is covered.
         index_bounding_box[0,0] = max(0, index_bounding_box[0,0] - 1)
         index_bounding_box[0,1] = min(node_lon.shape[0], index_bounding_box[0,1] + 1)
         index_bounding_box[1,0] = max(0, index_bounding_box[1,0] - 1)
         index_bounding_box[1,1] = min(node_lon.shape[1], index_bounding_box[1,1] + 1)
         node_mask[index_bounding_box[0][0]:index_bounding_box[0][1],
                   index_bounding_box[1][0]:index_bounding_box[1][1]] = True
-        
+
         subset_masks.append(([node_coords[0], node_coords[1]], node_mask))
         for s in ('face', 'edge1', 'edge2'):
             dims = grid_topology.attrs.get(f"{s}_dimensions", None)
             coords = grid_topology.attrs.get(f"{s}_coordinates", None).split()
-            
+
             lon: xr.DataArray | None = None
             lat: xr.DataArray | None = None
             for c in coords:
@@ -154,7 +156,7 @@ class SGrid(Grid):
                  index_bounding_box[1][0]:index_bounding_box[1][1] + arranged_padding[1]] = True
             xr_mask = xr.DataArray(mask, dims=lon.dims)
             subset_masks.append(([coords[0], coords[1]], xr_mask))
-            
+
         return SGridSelector(
             name=name or 'selector',
             polygon=polygon,
@@ -162,7 +164,7 @@ class SGrid(Grid):
             grid_topology=grid_topology,
             subset_masks=subset_masks,
         )
-        
+
 
 def _get_sgrid_dim_coord_names(
     grid_topology: xr.DataArray,
@@ -199,14 +201,16 @@ def parse_padding_string(dim_string):
     parsed_string = dim_string.replace('(padding: ', '').replace(')', '').replace(':', '')
     split_parsed_string = parsed_string.split(' ')
     if len(split_parsed_string) == 6:
-        return {split_parsed_string[0]:split_parsed_string[2], split_parsed_string[3]:split_parsed_string[5]}
+        return {split_parsed_string[0]:split_parsed_string[2],
+                split_parsed_string[3]:split_parsed_string[5]}
     elif len(split_parsed_string) == 5:
         if split_parsed_string[4] in {'none', 'low', 'high', 'both'}:
             #2nd dim has padding, and with len 5 that means first does not
             split_parsed_string.insert(2, 'none')
         else:
             split_parsed_string.insert(5, 'none')
-        return {split_parsed_string[0]:split_parsed_string[2], split_parsed_string[3]:split_parsed_string[5]}
+        return {split_parsed_string[0]:split_parsed_string[2],
+                split_parsed_string[3]:split_parsed_string[5]}
     elif len(split_parsed_string) == 2:
         #node dimensions string could look like this: 'node_dimensions: xi_psi eta_psi'
         return {split_parsed_string[0]: 'none', split_parsed_string[1]: 'none'}

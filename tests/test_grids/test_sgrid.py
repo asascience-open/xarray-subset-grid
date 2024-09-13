@@ -1,14 +1,14 @@
-import cf_xarray
+import os
+
 import fsspec
 import numpy as np
 import xarray as xr
-import os
 
 import xarray_subset_grid.accessor  # noqa: F401
-from ..test_utils import ray_tracing_numpy, get_test_file_dir
+from tests.test_utils import get_test_file_dir
+
 # open dataset as zarr object using fsspec reference file system and xarray
 
-from gridded import Variable, VectorVariable
 
 test_dir = get_test_file_dir()
 sample_sgrid_file = os.path.join(test_dir, 'arakawa_c_test_grid.nc')
@@ -45,7 +45,7 @@ def test_polygon_subset():
     )
     ds_temp = ds.xsg.subset_vars(['temp_sur'])
     ds_subset = ds_temp.xsg.subset_polygon(polygon)
-    
+
     #Check that the subset dataset has the correct dimensions given the original padding
     assert ds_subset.sizes['eta_rho'] == ds_subset.sizes['eta_psi'] + 1
     assert ds_subset.sizes['eta_u'] == ds_subset.sizes['eta_psi'] + 1
@@ -53,14 +53,17 @@ def test_polygon_subset():
     assert ds_subset.sizes['xi_rho'] == ds_subset.sizes['xi_psi'] + 1
     assert ds_subset.sizes['xi_u'] == ds_subset.sizes['xi_psi']
     assert ds_subset.sizes['xi_v'] == ds_subset.sizes['xi_psi'] + 1
-    
-    #Check that the subset rho/psi/u/v positional relationsip makes sense aka psi point is 'between' it's neighbor rho points
-    #Note that this needs to be better generalized; it's not trivial to write a test that works in all potential cases.
-    assert ds_subset['lon_rho'][0,0] < ds_subset['lon_psi'][0,0] and ds_subset['lon_rho'][0,1] > ds_subset['lon_psi'][0,0]
-    
+
+    #Check that the subset rho/psi/u/v positional relationsip makes sense aka psi point is
+    #'between' it's neighbor rho points
+    #Note that this needs to be better generalized; it's not trivial to write a test that
+    #works in all potential cases.
+    assert (ds_subset['lon_rho'][0,0] < ds_subset['lon_psi'][0,0]
+            and ds_subset['lon_rho'][0,1] > ds_subset['lon_psi'][0,0])
+
     #ds_subset.temp_sur.isel(ocean_time=0).plot(x="lon_rho", y="lat_rho")
-    
-def test_polygon_subset_2(): 
+
+def test_polygon_subset_2():
     ds = xr.open_dataset(sample_sgrid_file, decode_times=False)
     polygon = np.array([
         [6.5, 37.5],
@@ -70,7 +73,7 @@ def test_polygon_subset_2():
         [6.5, 37.5]
     ])
     ds_subset = ds.xsg.subset_polygon(polygon)
-    
+
     #Check that the subset dataset has the correct dimensions given the original padding
     assert ds_subset.sizes['eta_rho'] == ds_subset.sizes['eta_psi'] + 1
     assert ds_subset.sizes['eta_u'] == ds_subset.sizes['eta_psi'] + 1
@@ -78,7 +81,6 @@ def test_polygon_subset_2():
     assert ds_subset.sizes['xi_rho'] == ds_subset.sizes['xi_psi'] + 1
     assert ds_subset.sizes['xi_u'] == ds_subset.sizes['xi_psi']
     assert ds_subset.sizes['xi_v'] == ds_subset.sizes['xi_psi'] + 1
-    
+
     assert ds_subset.lon_psi.min() <= 6.5 and ds_subset.lon_psi.max() >= 9.5
     assert ds_subset.lat_psi.min() <= 37.5 and ds_subset.lat_psi.max() >= 40.5
-    

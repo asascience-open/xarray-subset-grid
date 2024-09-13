@@ -1,6 +1,7 @@
+import os
+
 import numpy as np
 import pytest
-import os
 
 from xarray_subset_grid.utils import (
     normalize_bbox_x_coords,

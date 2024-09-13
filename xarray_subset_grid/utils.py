@@ -151,4 +151,3 @@ def compute_2d_subset_mask(
     polygon_mask = np.where(polygon_mask > 1, True, False)
 
     return xr.DataArray(polygon_mask, dims=mask_dims)
-        
