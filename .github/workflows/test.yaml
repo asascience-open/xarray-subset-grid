@@ -16,16 +16,16 @@ jobs:
         environment: [test310, test311, test312]
     steps:
       - uses: actions/checkout@v4
-      - uses: "prefix-dev/setup-pixi@$SETUP_PIXI_VERSION"
+      - uses: "prefix-dev/setup-pixi@${{ SETUP_PIXI_VERSION }}"
         with:
-          pixi-version: "$PIXI_VERSION"
+          pixi-version: "${{ PIXI_VERSION }}"
           cache: true
           # auth-host: prefix.dev
           # auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
 #      - run: pixi run --environment test312 lint
       - run: pixi run --environment ${{ matrix.environment }} test
   lint:
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
     steps:
