@@ -3,7 +3,7 @@ import xarray as xr
 
 from xarray_subset_grid.grid import Grid
 from xarray_subset_grid.selector import Selector
-from xarray_subset_grid.utils import compute_2d_subset_mask, parse_padding_string
+from xarray_subset_grid.utils import compute_2d_subset_mask
 
 
 class SGridSelector(Selector):
@@ -187,3 +187,28 @@ def _get_sgrid_dim_coord_names(
             coords.append(v.split(" "))
 
     return list(zip(dims, coords))
+
+def parse_padding_string(dim_string):
+    '''
+    Given a grid_topology dimension string, parse the padding for each dimension.
+    Returns a dict of {dim0name: padding,
+                       dim1name: padding
+                       }
+    valid values of padding are: 'none', 'low', 'high', 'both'
+    '''
+    parsed_string = dim_string.replace('(padding: ', '').replace(')', '').replace(':', '')
+    split_parsed_string = parsed_string.split(' ')
+    if len(split_parsed_string) == 6:
+        return {split_parsed_string[0]:split_parsed_string[2], split_parsed_string[3]:split_parsed_string[5]}
+    elif len(split_parsed_string) == 5:
+        if split_parsed_string[4] in {'none', 'low', 'high', 'both'}:
+            #2nd dim has padding, and with len 5 that means first does not
+            split_parsed_string.insert(2, 'none')
+        else:
+            split_parsed_string.insert(5, 'none')
+        return {split_parsed_string[0]:split_parsed_string[2], split_parsed_string[3]:split_parsed_string[5]}
+    elif len(split_parsed_string) == 2:
+        #node dimensions string could look like this: 'node_dimensions: xi_psi eta_psi'
+        return {split_parsed_string[0]: 'none', split_parsed_string[1]: 'none'}
+    else:
+        raise ValueError(f"Padding parsing failure: {dim_string}")

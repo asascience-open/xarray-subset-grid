@@ -57,7 +57,6 @@ def test_polygon_subset():
     #Check that the subset rho/psi/u/v positional relationsip makes sense aka psi point is 'between' it's neighbor rho points
     #Note that this needs to be better generalized; it's not trivial to write a test that works in all potential cases.
     assert ds_subset['lon_rho'][0,0] < ds_subset['lon_psi'][0,0] and ds_subset['lon_rho'][0,1] > ds_subset['lon_psi'][0,0]
-    breakpoint()
     
     #ds_subset.temp_sur.isel(ocean_time=0).plot(x="lon_rho", y="lat_rho")
     
