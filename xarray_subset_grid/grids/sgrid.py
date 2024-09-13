@@ -140,9 +140,9 @@ class SGrid(Grid):
             lon: xr.DataArray | None = None
             lat: xr.DataArray | None = None
             for c in coords:
-                if 'lon' in c.standard_name.lower():
+                if 'lon' in ds[c].standard_name.lower():
                     lon = ds[c]
-                elif 'lat' in c.standard_name.lower():
+                elif 'lat' in ds[c].standard_name.lower():
                     lat = ds[c]
             if lon is None or lat is None:
                 raise ValueError(f"Could not find lon and lat for dimension {dims}")
