@@ -4,12 +4,12 @@ name: test
 
 on: [push, pull_request]
 
-# Gave up -- could not figure out how to use environment variables :-(
-env:
-  # I got these from: https://github.com/prefix-dev/setup-pixi/blob/main/README.md
-  # they seem to keep it pretty up to date
-  SETUP_PIXI_VERSION: v0.8.1
-  PIXI_VERSION: v0.29.0
+# # Gave up -- could not figure out how to use environment variables :-(
+# env:
+#   # I got these from: https://github.com/prefix-dev/setup-pixi/blob/main/README.md
+#   # they seem to keep it pretty up to date
+#   SETUP_PIXI_VERSION: v0.8.1
+#   PIXI_VERSION: v0.29.0
 
 jobs:
   test:
@@ -21,9 +21,9 @@ jobs:
         environment: [test310, test311, test312]
     steps:
       - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@$SETUP_PIXI_VERSION
+      - uses: prefix-dev/setup-pixi@$v0.8.1
         with:
-          pixi-version: $env.PIXI_VERSION
+          pixi-version: v0.29.0
           cache: true
           # auth-host: prefix.dev
           # auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
@@ -35,9 +35,9 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@$SETUP_PIXI_VERSION
+      - uses: prefix-dev/setup-pixi@$v0.8.1
         with:
-          pixi-version: $PIXI_VERSION
+          pixi-version: v0.29.0
           cache: true
           # auth-host: prefix.dev
           # auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
