@@ -1,11 +1,14 @@
+
+
+name: test
+on: [push, pull_request]
+
 env:
   # I got these from: https://github.com/prefix-dev/setup-pixi/blob/main/README.md
   # they seem to keep it pretty up to date
   SETUP_PIXI_VERSION: v0.8.1
   PIXI_VERSION: v0.29.0
 
-name: test
-on: [push, pull_request]
 jobs:
   test:
     runs-on: ${{ matrix.os }}
