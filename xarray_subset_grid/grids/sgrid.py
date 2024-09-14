@@ -108,8 +108,10 @@ class SGrid(Grid):
         dims = _get_sgrid_dim_coord_names(grid_topology)
         subset_masks: list[tuple[list[str], xr.DataArray]] = []
 
-        node_dims = grid_topology.attrs["node_dimensions"].split()
-        node_coords = grid_topology.attrs["node_coordinates"].split()
+        node_info = _get_location_info_from_topology(grid_topology, 'node')
+        node_dims = node_info['dims']
+        node_coords = node_info['coords']
+
         unique_dims = set(node_dims)
         node_vars = [k for k in ds.variables if unique_dims.issubset(set(ds[k].dims))]
 
@@ -120,8 +122,6 @@ class SGrid(Grid):
                 node_lon = ds[c]
             elif 'lat' in ds[c].standard_name.lower():
                 node_lat = ds[c]
-        if node_lon is None or node_lat is None:
-            raise ValueError(f"Could not find lon and lat for dimension {node_dims}")
 
         node_mask = compute_2d_subset_mask(lat=node_lat, lon=node_lon, polygon=polygon)
         msk = np.where(node_mask)
@@ -137,22 +137,19 @@ class SGrid(Grid):
                   index_bounding_box[1][0]:index_bounding_box[1][1]] = True
 
         subset_masks.append((node_vars, node_mask))
+
         for s in ('face', 'edge1', 'edge2'):
-            dims = grid_topology.attrs.get(f"{s}_dimensions", None)
-            coords = grid_topology.attrs.get(f"{s}_coordinates", None).split()
+            info = _get_location_info_from_topology(grid_topology, s)
+            dims = info['dims']
+            coords = info['coords']
             unique_dims = set(dims)
             vars = [k for k in ds.variables if unique_dims.issubset(set(ds[k].dims))]
 
             lon: xr.DataArray | None = None
-            lat: xr.DataArray | None = None
             for c in coords:
                 if 'lon' in ds[c].standard_name.lower():
                     lon = ds[c]
-                elif 'lat' in ds[c].standard_name.lower():
-                    lat = ds[c]
-            if lon is None or lat is None:
-                raise ValueError(f"Could not find lon and lat for dimension {dims}")
-            padding = parse_padding_string(dims)
+            padding = info['padding']
             arranged_padding = [padding[d] for d in lon.dims]
             arranged_padding = [0 if p == 'none' or p == 'low' else 1 for p in arranged_padding]
             mask = np.zeros(lon.shape, dtype=bool)
@@ -169,6 +166,40 @@ class SGrid(Grid):
             subset_masks=subset_masks,
         )
 
+def _get_location_info_from_topology(grid_topology: xr.DataArray, location) -> dict[str, str]:
+    '''Get the dimensions and coordinates for a given location from the grid_topology'''
+    rdict = {}
+    dim_str = grid_topology.attrs.get(f"{location}_dimensions", None)
+    coord_str = grid_topology.attrs.get(f"{location}_coordinates", None)
+    if dim_str is None or coord_str is None:
+        raise ValueError(f"Could not find {location} dimensions or coordinates")
+    # Remove padding for now
+    dims_only = " ".join([v for v in dim_str.split(" ") if "(" not in v and ")" not in v])
+    if ":" in dims_only:
+        dims_only = [s.replace(":", "") for s in dims_only.split(" ") if ":" in s]
+    else:
+        dims_only = dims_only.split(" ")
+
+    padding = dim_str.replace(':', '').split(')')
+    pdict = {}
+    if len(padding) == 3: #two padding values
+        pdict[dims_only[0]] = padding[0].split(' ')[-1]
+        pdict[dims_only[1]] = padding[1].split(' ')[-1]
+    elif len(padding) == 2: #one padding value
+        if padding[-1] == '': #padding is on second dim
+            pdict[dims_only[1]] = padding[0].split(' ')[-1]
+            pdict[dims_only[0]] = 'none'
+        else:
+            pdict[dims_only[0]] = padding[0].split(' ')[-1]
+            pdict[dims_only[1]] = 'none'
+    else:
+        pdict[dims_only[0]] = 'none'
+        pdict[dims_only[1]] = 'none'
+
+    rdict['dims'] = dims_only
+    rdict['coords'] = coord_str.split(" ")
+    rdict['padding'] = pdict
+    return rdict
 
 def _get_sgrid_dim_coord_names(
     grid_topology: xr.DataArray,
@@ -193,30 +224,3 @@ def _get_sgrid_dim_coord_names(
             coords.append(v.split(" "))
 
     return list(zip(dims, coords))
-
-def parse_padding_string(dim_string):
-    '''
-    Given a grid_topology dimension string, parse the padding for each dimension.
-    Returns a dict of {dim0name: padding,
-                       dim1name: padding
-                       }
-    valid values of padding are: 'none', 'low', 'high', 'both'
-    '''
-    parsed_string = dim_string.replace('(padding: ', '').replace(')', '').replace(':', '')
-    split_parsed_string = parsed_string.split(' ')
-    if len(split_parsed_string) == 6:
-        return {split_parsed_string[0]:split_parsed_string[2],
-                split_parsed_string[3]:split_parsed_string[5]}
-    elif len(split_parsed_string) == 5:
-        if split_parsed_string[4] in {'none', 'low', 'high', 'both'}:
-            #2nd dim has padding, and with len 5 that means first does not
-            split_parsed_string.insert(2, 'none')
-        else:
-            split_parsed_string.insert(5, 'none')
-        return {split_parsed_string[0]:split_parsed_string[2],
-                split_parsed_string[3]:split_parsed_string[5]}
-    elif len(split_parsed_string) == 2:
-        #node dimensions string could look like this: 'node_dimensions: xi_psi eta_psi'
-        return {split_parsed_string[0]: 'none', split_parsed_string[1]: 'none'}
-    else:
-        raise ValueError(f"Padding parsing failure: {dim_string}")
