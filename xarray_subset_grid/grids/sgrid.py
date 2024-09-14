@@ -110,13 +110,15 @@ class SGrid(Grid):
 
         node_dims = grid_topology.attrs["node_dimensions"].split()
         node_coords = grid_topology.attrs["node_coordinates"].split()
+        unique_dims = set(node_dims)
+        node_vars = [k for k in ds.variables if unique_dims.issubset(set(ds[k].dims))]
 
         node_lon: xr.DataArray | None = None
         node_lat: xr.DataArray | None = None
         for c in node_coords:
-            if 'lon' in c:
+            if 'lon' in ds[c].standard_name.lower():
                 node_lon = ds[c]
-            elif 'lat' in c:
+            elif 'lat' in ds[c].standard_name.lower():
                 node_lat = ds[c]
         if node_lon is None or node_lat is None:
             raise ValueError(f"Could not find lon and lat for dimension {node_dims}")
@@ -134,10 +136,12 @@ class SGrid(Grid):
         node_mask[index_bounding_box[0][0]:index_bounding_box[0][1],
                   index_bounding_box[1][0]:index_bounding_box[1][1]] = True
 
-        subset_masks.append(([node_coords[0], node_coords[1]], node_mask))
+        subset_masks.append((node_vars, node_mask))
         for s in ('face', 'edge1', 'edge2'):
             dims = grid_topology.attrs.get(f"{s}_dimensions", None)
             coords = grid_topology.attrs.get(f"{s}_coordinates", None).split()
+            unique_dims = set(dims)
+            vars = [k for k in ds.variables if unique_dims.issubset(set(ds[k].dims))]
 
             lon: xr.DataArray | None = None
             lat: xr.DataArray | None = None
@@ -155,7 +159,7 @@ class SGrid(Grid):
             mask[index_bounding_box[0][0]:index_bounding_box[0][1] + arranged_padding[0],
                  index_bounding_box[1][0]:index_bounding_box[1][1] + arranged_padding[1]] = True
             xr_mask = xr.DataArray(mask, dims=lon.dims)
-            subset_masks.append(([coords[0], coords[1]], xr_mask))
+            subset_masks.append((vars, xr_mask))
 
         return SGridSelector(
             name=name or 'selector',
