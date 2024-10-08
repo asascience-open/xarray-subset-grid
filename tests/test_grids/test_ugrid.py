@@ -4,7 +4,10 @@ tests for ugrid code
 
 from pathlib import Path
 
-import fsspec
+try:
+    import fsspec
+except ImportError:
+    fsspec = None
 import numpy as np
 import pytest
 import xarray as xr
@@ -216,17 +219,13 @@ Added by the subsetter:
     int cell(nele) ;
         cell:standard_name = "cell number" ;
         cell:long_name = "Mapping to original mesh cell number" ;
-
-
-
-
 """
 
 # topology for TEST_FILE1
 grid_topology = {
-    "node_coordinates": ("lon", "lat"),
+    "node_coordinates": "lon lat",
     "face_node_connectivity": "nv",
-    "face_coordinates": ("lonc", "latc"),
+    "face_coordinates": "lonc latc",
     "face_face_connectivity": "nbe",
 }
 
@@ -394,6 +393,55 @@ def test_data_vars():
         ]
     )
 
+def test_assign_ugrid_topology_all():
+    """
+    it should use all the ones you pass in.
+
+    # The existing one in the file:
+
+    int mesh ;
+        mesh:cf_role = "mesh_topology" ;
+        mesh:long_name = "Topology data of 2D unstructured mesh" ;
+        mesh:topology_dimension = 2LL ;
+        mesh:node_coordinates = "mesh_node_lon mesh_node_lat" ;
+        mesh:edge_node_connectivity = "mesh_edge_nodes" ;
+        mesh:edge_coordinates = "mesh_edge_lon mesh_edge_lat" ;
+        mesh:face_node_connectivity = "mesh_face_nodes" ;
+        mesh:face_coordinates = "mesh_face_lon mesh_face_lat" ;
+        mesh:face_face_connectivity = "mesh_face_links" ;
+        mesh:boundary_node_connectivity = "mesh_boundary_nodes" ;
+    """
+
+    ds = xr.open_dataset(EXAMPLE_DATA / "small_ugrid_zero_based.nc")
+
+    new_attrs = {}
+    # clear out most of the mesh variable -- transfer to new attrs
+    mesh_attrs = ds['mesh'].attrs
+    for key in tuple(mesh_attrs.keys()):
+        if key not in {"cf_role", "long_name", "topology_dimension"}:
+            new_attrs[key] = mesh_attrs.pop(key)
+
+    # new_attrs = {"node_coordinates": "nc",
+    #              "face_coordinates": "fc",
+    #              "edge_coordinates": "ec",
+    #              "face_node_connectivity": "fnc",
+    #              "face_face_connectivity": "ffc",
+    #              "boundary_node_connectivity": "bnc",
+    #              "face_edge_connectivity": "fec",
+    #              "edge_face_connectivity": "efc",
+    #              "edge_node_connectivity": "enc",
+    #              }
+
+    # ds_new = ugrid.assign_ugrid_topology(ds,
+    #                                      face_node_connectivity="mesh_face_nodes",
+    #                                      boundary_node_connectivity="bounds")
+
+    ds_new = ugrid.assign_ugrid_topology(ds, **new_attrs)
+
+    print(ds_new["mesh"].attrs)
+    for key, value in new_attrs.items():
+        assert ds_new["mesh"].attrs[key] == value
+
 
 def test_extra_vars():
     """
@@ -466,8 +514,10 @@ def test_vertical_levels():
         "node",
     )
 
-
+@pytest.mark.online
 def test_3d_selector():
+    if fsspec is None:
+        raise ImportError("Must have fsspec installed to run --online tests")
     bbox = (-70, 40, -60, 55)
     name = "northeastUSA3d"
 
@@ -489,7 +539,10 @@ def test_3d_selector():
     assert bbox_selector == loaded_selector
 
 
+@pytest.mark.online
 def test_2d_selector():
+    if fsspec is None:
+        raise ImportError("Must have fsspec installed to run --online tests")
     bbox = (-70, 40, -60, 50)
     name = "northeastUSA2d"
 

@@ -14,7 +14,7 @@ from xarray_subset_grid.grids import ugrid
 try:
     import matplotlib.pyplot as plt
 
-    from xarray_subset_grid.visualization.mpl_plotting import plot_ugrid
+    from xarray_subset_grid.visualization.mpl_plotting import plot_ugrid, plot_sgrid
 except ImportError:
     pytestmark = pytest.mark.skip(reason="matplotlib is not installed")
 
@@ -62,3 +62,21 @@ def test_plot_ugrid_start_index_1():
     plot_ugrid(axis, ds)
 
     fig.savefig(OUTPUT_DIR / "ugrid_plot_start_index_1")
+
+
+#############
+# SGRID tests
+#############
+
+def test_plot_sgrid_only_grid():
+    import cftime
+    ds = xr.open_dataset(EXAMPLE_DATA / "wcofs_small_subset.nc")
+
+    fig, axis = plt.subplots()
+
+    plot_sgrid(axis, ds)
+
+    fig.savefig(OUTPUT_DIR / "sgrid_just_plot")
+
+
+

@@ -2,6 +2,7 @@ import os
 
 import fsspec
 import numpy as np
+import pytest
 import xarray as xr
 
 import xarray_subset_grid.accessor  # noqa: F401
@@ -13,10 +14,14 @@ from tests.test_utils import get_test_file_dir
 test_dir = get_test_file_dir()
 sample_sgrid_file = os.path.join(test_dir, 'arakawa_c_test_grid.nc')
 
+@pytest.mark.online
 def test_polygon_subset():
     '''
     This is a basic integration test for the subsetting of a ROMS sgrid dataset using a polygon.
     '''
+    if fsspec is None:
+        raise ImportError("Must have fsspec installed to run --online tests")
+
     fs = fsspec.filesystem(
         "reference",
         fo="s3://nextgen-dmac-cloud-ingest/nos/wcofs/nos.wcofs.2ds.best.nc.zarr",

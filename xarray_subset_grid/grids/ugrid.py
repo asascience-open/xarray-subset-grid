@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 import warnings
 
 import numpy as np
@@ -206,7 +207,7 @@ class UGrid(Grid):
             face_node_start_index = 0
 
         # If any nodes in an element are inside the polygon, the element is
-        # inside the polygon so make sure all of the relevent nodes and
+        # inside the polygon so make sure all of the relevant nodes and
         # elements are unmasked
         x = x.values
         y = y.values
@@ -291,18 +292,25 @@ def assign_ugrid_topology(
     face_dimension: str | None = None,
     edge_dimension: str | None = None,
     start_index: int | None = None,
-) -> xr.Dataset:
-    # Should this be "make entire dataset UGRID compliant ?"
-    #  That would mean that the grid variables should all get metadata,
-    #  such as "location"
-    #  and we'd need to clean up coordinates that shouldn't be coordinates.
-    #  ("node is one that's in the UGRID test file")
-    """Assign the UGRID topology to the dataset.
+    ) -> xr.Dataset:
+    # Should this be "make the entire dataset UGRID compliant ?"
+    #    That would mean that the grid variables should all get metadata,
+    #    such as "location"
+    #    and we'd need to clean up coordinates that shouldn't be coordinates.
+    #    ("node is one that's in the UGRID test file")
+    """
+    Assign the UGRID topology to the dataset.
+
+    This should make a unstructured grid file UGRID (and CF) compliant, and should
+    allow the rest of the code to work.
+
+    If the Dataset already has a cf_role: "mesh_topology" variable,
+    its info will be used, and its attributes will be overridden by whatever is specified
+    in this call.
 
     Only the face_node_connectivity parameter is required.
-    The face_face_connectivity parameter is optional.
 
-    If the variable for face_node_connectivity is named nv, the function call should look
+    Example: If the variable for face_node_connectivity is named nv, the function call should look
     like this:
 
     ```
@@ -310,9 +318,10 @@ def assign_ugrid_topology(
     ```
 
     This will assign a new variable to the dataset called "mesh" with
-    the face_node_connectivity attribute. It will also assign the node_coordinates attribute
-    to the dataset with the lon and lat coordinate variable names, introspected
-    from the face_node_connectivity variables' dimensions.
+    the face_node_connectivity attribute (and cf_role: "mesh_topology").
+    It will also assign the node_coordinates attribute to the dataset with
+    the lon and lat coordinate variable names, introspected from the
+    face_node_connectivity variables' dimensions.
 
     You can also optionally specify any of the following mesh topology variables by passing
     them as keyword arguments
@@ -325,10 +334,13 @@ def assign_ugrid_topology(
                         the face_node_connectivity variable, but do nothing if they are
                         not found
 
-    Args:
+    Required Args:
         ds (xr.Dataset): The dataset to assign the UGRID topology to
-        face_node_connectivity (str): THe variable name of the face definitions
 
+    Required if not in the Dataset mesh variable already:
+        face_node_connectivity (str): The variable name of the face definitions
+
+    Optional Args:
         face_node_connectivity: str,
         face_face_connectivity: str = None,
         boundary_node_connectivity: str = None,
@@ -344,7 +356,7 @@ def assign_ugrid_topology(
 
     (See the UGRID conventions for descriptions of these)
 
-    You can pass a dict in with all the grid topology variables:
+    You can pass a dict in with all the grid topology variables::
 
     ```
         grid_topology = {'node_coordinates': ('lon', 'lat'),
@@ -357,28 +369,11 @@ def assign_ugrid_topology(
 
     ```
     """
-    # All the possible attributes:
-    # Required:
-    # node_coordinates
-    # face_node_connectivity
-
-    # Optional:
-    # face_dimension
-    # edge_node_connectivity
-    # edge_dimension
-    # Optional attributes
-    # face_edge_connectivity
-    # face_face_connectivity
-    # edge_face_connectivity
-    # boundary_node_connectivity
-    # face_coordinates
-    # edge_coordinates
-
-    # check for an existing mesh variable?
+    # check for an existing mesh variable
     try:
         mesh_vars = ds.cf.cf_roles["mesh_topology"]
     except KeyError:
-        # not there, create one
+        # It's not there: create one
         mesh_attrs = {"cf_role": "mesh_topology"}
         ds = ds.assign(mesh=((), np.int32(0), mesh_attrs))
         mesh_attrs = ds["mesh"].attrs
@@ -387,116 +382,78 @@ def assign_ugrid_topology(
             raise ValueError(f"This dataset has more than one mesh_topology variable: {mesh_vars}")
         mesh_attrs = ds[mesh_vars[0]].attrs
 
-    # update local variables with existing mesh
-    # not DRY, but what can you do?
-    node_coordinates = (
-        mesh_attrs.get("node_coordinates") if node_coordinates is None else node_coordinates
-    )
-    if node_coordinates is not None and isinstance(node_coordinates, str):
-        node_coordinates = node_coordinates.split(" ")
-    face_coordinates = (
-        mesh_attrs.get("face_coordinates") if face_coordinates is None else face_coordinates
-    )
-    if face_coordinates is not None and isinstance(face_coordinates, str):
-        face_coordinates = face_coordinates.split(" ")
-    edge_coordinates = (
-        mesh_attrs.get("edge_coordinates") if edge_coordinates is None else edge_coordinates
-    )
-    face_node_connectivity = (
-        mesh_attrs.get("face_node_connectivity", None)
-        if face_node_connectivity is None
-        else face_node_connectivity
-    )
-    if face_node_connectivity is None:
+    # Use a SimpleNamespace for the attrs
+    # it's easier to access than a dict, and easier to update than locals
+    mesh = SimpleNamespace(
+        topology_dimension = np.int32(2),
+        face_node_connectivity=None,
+        face_face_connectivity=None,
+        boundary_node_connectivity=None,
+        face_edge_connectivity=None,
+        edge_node_connectivity=None,
+        edge_face_connectivity=None,
+        node_coordinates=None,
+        face_coordinates=None,
+        edge_coordinates=None,
+        face_dimension=None,
+        edge_dimension=None,
+        start_index=None,
+        )
+    # Add in the existing ones from the Dataset mesh object
+    mesh.__dict__.update(mesh_attrs)
+
+    # Add in the ones passed in:
+    mesh.__dict__.update({att: vars()[att]
+                          for att in ALL_MESH_VARS
+                          if vars()[att] is not None})
+
+    if mesh.face_node_connectivity is None:
         raise ValueError(
             "face_node_connectivity is a required parameter if it is not in the mesh_topology variable"  # noqa: E501
         )
 
-    face_face_connectivity = (
-        mesh_attrs.get("face_face_connectivity")
-        if face_face_connectivity is None
-        else face_face_connectivity
-    )
-    boundary_node_connectivity = (
-        mesh_attrs.get("boundary_node_connectivity")
-        if boundary_node_connectivity is None
-        else boundary_node_connectivity
-    )
-    face_edge_connectivity = (
-        mesh_attrs.get("face_edge_connectivity")
-        if face_edge_connectivity is None
-        else face_edge_connectivity
-    )
-    edge_face_connectivity = (
-        mesh_attrs.get("edge_face_connectivity")
-        if edge_face_connectivity is None
-        else edge_face_connectivity
-    )
-    edge_node_connectivity = (
-        mesh_attrs.get("edge_node_connectivity")
-        if edge_node_connectivity is None
-        else edge_node_connectivity
-    )
-    face_dimension = mesh_attrs.get("face_dimension") if face_dimension is None else face_dimension
-    edge_dimension = mesh_attrs.get("edge_dimension") if edge_dimension is None else edge_dimension
-
-    # find the coordinates
-    if not face_coordinates:
+    if mesh.face_coordinates is None:
         try:
-            face_coordinates = ds[face_node_connectivity].cf.coordinates
-            face_coordinates = [f"{coord[0]}" for coord in face_coordinates.values()]
+            mesh.face_coordinates = ds[mesh.face_node_connectivity].cf.coordinates
+            mesh.face_coordinates = " ".join(f"{coord[0]}" for coord in mesh.face_coordinates.values())
         except AttributeError:
-            face_coordinates = None
+            mesh.face_coordinates = None
 
-    if not node_coordinates:
+    if mesh.node_coordinates is None:
         try:
-            if face_coordinates:
-                filter = face_coordinates
+            if mesh.face_coordinates:
+                filter = mesh.face_coordinates.split()
             else:
                 filter = []
 
             coords = ds.cf.coordinates
             node_lon = [c for c in coords["longitude"] if c not in filter][0]
             node_lat = [c for c in coords["latitude"] if c not in filter][0]
-            node_coordinates = [node_lon, node_lat]
+            mesh.node_coordinates = f"{node_lon} {node_lat}"
         except AttributeError:
             raise ValueError(
                 "The dataset does not have cf_compliant node coordinates longitude and latitude coordinates"  # noqa: E501
             )
 
-    if not edge_coordinates:
+    if mesh.edge_coordinates is None:
         try:
-            edge_coordinates = ds[edge_node_connectivity].cf.coordinates
-            edge_coordinates = [f"{coord[0]}" for coord in edge_coordinates.values()]
+            mesh.edge_coordinates = ds[mesh.edge_node_connectivity].cf.coordinates
+            mesh.edge_coordinates = [f"{coord[0]}" for coord in edge_coordinates.values()]
         except (KeyError, AttributeError):
-            edge_coordinates = None
+            mesh.edge_coordinates = None
 
-    if not face_face_connectivity:
+    if mesh.face_face_connectivity is None:
         # face_face_connectivity var should have same dimensions as
         # face_node_connectivity this is assuming that only one will match!
         for var_name, var in ds.variables.items():
-            if var_name == face_node_connectivity:
+            if var_name == mesh.face_node_connectivity:
                 continue
-            if var.dims == ds[face_node_connectivity].dims:
-                face_face_connectivity = var_name
+            if var.dims == ds[mesh.face_node_connectivity].dims:
+                mesh.face_face_connectivity = var_name
                 break
 
-    mesh_attrs.update(
-        {
-            "topology_dimension": np.int32(2),
-            "node_coordinates": " ".join(node_coordinates),
-            "face_node_connectivity": face_node_connectivity,
-        }
-    )
 
-    if face_coordinates:
-        mesh_attrs["face_coordinates"] = " ".join(face_coordinates)
-    if face_face_connectivity:
-        mesh_attrs["face_face_connectivity"] = face_face_connectivity
-
-    if face_dimension:
-        mesh_attrs["face_dimension"] = face_dimension
-    else:
+    if mesh.face_dimension is None:
         # The face_dimension attribute specifies which netcdf dimension is used to
         # indicate the index of the face in the connectivity arrays. This is needed
         # because some applications store the data with the fastest varying index
@@ -504,26 +461,30 @@ def assign_ugrid_topology(
         # as fastest dimension; e.g. a (num_faces, 3) array for triangles,
         # but some applications might use a (3, num_faces) order, in which case
         # the face_dimension attribute is required to help the client code disambiguate.
-        dims = ds[face_node_connectivity].dims
+        dims = ds[mesh.face_node_connectivity].dims
         mapping = [(dim, ds[dim].size) for dim in dims]
-        face_dimension = next(x[0] for x in mapping if x[1] != 3 and x[1] != 4)
-        mesh_attrs["face_dimension"] = face_dimension
+        mesh.face_dimension = next(x[0] for x in mapping if x[1] != 3 and x[1] != 4)
 
     # check for start_index, and set it if there.
-    if start_index is None:
-        start_index = int(ds[face_node_connectivity].min())
+    if mesh.start_index is None:
+        mesh.start_index = int(ds[mesh.face_node_connectivity].min())
 
-    if start_index not in (0, 1):
-        raise ValueError(f"start_index must be 0 or 1, not {start_index}")
+    if mesh.start_index not in (0, 1):
+        raise ValueError(f"start_index must be 0 or 1, not {mesh.start_index}")
 
     # assign the start_index to all the grid variables
     for var in (v for v in ALL_MESH_VARS if "connectivity" in v):
-        var_name = locals()[var]
+        var_name = getattr(mesh, var)
         if var_name:
             try:
                 var = ds[var_name]
-                var.attrs.setdefault("start_index", start_index)
+                var.attrs.setdefault("start_index", mesh.start_index)
             except KeyError:
                 warnings.warn(f"{var_name} in mesh_topology variable, but not in dataset")
+
+    # push the non-None mesh attributes back into the variable
+    for key, val in mesh.__dict__.items():
+        if val is not None:
+            mesh_attrs[key] = val
 
     return ds

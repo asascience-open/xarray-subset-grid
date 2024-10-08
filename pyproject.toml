@@ -33,6 +33,7 @@ dependencies = [
   "numpy",
   "xarray>=2023.10.0",
   "cf_xarray",
+  "cftime",
   "dask[complete]",
   "netcdf4",
 ]
@@ -131,7 +132,7 @@ sphinx-rtd-theme = "*"
 
 [tool.pixi.feature.dev.tasks]
 lint = "ruff check"
-test = "pytest tests/"
+test = "pytest --online tests/"
 
 [tool.pixi.feature.examples.dependencies]
 matplotlib = "*"
