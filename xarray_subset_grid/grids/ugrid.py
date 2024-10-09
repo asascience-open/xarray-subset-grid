@@ -1,5 +1,5 @@
-from types import SimpleNamespace
 import warnings
+from types import SimpleNamespace
 
 import numpy as np
 import xarray as xr
@@ -417,7 +417,8 @@ def assign_ugrid_topology(
     if mesh.face_coordinates is None:
         try:
             mesh.face_coordinates = ds[mesh.face_node_connectivity].cf.coordinates
-            mesh.face_coordinates = " ".join(f"{coord[0]}" for coord in mesh.face_coordinates.values())
+            mesh.face_coordinates = " ".join(f"{coord[0]}"
+                                             for coord in mesh.face_coordinates.values())
         except AttributeError:
             mesh.face_coordinates = None
 

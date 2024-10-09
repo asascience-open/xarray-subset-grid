@@ -12,9 +12,11 @@ import xarray as xr
 from xarray_subset_grid.grids import ugrid
 
 try:
-    import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt  # noqa
 
-    from xarray_subset_grid.visualization.mpl_plotting import plot_ugrid, plot_sgrid
+    from xarray_subset_grid.visualization.mpl_plotting import (  # plot_sgrid,
+        plot_ugrid,
+    )
 except ImportError:
     pytestmark = pytest.mark.skip(reason="matplotlib is not installed")
 

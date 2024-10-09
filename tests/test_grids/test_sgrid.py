@@ -1,8 +1,8 @@
 import os
 
 import numpy as np
-import xarray as xr
 import pytest
+import xarray as xr
 
 import xarray_subset_grid.accessor  # noqa: F401
 from tests.test_utils import get_test_file_dir
