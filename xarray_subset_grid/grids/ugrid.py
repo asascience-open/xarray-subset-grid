@@ -403,9 +403,11 @@ def assign_ugrid_topology(
     mesh.__dict__.update(mesh_attrs)
 
     # Add in the ones passed in:
-    mesh.__dict__.update({att: vars()[att]
+    variables = vars()
+    mesh.__dict__.update({att: variables[att]
                           for att in ALL_MESH_VARS
-                          if vars()[att] is not None})
+                          if variables[att] is not None})
+    mesh.start_index = start_index
 
     if mesh.face_node_connectivity is None:
         raise ValueError(
