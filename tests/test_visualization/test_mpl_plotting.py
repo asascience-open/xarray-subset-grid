@@ -68,15 +68,15 @@ def test_plot_ugrid_start_index_1():
 # SGRID tests
 #############
 
-def test_plot_sgrid_only_grid():
-    import cftime
-    ds = xr.open_dataset(EXAMPLE_DATA / "wcofs_small_subset.nc")
+# def test_plot_sgrid_only_grid():
+#     import cftime
+#     ds = xr.open_dataset(EXAMPLE_DATA / "wcofs_small_subset.nc", decode_times=False)
 
-    fig, axis = plt.subplots()
+#     fig, axis = plt.subplots()
 
-    plot_sgrid(axis, ds)
+#     plot_sgrid(axis, ds)
 
-    fig.savefig(OUTPUT_DIR / "sgrid_just_plot")
+#     fig.savefig(OUTPUT_DIR / "sgrid_just_plot")
 
 
 

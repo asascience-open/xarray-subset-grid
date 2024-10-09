@@ -5,4 +5,6 @@ from . import utils  # noqa
 from . import accessor  # noqa
 from .selector import Selector
 
+from._version import __version__
+
 __all__ = ['Selector']

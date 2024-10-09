@@ -111,9 +111,13 @@ def plot_sgrid(axes, ds, nodes=False, rho_points=False, edge_points=False):
                               (where U and V are in ROMS)
     """
 
+    raise NotImplementedError("have to port ugrid code to Sgrid")
+
     mesh_defs = ds[ds.cf.cf_roles["grid_topology"][0]].attrs
     lon_var, lat_var = mesh_defs["node_coordinates"].split()
     nodes_lon, nodes_lat = (ds[n] for n in mesh_defs["node_coordinates"].split())
+
+
     faces = ds[mesh_defs["face_node_connectivity"]]
 
     if faces.shape[0] == 3:
