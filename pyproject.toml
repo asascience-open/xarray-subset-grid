@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=72", "wheel", "setuptools_scm[toml]>=8.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,7 +8,7 @@ authors = [
   { name = "Matthew Iannucci", email = "matt.iannucci@tetratech.com" },
   { name = "Christopher H. Barker", email = "chris.barker@noaa.gov" },
 ]
-description = "Subset Xarray datasets in space"
+description = "Subset Xarray datasets in time and space"
 readme = "README.md"
 requires-python = ">=3.10"
 keywords = ["xarray"]
@@ -31,7 +31,7 @@ dynamic = ["version"]
 
 dependencies = [
   "numpy",
-  "xarray>=2023.10.0",
+  "xarray>=2024.6",
   "cf_xarray",
   "cftime",
   "dask[complete]",
@@ -99,7 +99,7 @@ default = { solve-group = "default" }
 dev = { features = ["dev"], solve-group = "default" }
 examples = { features = ["examples"], solve-group = "default" }
 all = { features = ["dev", "examples"], solve-group = "default" }
-test310 = ["dev", "py310"]                                        # implicit: test310 = ["dev", "py310", "default"]
+test310 = ["dev", "py310"] # implicit: test310 = ["dev", "py310", "default"]
 test311 = ["dev", "py311"]
 test312 = ["dev", "py312"]
 
@@ -109,8 +109,8 @@ test312 = ["dev", "py312"]
 [tool.pixi.dependencies]
 python = ">=3.10"
 numpy = "*"
-xarray = ">=2023.10.0"
-pandas = ">=2.2.2"
+xarray = ">=2024.6"
+pandas = "*"
 cf_xarray = "*"
 dask = "*"
 fsspec = "*"

@@ -413,12 +413,11 @@ def assign_ugrid_topology(
         raise ValueError(
             "face_node_connectivity is a required parameter if it is not in the mesh_topology variable"  # noqa: E501
         )
-
     if mesh.face_coordinates is None:
         try:
-            mesh.face_coordinates = ds[mesh.face_node_connectivity].cf.coordinates
+            face_coordinates = ds[mesh.face_node_connectivity].cf.coordinates
             mesh.face_coordinates = " ".join(f"{coord[0]}"
-                                             for coord in mesh.face_coordinates.values())
+                                             for coord in face_coordinates.values())
         except AttributeError:
             mesh.face_coordinates = None
 
@@ -487,7 +486,8 @@ def assign_ugrid_topology(
 
     # push the non-None mesh attributes back into the variable
     for key, val in mesh.__dict__.items():
-        if val is not None:
+        # can't use truthiness, as 0 is false
+        if not ((val is None) or (val == "")):
             mesh_attrs[key] = val
 
     return ds

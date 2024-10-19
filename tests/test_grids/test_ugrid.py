@@ -49,6 +49,7 @@ face_coordinates:
         lonc:standard_name = "longitude" ;
         lonc:long_name = "zonal longitude" ;
         lonc:units = "degree_east" ;
+
     float latc(nele) ;
         latc:standard_name = "latitude" ;
         latc:long_name = "zonal latitude" ;
@@ -60,7 +61,7 @@ face_node_connectivity:
 
 face_face_connectivity:
     int nbe(three, nele) ;
-        nbe:long_name = "elements surrounding anch element" ;
+        nbe:long_name = "elements surrounding each element" ;
 
 The depth coordinates (xarray is not sure what to do with these ...)
 
@@ -87,9 +88,7 @@ The time variable (coordinate variable?)
         time:format = "defined reference date" ;
         time:time_zone = "UTC" ;
 
-
 Data on the grid:
-
 
     float h(node) ;
         h:standard_name = "sea_floor_depth_below_geoid" ;
@@ -265,7 +264,11 @@ def test_assign_ugrid_topology_min():
     assert mesh["face_coordinates"] == "lonc latc"
     assert mesh["face_face_connectivity"] == "nbe"
     assert mesh["face_dimension"] == "nele"
+    assert mesh["start_index"] == 1
 
+    # There should be no empty attributes
+    for key, val in mesh.items():
+        assert val
 
 def test_assign_ugrid_topology_dict():
     """
@@ -292,6 +295,36 @@ def test_assign_ugrid_topology_dict():
     assert mesh["face_face_connectivity"] == "nbe"
     assert mesh["face_dimension"] == "nele"
 
+def test_assign_ugrid_topology_no_face_coords():
+    """
+    test for no face coords
+
+    """
+    # this example has triangles and bounds -- no face coordinates
+    ds = xr.open_dataset(EXAMPLE_DATA / "tris_and_bounds.nc")
+    with pytest.raises(KeyError):
+        ds["mesh"]
+
+    ds = ugrid.assign_ugrid_topology(ds, face_node_connectivity='tris',
+                                         node_coordinates = ('lon lat'),
+                                         boundary_node_connectivity = 'bounds'
+                                         )
+
+    # there are others, but these are the ones that really matter.
+    mesh = ds["mesh"].attrs
+    assert mesh["cf_role"] == "mesh_topology"
+    assert mesh["node_coordinates"] == "lon lat"
+    assert mesh["face_node_connectivity"] == "tris"
+    assert mesh["face_dimension"] == "tris"
+
+    assert mesh.keys() == {'cf_role',
+                         'topology_dimension',
+                         'face_node_connectivity',
+                         'boundary_node_connectivity',
+                         'node_coordinates',
+                         'face_dimension',
+                         'start_index',
+                         }
 
 def test_assign_ugrid_topology_existing_mesh_var():
     """
@@ -349,6 +382,7 @@ def test_assign_ugrid_topology_start_index_zero_infer():
     assert ds["mesh_face_nodes"].attrs["start_index"] == 0
     assert ds["mesh_edge_nodes"].attrs["start_index"] == 0
     assert ds["mesh_boundary_nodes"].attrs["start_index"] == 0
+
 
 
 # NOTE: these tests are probably not complete -- but they are something.

@@ -27218,12 +27218,12 @@ packages:
   timestamp: 1726135055732
 - kind: pypi
   name: xarray-subset-grid
-  version: 0.1.dev69+g36108f3.d20241009
+  version: 0.1.dev74+gca5b65a.d20241009
   path: .
-  sha256: 0343cd5d65d9be7c988056539ba591ba74391e1bbd6351de715000eacffa3d3f
+  sha256: d0a1f25417ac26c66bc37bd88b86ac3a868dcde16431260e56277c4913ded2bc
   requires_dist:
   - numpy
-  - xarray>=2023.10.0
+  - xarray>=2024.6
   - cf-xarray
   - cftime
   - dask[complete]
