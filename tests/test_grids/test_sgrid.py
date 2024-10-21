@@ -41,13 +41,14 @@ def test_grid_topology_location_parse():
 @pytest.mark.online
 def test_polygon_subset():
     '''
-    This is a basic integration test for the subsetting of a ROMS sgrid dataset using a polygon.
+    This is a basic integration test for the subsetting of a ROMS sgrid dataset using
+    a polygon.
     '''
     if fsspec is None:
         raise ImportError("Must have fsspec installed to run --online tests")
     fs = fsspec.filesystem(
         "reference",
-        fo="s3://nextgen-dmac-cloud-ingest/nos/wcofs/nos.wcofs.2ds.best.nc.zarr",
+        fo="s3://noaa-nodd-kerchunk-pds/nos/wcofs/wcofs.fields.best.nc.zarr",
         remote_protocol="s3",
         remote_options={"anon": True},
         target_protocol="s3",
@@ -71,10 +72,10 @@ def test_polygon_subset():
             [-122.38488806417945, 34.98888604471138],
         ]
     )
-    ds_temp = ds.xsg.subset_vars(['temp_sur'])
+    ds_temp = ds.xsg.subset_vars(['temp','u', 'v'])
     ds_subset = ds_temp.xsg.subset_polygon(polygon)
 
-    #Check that the subset dataset has the correct dimensions given the original padding
+    # Check that the subset dataset has the correct dimensions given the original padding
     assert ds_subset.sizes['eta_rho'] == ds_subset.sizes['eta_psi'] + 1
     assert ds_subset.sizes['eta_u'] == ds_subset.sizes['eta_psi'] + 1
     assert ds_subset.sizes['eta_v'] == ds_subset.sizes['eta_psi']
@@ -82,14 +83,14 @@ def test_polygon_subset():
     assert ds_subset.sizes['xi_u'] == ds_subset.sizes['xi_psi']
     assert ds_subset.sizes['xi_v'] == ds_subset.sizes['xi_psi'] + 1
 
-    #Check that the subset rho/psi/u/v positional relationsip makes sense aka psi point is
-    #'between' it's neighbor rho points
-    #Note that this needs to be better generalized; it's not trivial to write a test that
-    #works in all potential cases.
+    # Check that the subset rho/psi/u/v positional relationship makes sense aka psi point is
+    # 'between' it's neighbor rho points
+    # Note that this needs to be better generalized; it's not trivial to write a test that
+    # works in all potential cases.
     assert (ds_subset['lon_rho'][0,0] < ds_subset['lon_psi'][0,0]
             and ds_subset['lon_rho'][0,1] > ds_subset['lon_psi'][0,0])
 
-    #ds_subset.temp_sur.isel(ocean_time=0).plot(x="lon_rho", y="lat_rho")
+    # ds_subset.temp_sur.isel(ocean_time=0).plot(x="lon_rho", y="lat_rho")
 
 def test_polygon_subset_2():
     ds = xr.open_dataset(sample_sgrid_file, decode_times=False)
