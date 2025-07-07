@@ -23,19 +23,21 @@ This package is designed to be used in conjunction with [`xarray`](https://xarra
 grid = ds.xsg
 
 # subset to only include temperature
-ds_temp = ds.xsg.subset_vars(['temp'])
+ds_temp = ds.xsg.subset_vars(["temp"])
 
 # subset by bounding box
 ds_subset_bbox = ds.xsg.subset_bbox([-72, 32, -70, 35])
 
 # or by polygon
-poly = np.array([
-    [-72, 32],
-    [-72, 33],
-    [-73, 33],
-    [-73, 31],
-    [-72, 32],
-])
+poly = np.array(
+    [
+        [-72, 32],
+        [-72, 33],
+        [-73, 33],
+        [-73, 31],
+        [-72, 32],
+    ]
+)
 ds_subset_poly = ds.xsg.subset_polygon(poly)
 ```
 
