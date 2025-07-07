@@ -11,7 +11,7 @@ repos:
       exclude_types: [yaml]
 
 - repo: https://github.com/keewis/blackdoc
-  rev: v0.3.10
+  rev: v0.4.1
   hooks:
     - id: blackdoc
 
@@ -27,7 +27,7 @@ repos:
         - --ignore-words-list=astroid,fo
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.11.13
+  rev: v0.12.2
   hooks:
     - id: ruff
       args: ["--fix", "--show-fixes"]
@@ -39,7 +39,7 @@ repos:
     - id: pyproject-fmt
 
 - repo: https://github.com/woodruffw/zizmor-pre-commit
-  rev: v1.9.0
+  rev: v1.11.0
   hooks:
     - id: zizmor
 
