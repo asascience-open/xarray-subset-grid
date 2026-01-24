@@ -27,9 +27,8 @@ class RegularGridPolygonSelector(Selector):
     polygon: list[tuple[float, float]] | np.ndarray
     _polygon_mask: xr.DataArray
 
-    def __init__(
-        self, polygon: list[tuple[float, float]] | np.ndarray, mask: xr.DataArray, name: str
-    ):
+    def __init__(self, polygon: list[tuple[float, float]] | np.ndarray, mask: xr.DataArray,
+                 name: str):
         super().__init__()
         self.name = name
         self.polygon = polygon
@@ -64,7 +63,6 @@ class RegularGridBBoxSelector(Selector):
 
 class RegularGrid(Grid):
     """Grid implementation for regular lat/lng grids."""
-
     @staticmethod
     def recognize(ds: xr.Dataset) -> bool:
         """Recognize if the dataset matches the given grid."""
@@ -102,17 +100,17 @@ class RegularGrid(Grid):
         """
         lat = ds.cf.coordinates["latitude"][0]
         lon = ds.cf.coordinates["longitude"][0]
-        return {
-            var
-            for var in ds.data_vars
-            if var not in {lat, lon}
-            and "latitude" in var.cf.coordinates
-            and "longitude" in var.cf.coordinates
+        data_vars = {var.name for var in ds.data_vars.values()
+                         if var.name not in {lat, lon}
+                         and "latitude" in var.cf.coordinates
+                         and "longitude" in var.cf.coordinates
         }
+        return data_vars
 
-    def compute_polygon_subset_selector(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str = None
-    ) -> Selector:
+    def compute_polygon_subset_selector(self,
+                                        ds: xr.Dataset,
+                                        polygon: list[tuple[float, float]],
+                                        name: str = None) -> Selector:
         lat = ds.cf["latitude"]
         lon = ds.cf["longitude"]
 
@@ -120,9 +118,9 @@ class RegularGrid(Grid):
         polygon = normalize_polygon_x_coords(x, polygon)
         polygon_mask = ray_tracing_numpy(x, lat.flat, polygon).reshape(lon.shape)
 
-        selector = RegularGridPolygonSelector(
-            polygon=polygon, mask=polygon_mask, name=name or "selector"
-        )
+        selector = RegularGridPolygonSelector(polygon=polygon,
+                                              mask=polygon_mask,
+                                              name=name or "selector")
         return selector
 
     def compute_bbox_subset_selector(

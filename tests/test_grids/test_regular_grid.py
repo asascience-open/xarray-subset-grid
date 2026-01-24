@@ -12,9 +12,9 @@ import xarray as xr
 
 from xarray_subset_grid.grids.regular_grid import RegularGrid
 
-TEST_DATA = Path(__file__).parent.parent / "example_data"
+EXAMPLE_DATA = Path(__file__).parent.parent / "example_data"
 
-TEST_FILE1 = TEST_DATA / "AMSEAS-subset.nc"
+TEST_FILE1 = EXAMPLE_DATA / "AMSEAS-subset.nc"
 
 # NGOFS2_RGRID.nc is a small subset of the regridded NGOFS2 model.
 
@@ -34,7 +34,7 @@ def test_recognise_not():
     """
     should not recognise an SGrid
     """
-    ds = xr.open_dataset(TEST_DATA / "arakawa_c_test_grid.nc")
+    ds = xr.open_dataset(EXAMPLE_DATA / "arakawa_c_test_grid.nc")
 
     assert not RegularGrid.recognize(ds)
 
@@ -43,66 +43,70 @@ def test_recognise_not():
 # These from the ugrid tests -- need to be adapted
 #######
 
-# def test_grid_vars():
-#     """
-#     Check if the grid vars are defined properly
-#     """
-#     ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
+def test_grid_vars():
+    """
+    Check if the grid vars are defined properly
+    """
+    ds = xr.open_dataset(EXAMPLE_DATA / "AMSEAS-subset.nc")
 
-#     ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
+    grid_vars = ds.xsg.grid_vars
 
-#     grid_vars = ds.xsg.grid_vars
-
-#     # ['mesh', 'nv', 'lon', 'lat', 'lonc', 'latc']
-#     assert grid_vars == set(["mesh", "nv", "nbe", "lon", "lat", "lonc", "latc"])
+    # ['mesh', 'nv', 'lon', 'lat', 'lonc', 'latc']
+    assert grid_vars == {'lat', 'lon'}
 
 
-# def test_data_vars():
-#     """
-#     Check if the grid vars are defined properly
+def test_data_vars():
+    """
+    Check if the data vars are defined properly
 
-#     This is not currently working correctly!
-#     """
-#     ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
-#     ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
+    This is not currently working correctly!
 
-#     data_vars = ds.xsg.data_vars
+    it finds extra stuff
+    """
+    ds = xr.open_dataset(EXAMPLE_DATA / "AMSEAS-subset.nc")
 
-#     assert set(data_vars) == set(
-#         [
-#             "h",
-#             "zeta",
-#             "temp",
-#             "salinity",
-#             "u",
-#             "v",
-#             "uwind_speed",
-#             "vwind_speed",
-#             "wet_nodes",
-#             "wet_cells",
-#         ]
-#     )
+    data_vars = ds.xsg.data_vars
 
+    # the extra "time" variables are not using the grid
+    # so they should not be listed as data_vars
+    assert data_vars == {
+        'water_w',
+        'salinity',
+        'surf_roughness',
+        'surf_temp_flux',
+        'water_v',
+        # 'time_offset',
+        'water_temp',
+        'water_baro_v',
+        'surf_atm_press',
+        'surf_el',
+        'surf_salt_flux',
+        'water_u',
+        'surf_wnd_stress_gridy',
+        'water_baro_u',
+        'watdep',
+        'surf_solar_flux',
+        # 'time1_run',
+        'surf_wnd_stress_gridx',
+        # 'time1_offset'
+    }
 
-# def test_extra_vars():
-#     """
-#     Check if the extra vars are defined properly
+def test_extra_vars():
+    """
+    Check if the extra vars are defined properly
 
-#     This is not currently working correctly!
-#     """
-#     ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
-#     ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
+    """
+    ds = xr.open_dataset(EXAMPLE_DATA / "AMSEAS-subset.nc")
 
-#     extra_vars = ds.xsg.extra_vars
+    extra_vars = ds.xsg.extra_vars
 
-#     print([*ds])
-#     print(f"{extra_vars=}")
-#     assert extra_vars == set(
-#         [
-#             "nf_type",
-#             "Times",
-#         ]
-#     )
+    # the extra "time" variables are not using the grid
+    # so they should be listed as extra_vars
+    assert extra_vars == {
+        'time_offset',
+        'time1_run',
+        'time1_offset'
+    }
 
 
 # def test_coords():
