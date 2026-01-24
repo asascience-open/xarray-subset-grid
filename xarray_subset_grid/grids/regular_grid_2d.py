@@ -12,12 +12,14 @@ from xarray_subset_grid.selector import Selector
 from xarray_subset_grid.utils import compute_2d_subset_mask
 
 
-
 class RegularGrid2dSelector(Selector):
     polygon: list[tuple[float, float]] | np.ndarray
     _subset_mask: xr.DataArray
 
-    def __init__(self, polygon: list[tuple[float, float]] | np.ndarray, subset_mask: xr.DataArray, name: str):
+    def __init__(self,
+                 polygon: list[tuple[float, float]] | np.ndarray,
+                 subset_mask: xr.DataArray,
+                 name: str):
         super().__init__()
         self.name = name
         self.polygon = polygon

@@ -5,13 +5,15 @@ import numpy as np
 import xarray as xr
 
 from xarray_subset_grid.grid import Grid
-from xarray_subset_grid.grids import (FVCOMGrid,
-                                      RegularGrid,
-                                      # @D version doesn't appear to be different ??
-                                      # RegularGrid2d,
-                                      SELFEGrid,
-                                      SGrid,
-                                      UGrid)
+from xarray_subset_grid.grids import (
+    FVCOMGrid,
+    RegularGrid,
+    # @D version doesn't appear to be different ??
+    # RegularGrid2d,
+    SELFEGrid,
+    SGrid,
+    UGrid,
+)
 
 _grid_impls = [FVCOMGrid,
                SELFEGrid,
