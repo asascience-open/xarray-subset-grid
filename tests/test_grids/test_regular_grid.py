@@ -108,27 +108,66 @@ def test_extra_vars():
         'time1_offset'
     }
 
+def test_subset_to_bb():
+    """
+    Not a complete test by any means, but the basics are there.
 
-# def test_coords():
-#     ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")
-#     ds = ugrid.assign_ugrid_topology(ds, **grid_topology)
+    NOTE: it doesn't test if the variables got subset corectly ...
 
-#     coords = ds.xsg.coords
+    """
+    ds = xr.open_dataset(EXAMPLE_DATA / "2D-rectangular_grid_wind.nc")
 
-#     print(f"{coords=}")
-#     print(f"{ds.coords=}")
+    print("bounds:", ds['lat'].data.min(), ds['lat'].data.max())
+    print("bounds:", ds['lon'].data.min(), ds['lon'].data.max())
+    print(ds.xsg.data_vars)
 
-#     assert set(coords) == set(
-#         [
-#             "lon",
-#             "lat",
-#             "lonc",
-#             "latc",
-#             "time",
-#             "siglay",
-#             "siglev",
-#         ]
-#     )
+    bbox = (0, 0, 0.5, 0.5)
+
+    ds2 = ds.xsg.subset_bbox(bbox)
+
+    assert ds2['lat'].size == 15
+    assert ds2['lon'].size == 15
+
+    new_bounds = (ds2['lat'].data.min(),
+                  ds2['lon'].data.min(),
+                  ds2['lat'].data.max(),
+                  ds2['lon'].data.max()
+                  )
+    assert new_bounds == bbox
+
+def test_decreasing_latitude():
+    """
+    Some datasets have the latitude or longitude decreasing: 10, 9, 8 etc.
+    e.g the NOAA GFS met model
+
+    subsetting should still work
+
+    """
+    ds = xr.open_dataset(EXAMPLE_DATA / "rectangular_grid_decreasing.nc")
+
+    print("bounds:", ds['lat'].data.min(),
+                     ds['lat'].data.max(),
+                     ds['lon'].data.min(),
+                     ds['lon'].data.max())
+    print(ds.xsg.data_vars)
+
+    bbox = (0, 0, 0.5, 0.5)
+
+    ds2 = ds.xsg.subset_bbox(bbox)
+
+    print(ds2['lat'].size)
+    print(ds2['lon'].size)
+
+    assert ds2['lat'].size == 15
+    assert ds2['lon'].size == 15
+
+    new_bounds = (ds2['lat'].data.min(),
+                  ds2['lon'].data.min(),
+                  ds2['lat'].data.max(),
+                  ds2['lon'].data.max()
+                  )
+    print(new_bounds)
+    assert new_bounds == bbox
 
 
 # def test_vertical_levels():

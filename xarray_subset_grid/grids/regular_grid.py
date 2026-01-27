@@ -57,7 +57,21 @@ class RegularGridBBoxSelector(Selector):
         self._latitude_selection = slice(bbox[1], bbox[3])
 
     def select(self, ds: xr.Dataset) -> xr.Dataset:
-        """Perform the selection on the dataset."""
+        """
+        Perform the selection on the dataset.
+        """
+        lat = ds[ds.cf.coordinates.get("latitude")[0]]
+        lon = ds[ds.cf.coordinates.get("longitude")[0]]
+        if np.all(np.diff(lat) < 0):
+            # swap the slice if the latitudes are decending
+            self._latitude_selection = slice(self._latitude_selection.stop,
+                                             self._latitude_selection.start)
+         # and np.all(np.diff(lon) > 0):
+        if np.all(np.diff(lon) < 0):
+            # swap the slice if the longitudes are decending
+            self._longitude_selection = slice(self._longitude_selection.stop,
+                                              self._longitude_selection.start)
+
         return ds.cf.sel(lon=self._longitude_selection, lat=self._latitude_selection)
 
 
@@ -123,11 +137,10 @@ class RegularGrid(Grid):
                                               name=name or "selector")
         return selector
 
-    def compute_bbox_subset_selector(
-        self,
-        ds: xr.Dataset,
-        bbox: tuple[float, float, float, float],
-    ) -> Selector:
+    def compute_bbox_subset_selector(self,
+                                     ds: xr.Dataset,
+                                     bbox: tuple[float, float, float, float],
+                                     ) -> Selector:
         bbox = normalize_bbox_x_coords(ds.cf["longitude"].values, bbox)
         selector = RegularGridBBoxSelector(bbox)
         return selector
