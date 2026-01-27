@@ -169,6 +169,40 @@ def test_decreasing_latitude():
     print("new bounds:", new_bounds)
     assert new_bounds == bbox
 
+def test_subset_polygon():
+    """
+    Not a complete test by any means, but the basics are there.
+
+    NOTE: it doesn't test if the variables got subset corectly ...
+
+    """
+    ds = xr.open_dataset(EXAMPLE_DATA / "2D-rectangular_grid_wind.nc")
+
+    print("initial bounds:", ds['lon'].data.min(),
+                             ds['lat'].data.min(),
+                             ds['lon'].data.max(),
+                             ds['lat'].data.max(),
+                            )
+
+    poly = [(-0.5, 0.0), (0.0, 0.5), (0.5, 0.5), (0.5, 0.0), (0, 0.0)]
+    # this poly has this bounding box:
+    # bbox = (-0.5, 0, 0.5, 0.5)
+    # so results should be the same as the bbox tests
+
+    ds2 = ds.xsg.subset_polygon(poly)
+
+    assert ds2['lat'].size == 15
+    assert ds2['lon'].size == 29
+
+    new_bounds = (ds2['lon'].data.min(),
+                  ds2['lat'].data.min(),
+                  ds2['lon'].data.max(),
+                  ds2['lat'].data.max(),
+                  )
+    print("new bounds:", new_bounds)
+    assert new_bounds == (-0.5, 0, 0.5, 0.5)
+
+
 
 # def test_vertical_levels():
 #     ds = xr.open_dataset(EXAMPLE_DATA / "SFBOFS_subset1.nc")

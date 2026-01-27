@@ -21,26 +21,29 @@ from xarray_subset_grid.utils import (
 )
 
 
-class RegularGridPolygonSelector(Selector):
-    """Polygon Selector for regular lat/lon grids."""
+# class RegularGridPolygonSelector(Selector):
+#     """Polygon Selector for regular lat/lon grids."""
+#     # with a regular grid, you have to select the full boudning box anyway
+#     # this this simply computes the bounding box, and used that
 
-    polygon: list[tuple[float, float]] | np.ndarray
-    _polygon_mask: xr.DataArray
+#     polygon: list[tuple[float, float]] | np.ndarray
+#     _polygon_mask: xr.DataArray
 
-    def __init__(self, polygon: list[tuple[float, float]] | np.ndarray, mask: xr.DataArray,
-                 name: str):
-        super().__init__()
-        self.name = name
-        self.polygon = polygon
-        self.polygon_mask = mask
+#     def __init__(self, polygon: list[tuple[float, float]] | np.ndarray, mask: xr.DataArray,
+#                  name: str):
+#         super().__init__()
+#         self.name = name
+#         self.polygon = polygon
+#         self.polygon_mask = mask
 
-    def select(self, ds: xr.Dataset) -> xr.Dataset:
-        """Perform the selection on the dataset."""
-        ds_subset = ds.cf.isel(
-            lon=self._polygon_mask,
-            lat=self._polygon_mask,
-        )
-        return ds_subset
+#     def select(self, ds: xr.Dataset) -> xr.Dataset:
+#         """Perform the selection on the dataset."""
+#         ds_subset = ds.cf.isel(
+#             lon=self._polygon_mask,
+#             lat=self._polygon_mask,
+#         )
+#         return ds_subset
+
 
 
 class RegularGridBBoxSelector(Selector):
@@ -73,6 +76,20 @@ class RegularGridBBoxSelector(Selector):
                                               self._longitude_selection.start)
 
         return ds.cf.sel(lon=self._longitude_selection, lat=self._latitude_selection)
+
+class RegularGridPolygonSelector(RegularGridBBoxSelector):
+    """Polygon Selector for regular lat/lon grids."""
+    # with a regular grid, you have to select the full bounding box anyway
+    # this this simply computes the bounding box, and uses the same code.
+
+    def __init__(self, polygon: list[tuple[float, float]] | np.ndarray):
+        polygon = np.asarray(polygon)
+        bbox = (polygon[:,0].min(),
+                polygon[:,1].min(),
+                polygon[:,0].max(),
+                polygon[:,1].max(),
+                )
+        super().__init__(bbox=bbox)
 
 
 class RegularGrid(Grid):
@@ -124,17 +141,14 @@ class RegularGrid(Grid):
     def compute_polygon_subset_selector(self,
                                         ds: xr.Dataset,
                                         polygon: list[tuple[float, float]],
-                                        name: str = None) -> Selector:
-        lat = ds.cf["latitude"]
-        lon = ds.cf["longitude"]
+                                        ) -> Selector:
 
-        x = np.array(lon.flat)
-        polygon = normalize_polygon_x_coords(x, polygon)
-        polygon_mask = ray_tracing_numpy(x, lat.flat, polygon).reshape(lon.shape)
+        polygon = np.asarray(polygon)
+        lon = ds.cf["longitude"].data
 
-        selector = RegularGridPolygonSelector(polygon=polygon,
-                                              mask=polygon_mask,
-                                              name=name or "selector")
+        polygon = normalize_polygon_x_coords(lon, polygon)
+
+        selector = RegularGridPolygonSelector(polygon=polygon)
         return selector
 
     def compute_bbox_subset_selector(self,
