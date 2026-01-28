@@ -48,18 +48,29 @@ class RegularGridBBoxSelector(Selector):
     """Selector for regular lat/lng grids."""
 
     bbox: tuple[float, float, float, float]
-    _longitude_selection: slice
-    _latitude_selection: slice
 
     def __init__(self, bbox: tuple[float, float, float, float]):
         super().__init__()
         self.bbox = bbox
-        self._longitude_selection = slice(bbox[0], bbox[2])
-        self._latitude_selection = slice(bbox[1], bbox[3])
+
+    def _get_slice(self, coord: xr.DataArray, min_val: float, max_val: float) -> slice:
+        """Get the slice for the given coordinate."""
+        if coord[0] < coord[-1]:
+            # Increasing
+            return slice(min_val, max_val)
+        else:
+            # Decreasing
+            return slice(max_val, min_val)
 
     def select(self, ds: xr.Dataset) -> xr.Dataset:
         """Perform the selection on the dataset."""
-        return ds.cf.sel(lon=self._longitude_selection, lat=self._latitude_selection)
+        lon = ds.cf["longitude"]
+        lat = ds.cf["latitude"]
+
+        lon_slice = self._get_slice(lon, self.bbox[0], self.bbox[2])
+        lat_slice = self._get_slice(lat, self.bbox[1], self.bbox[3])
+
+        return ds.cf.sel(lon=lon_slice, lat=lat_slice)
 
 
 class RegularGrid(Grid):
@@ -102,13 +113,17 @@ class RegularGrid(Grid):
         """
         lat = ds.cf.coordinates["latitude"][0]
         lon = ds.cf.coordinates["longitude"][0]
-        return {
-            var
-            for var in ds.data_vars
-            if var not in {lat, lon}
-            and "latitude" in var.cf.coordinates
-            and "longitude" in var.cf.coordinates
-        }
+        valid_vars = set()
+        for var_name in ds.data_vars:
+            if var_name in {lat, lon}:
+                continue
+            
+            # Access the variable to check attributes
+            var = ds[var_name]
+            if "latitude" in var.cf.coordinates and "longitude" in var.cf.coordinates:
+                valid_vars.add(var_name)
+        
+        return valid_vars
 
     def compute_polygon_subset_selector(
         self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str = None
