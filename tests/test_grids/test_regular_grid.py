@@ -46,7 +46,7 @@ def create_synthetic_rectangular_grid_dataset(decreasing=False):
     """
     Create a synthetic dataset with regular grid.
 
-    can be either decreasing or increasing in latitude
+    Can be either decreasing or increasing in latitude
     """
 
     lon = np.linspace(-100, -80, 21)
@@ -74,47 +74,8 @@ def create_synthetic_rectangular_grid_dataset(decreasing=False):
 
     return ds
 
-# might not be needed if tested elsewhere.
-def test_data_vars_error():
-    print("Testing data_vars error...")
-    ds = create_synthetic_rectangular_grid_dataset()
-    # Ensure it is recognized as a RegularGrid
-    assert RegularGrid.recognize(ds)
-
-    # Access xsg accessor
-    data_vars = ds.xsg.data_vars
-    print(f"data_vars: {data_vars}")
-
-    assert data_vars == {'salt', 'temp'}
 
 
-def test_decreasing_coords():
-    print("\nTesting decreasing coordinates support...")
-    ds = create_synthetic_rectangular_grid_dataset(decreasing=True)
-    # assert RegularGrid.recognize(ds)
-
-    # bbox: (min_lon, min_lat, max_lon, max_lat)
-    bbox = (-95, 35, -85, 45)
-
-    subset = ds.xsg.subset_bbox(bbox)
-    print(f"Subset size: {subset.sizes}")
-
-    # Check if subset has data
-    assert subset.sizes["lat"] > 0
-    assert subset.sizes["lon"] > 0
-    # if subset.sizes["lat"] == 0 or subset.sizes["lon"] == 0:
-    #     print("FAILURE: Subset has dimension size 0")
-    # else:
-    #     print("SUCCESS: Subset has data")
-
-    # except Exception as e:
-    #     print(f"Caught unexpected error in decreasing coords subsetting: {e}")
-
-
-
-#######
-# These from the ugrid tests -- need to be adapted
-#######
 
 def test_grid_vars():
     """
@@ -164,10 +125,26 @@ def test_data_vars():
         # 'time1_offset'
     }
 
+# might not be needed if tested elsewhere.
+def test_data_vars2():
+    """
+    redundant with above, by already written ...
+    """
+    print("Testing data_vars error...")
+    ds = create_synthetic_rectangular_grid_dataset()
+    # Ensure it is recognized as a RegularGrid
+    assert RegularGrid.recognize(ds)
+
+    # Access xsg accessor
+    data_vars = ds.xsg.data_vars
+    print(f"data_vars: {data_vars}")
+
+    assert data_vars == {'salt', 'temp'}
+
+
 def test_extra_vars():
     """
     Check if the extra vars are defined properly
-
     """
     ds = xr.open_dataset(EXAMPLE_DATA / "AMSEAS-subset.nc")
 
@@ -241,6 +218,24 @@ def test_decreasing_latitude():
                   )
     print("new bounds:", new_bounds)
     assert new_bounds == bbox
+
+def test_decreasing_coords():
+    """
+    Redundant with above, but already written ...
+    """
+    print("\nTesting decreasing coordinates support...")
+    ds = create_synthetic_rectangular_grid_dataset(decreasing=True)
+    # assert RegularGrid.recognize(ds)
+
+    # bbox: (min_lon, min_lat, max_lon, max_lat)
+    bbox = (-95, 35, -85, 45)
+
+    subset = ds.xsg.subset_bbox(bbox)
+    print(f"Subset size: {subset.sizes}")
+
+    # Check if subset has data
+    assert subset.sizes["lat"] > 0
+    assert subset.sizes["lon"] > 0
 
 def test_subset_polygon():
     """
