@@ -77,7 +77,7 @@ def create_synthetic_rectangular_grid_dataset(decreasing=False):
 # might not be needed if tested elsewhere.
 def test_data_vars_error():
     print("Testing data_vars error...")
-    ds = create_synthetic_dataset()
+    ds = create_synthetic_rectangular_grid_dataset()
     # Ensure it is recognized as a RegularGrid
     assert RegularGrid.recognize(ds)
 
@@ -85,7 +85,7 @@ def test_data_vars_error():
     data_vars = ds.xsg.data_vars
     print(f"data_vars: {data_vars}")
 
-    assert data_vars == set{}
+    assert data_vars == {'salt', 'temp'}
 
 
 def test_decreasing_coords():
