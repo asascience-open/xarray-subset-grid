@@ -4,10 +4,13 @@ Tests for rectangular grid code.
 
 from pathlib import Path
 
-try:
-    import fsspec
-except ImportError:
-    fsspec = None
+import numpy as np
+
+# try:
+#     import fsspec
+# except ImportError:
+#     fsspec = None
+
 import xarray as xr
 
 from xarray_subset_grid.grids.regular_grid import RegularGrid
@@ -37,6 +40,76 @@ def test_recognise_not():
     ds = xr.open_dataset(EXAMPLE_DATA / "arakawa_c_test_grid.nc")
 
     assert not RegularGrid.recognize(ds)
+
+
+def create_synthetic_rectangular_grid_dataset(decreasing=False):
+    """
+    Create a synthetic dataset with regular grid.
+
+    can be either decreasing or increasing in latitude
+    """
+
+    lon = np.linspace(-100, -80, 21)
+    if decreasing:
+        lat = np.linspace(50, 30, 21)
+    else:
+        lat = np.linspace(30, 50, 21)
+
+    data = np.random.rand(21, 21)
+
+    ds = xr.Dataset(
+        data_vars={
+            "temp": (("lat", "lon"), data),
+            "salt": (("lat", "lon"), data),
+        },
+        coords={
+            "lat": lat,
+            "lon": lon,
+        },
+    )
+    # Add cf attributes
+    ds.lat.attrs = {"standard_name": "latitude", "units": "degrees_north"}
+    ds.lon.attrs = {"standard_name": "longitude", "units": "degrees_east"}
+    ds.temp.attrs = {"standard_name": "sea_water_temperature"}
+
+    return ds
+
+# might not be needed if tested elsewhere.
+def test_data_vars_error():
+    print("Testing data_vars error...")
+    ds = create_synthetic_dataset()
+    # Ensure it is recognized as a RegularGrid
+    assert RegularGrid.recognize(ds)
+
+    # Access xsg accessor
+    data_vars = ds.xsg.data_vars
+    print(f"data_vars: {data_vars}")
+
+    assert data_vars == set{}
+
+
+def test_decreasing_coords():
+    print("\nTesting decreasing coordinates support...")
+    ds = create_synthetic_rectangular_grid_dataset(decreasing=True)
+    # assert RegularGrid.recognize(ds)
+
+    # bbox: (min_lon, min_lat, max_lon, max_lat)
+    bbox = (-95, 35, -85, 45)
+
+    subset = ds.xsg.subset_bbox(bbox)
+    print(f"Subset size: {subset.sizes}")
+
+    # Check if subset has data
+    assert subset.sizes["lat"] > 0
+    assert subset.sizes["lon"] > 0
+    # if subset.sizes["lat"] == 0 or subset.sizes["lon"] == 0:
+    #     print("FAILURE: Subset has dimension size 0")
+    # else:
+    #     print("SUCCESS: Subset has data")
+
+    # except Exception as e:
+    #     print(f"Caught unexpected error in decreasing coords subsetting: {e}")
+
 
 
 #######
