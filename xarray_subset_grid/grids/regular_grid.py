@@ -96,16 +96,28 @@ class RegularGrid(Grid):
     """Grid implementation for regular lat/lng grids."""
     @staticmethod
     def recognize(ds: xr.Dataset) -> bool:
-        """Recognize if the dataset matches the given grid."""
+        """
+        Recognize if the dataset matches the given grid.
+        """
         lat = ds.cf.coordinates.get("latitude", None)
         lon = ds.cf.coordinates.get("longitude", None)
         if lat is None or lon is None:
             return False
 
+        # choose first one -- valid assumption??
+        lat = lat[0]
+        lon = lon[0]
         # Make sure the coordinates are 1D and match
-        lat_ndim = ds[lat[0]].ndim
-        lon_ndim = ds[lon[0]].ndim
-        return lat_ndim == lon_ndim and lon_ndim == 1
+        if not (1 == ds[lat].ndim == ds[lon].ndim):
+            return False
+
+        # make sure that at least one variable is using both the
+        #   latitude and longitude dimensions
+        #   (ugrids have both coordinates, but not both dimensions)
+        for var_name, var in ds.data_vars.items():
+            if (lon in var.dims) and (lat in var.dims):
+                return True
+        return False
 
     @property
     def name(self) -> str:

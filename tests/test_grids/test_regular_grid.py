@@ -6,6 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
+# only needed if you want to hit AWS servers.
 # try:
 #     import fsspec
 # except ImportError:
@@ -15,9 +16,10 @@ import xarray as xr
 
 from xarray_subset_grid.grids.regular_grid import RegularGrid
 
+import pytest
+
 EXAMPLE_DATA = Path(__file__).parent.parent / "example_data"
 
-TEST_FILE1 = EXAMPLE_DATA / "AMSEAS-subset.nc"
 
 # NGOFS2_RGRID.nc is a small subset of the regridded NGOFS2 model.
 
@@ -28,16 +30,20 @@ def test_recognise():
     """
     works for at least one file ...
     """
-    ds = xr.open_dataset(TEST_FILE1)
+    ds = xr.open_dataset(EXAMPLE_DATA / "AMSEAS-subset.nc")
 
     assert RegularGrid.recognize(ds)
 
 
-def test_recognise_not():
+@pytest.mark.parametrize("test_file", [
+                          # EXAMPLE_DATA / "arakawa_c_test_grid.nc",
+                          EXAMPLE_DATA / "small_ugrid_zero_based.nc",
+                          ])
+def test_recognise_not(test_file):
     """
     should not recognise an SGrid
     """
-    ds = xr.open_dataset(EXAMPLE_DATA / "arakawa_c_test_grid.nc")
+    ds = xr.open_dataset(test_file)
 
     assert not RegularGrid.recognize(ds)
 

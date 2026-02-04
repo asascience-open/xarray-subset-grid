@@ -15,9 +15,7 @@ import xarray as xr
 from xarray_subset_grid import Selector
 from xarray_subset_grid.grids import ugrid
 
-EXAMPLE_DATA = Path(__file__).parent.parent.parent / "docs" / "examples" / "example_data"
-
-TEST_FILE1 = EXAMPLE_DATA / "SFBOFS_subset1.nc"
+EXAMPLE_DATA = Path(__file__).parent.parent / "example_data"
 
 # SFBOFS_subset1.nc is a smallish subset of the SFBOFS FVCOM model
 
@@ -218,7 +216,7 @@ TEST_FILE1 = EXAMPLE_DATA / "SFBOFS_subset1.nc"
 #         cell:standard_name = "cell number" ;
 #         cell:long_name = "Mapping to original mesh cell number" ;
 
-# topology for TEST_FILE1
+# topology for SFBOFS_subset1
 grid_topology = {
     "node_coordinates": "lon lat",
     "face_node_connectivity": "nv",
