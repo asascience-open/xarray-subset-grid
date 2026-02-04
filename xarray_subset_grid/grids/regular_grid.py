@@ -17,9 +17,7 @@ from xarray_subset_grid.selector import Selector
 from xarray_subset_grid.utils import (
     normalize_bbox_x_coords,
     normalize_polygon_x_coords,
-    ray_tracing_numpy,
 )
-
 
 # class RegularGridPolygonSelector(Selector):
 #     """Polygon Selector for regular lat/lon grids."""

@@ -5,18 +5,16 @@ Tests for rectangular grid code.
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 # only needed if you want to hit AWS servers.
 # try:
 #     import fsspec
 # except ImportError:
 #     fsspec = None
-
 import xarray as xr
 
 from xarray_subset_grid.grids.regular_grid import RegularGrid
-
-import pytest
 
 EXAMPLE_DATA = Path(__file__).parent.parent / "example_data"
 

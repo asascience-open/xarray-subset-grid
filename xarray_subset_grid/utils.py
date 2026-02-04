@@ -1,9 +1,11 @@
 import warnings
+from datetime import datetime
 
 import cf_xarray  # noqa
+import cftime
 import numpy as np
-from dateutil.parser import parse as parsetime
 import xarray as xr
+from dateutil.parser import parse as parsetime
 
 
 def normalize_polygon_x_coords(x, poly):
@@ -166,7 +168,7 @@ def asdatetime(dt):
     if dt is None:
         return dt
     # if not isinstance(dt, datetime):
-    if not isinstance(dt, (datetime, cftime.datetime)):
+    if not isinstance(dt, datetime | cftime.datetime):
         # assume it's an iso string, or something that dateutils can parse.
         return parsetime(dt, ignoretz=True)
     else:
