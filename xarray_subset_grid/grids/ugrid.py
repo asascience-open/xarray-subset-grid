@@ -116,7 +116,7 @@ class UGrid(Grid):
         try:
             mesh_key = ds.cf.cf_roles["mesh_topology"][0]
             mesh = ds[mesh_key]
-        except Exception:
+        except KeyError:
             return False
 
         return mesh.attrs.get("face_node_connectivity") is not None
@@ -360,7 +360,7 @@ def assign_ugrid_topology(
     ```
         grid_topology = {'node_coordinates': ('lon', 'lat'),
                          'face_node_connectivity': 'nv',
-                         'node_coordinates': ('lon', 'lat'),
+                         'edge_coordinates': ('lon', 'lat'),
                          'face_coordinates': ('lonc', 'latc'),
                          }
 

@@ -14,6 +14,7 @@ import pytest
 #     fsspec = None
 import xarray as xr
 
+from tests.conftest import RGRID_FILES, SGRID_FILES, UGRID_FILES
 from xarray_subset_grid.grids.regular_grid import RegularGrid
 
 EXAMPLE_DATA = Path(__file__).parent.parent / "example_data"
@@ -23,23 +24,20 @@ EXAMPLE_DATA = Path(__file__).parent.parent / "example_data"
 
 # It was created by the "OFS subsetter"
 
-
-def test_recognise():
+@pytest.mark.parametrize("test_file", RGRID_FILES)
+def test_recognize(test_file):
     """
     works for at least one file ...
     """
-    ds = xr.open_dataset(EXAMPLE_DATA / "AMSEAS-subset.nc")
+    ds = xr.open_dataset(test_file)
 
     assert RegularGrid.recognize(ds)
 
 
-@pytest.mark.parametrize("test_file", [
-                          # EXAMPLE_DATA / "arakawa_c_test_grid.nc",
-                          EXAMPLE_DATA / "small_ugrid_zero_based.nc",
-                          ])
-def test_recognise_not(test_file):
+@pytest.mark.parametrize("test_file", UGRID_FILES + SGRID_FILES)
+def test_recognize_not(test_file):
     """
-    should not recognise an SGrid
+    should not recognize an SGrid
     """
     ds = xr.open_dataset(test_file)
 

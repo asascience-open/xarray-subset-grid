@@ -1,5 +1,7 @@
 # conftest: some configuration for the tests
 
+from pathlib import Path
+
 import pytest
 
 
@@ -35,3 +37,18 @@ def pytest_collection_modifyitems(config, items):
 #     if envnames:
 #         if item.config.getoption("-E") not in envnames:
 #             pytest.skip(f"test requires env in {envnames!r}")
+
+EXAMPLE_DATA = Path(__file__).parent / 'example_data'
+
+UGRID_FILES = [EXAMPLE_DATA / 'SFBOFS_subset1.nc',
+               EXAMPLE_DATA / 'small_ugrid_zero_based.nc',
+               EXAMPLE_DATA / 'tris_and_bounds.nc',
+               ]
+
+SGRID_FILES = [EXAMPLE_DATA / 'arakawa_c_test_grid.nc',
+               ]
+
+RGRID_FILES = [EXAMPLE_DATA / '2D-rectangular_grid_wind.nc',
+               EXAMPLE_DATA / 'rectangular_grid_decreasing.nc',
+               EXAMPLE_DATA / 'AMSEAS-subset.nc',
+               ]
