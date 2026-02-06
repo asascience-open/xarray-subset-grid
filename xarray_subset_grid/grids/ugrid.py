@@ -463,8 +463,12 @@ def assign_ugrid_topology(
         mapping = [(dim, ds[dim].size) for dim in dims]
         mesh.face_dimension = next(x[0] for x in mapping if x[1] != 3 and x[1] != 4)
 
-    # check for start_index, and set it if there.
+    # check for start_index, and set it not there.
     if mesh.start_index is None:
+        start_index = int(ds[mesh.face_node_connectivity].min())
+        if start_index not in (0, 1):
+            raise ValueError(f"minimum index in face_node_connectivity array is {start_index}"
+                             " -- it should be zero (C-style indexing) or 1 (Fortran-style indexing)")
         mesh.start_index = int(ds[mesh.face_node_connectivity].min())
 
     if mesh.start_index not in (0, 1):

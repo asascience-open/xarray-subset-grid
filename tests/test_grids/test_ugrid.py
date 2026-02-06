@@ -419,6 +419,22 @@ def test_assign_ugrid_topology_start_index_zero_infer():
     assert ds["mesh_edge_nodes"].attrs["start_index"] == 0
     assert ds["mesh_boundary_nodes"].attrs["start_index"] == 0
 
+def test_assign_ugrid_topology_start_index_zero_infer_bad_data():
+    """
+    if the connectivity array has negative or no zero or one indexes -- not good.
+    """
+    # set a negative index
+    ds = xr.open_dataset(EXAMPLE_DATA / "small_ugrid_zero_based.nc")
+    faces = ds['mesh_face_nodes'].data[0, 0] = -3
+    with pytest.raises(ValueError):
+        ds = ugrid.assign_ugrid_topology(ds, face_node_connectivity="mesh_face_nodes")
+
+    # remove zero and one indexes
+    data = ds['mesh_face_nodes'].data
+    data[data < 2] = 100
+    with pytest.raises(ValueError):
+        ds = ugrid.assign_ugrid_topology(ds, face_node_connectivity="mesh_face_nodes")
+
 
 # NOTE: these tests are probably not complete -- but they are something.
 #       we really should have a complete UGRID example to test with.
