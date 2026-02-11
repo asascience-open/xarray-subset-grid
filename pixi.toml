@@ -1,0 +1,77 @@
+[workspace]
+name = "xarray_subset_grid"
+channels = [ "conda-forge" ]
+platforms = [ "linux-64", "osx-arm64", "osx-64", "win-64" ]
+
+[pypi-dependencies]
+xarray_subset_grid = { path = ".", editable = true }
+
+[dependencies]
+python = ">=3.10"
+numpy = "*"
+xarray = ">=2024.6"
+pandas = "*"
+cf_xarray = "*"
+dask = "*"
+fsspec = "*"
+s3fs = "*"
+zarr = "<3"
+netcdf4 = "*"
+h5netcdf = "*"
+
+[environments]
+default = { solve-group = "default" }
+dev = { features = [ "dev" ], solve-group = "default" }
+examples = { features = [ "examples" ], solve-group = "default" }
+all = { features = [ "dev", "examples" ], solve-group = "default" }
+test310 = [ "dev", "py310" ]  # implicit: test310 = ["dev", "py310", "default"]
+test311 = [ "dev", "py311" ]
+test312 = [ "dev", "py312" ]
+test313 = [ "dev", "py313" ]
+test314 = [ "dev", "py314" ]
+testcov = [ "dev", "py314" ]
+
+[system-requirements]
+macos = "11.0"
+
+[tasks]
+
+[feature.dev.dependencies]
+ruff = "*"
+pre-commit = "*"
+pyright = "*"
+pytest = "*"
+pytest-cov = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
+pip = "*"
+setuptools_scm = "*"
+python-build = "*"
+sphinx-autodoc-typehints = "*"
+myst-nb = "*"
+
+[feature.dev.tasks]
+lint = "ruff check tests xarray_subset_grid"
+test = "pytest tests/"
+test_all = "pytest --online tests/"
+test_cov = "pytest --cov=xarray_subset_grid tests"
+
+[feature.examples.dependencies]
+matplotlib = "*"
+jupyter = "*"
+ipython = "*"
+
+[feature.py310.dependencies]
+python = "~=3.10"
+
+[feature.py311.dependencies]
+python = "~=3.11"
+
+[feature.py312.dependencies]
+python = "~=3.12"
+
+[feature.py313.dependencies]
+python = "~=3.13"
+
+[feature.py314.dependencies]
+python = "~=3.14"
