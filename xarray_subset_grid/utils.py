@@ -155,6 +155,7 @@ def compute_2d_subset_mask(
 
     return xr.DataArray(polygon_mask, dims=mask_dims)
 
+
 def asdatetime(dt):
     """
     makes sure the input is a datetime.datetime object

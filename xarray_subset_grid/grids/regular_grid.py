@@ -21,7 +21,7 @@ from xarray_subset_grid.utils import (
 
 # class RegularGridPolygonSelector(Selector):
 #     """Polygon Selector for regular lat/lon grids."""
-#     # with a regular grid, you have to select the full boudning box anyway
+#     # with a regular grid, you have to select the full bounding box anyway
 #     # this this simply computes the bounding box, and used that
 
 #     polygon: list[tuple[float, float]] | np.ndarray
@@ -41,7 +41,6 @@ from xarray_subset_grid.utils import (
 #             lat=self._polygon_mask,
 #         )
 #         return ds_subset
-
 
 
 class RegularGridBBoxSelector(Selector):
@@ -64,34 +63,40 @@ class RegularGridBBoxSelector(Selector):
         lat = ds[ds.cf.coordinates.get("latitude")[0]]
         lon = ds[ds.cf.coordinates.get("longitude")[0]]
         if np.all(np.diff(lat) < 0):
-            # swap the slice if the latitudes are decending
-            self._latitude_selection = slice(self._latitude_selection.stop,
-                                             self._latitude_selection.start)
-         # and np.all(np.diff(lon) > 0):
+            # swap the slice if the latitudes are descending
+            self._latitude_selection = slice(
+                self._latitude_selection.stop, self._latitude_selection.start
+            )
+        # and np.all(np.diff(lon) > 0):
         if np.all(np.diff(lon) < 0):
-            # swap the slice if the longitudes are decending
-            self._longitude_selection = slice(self._longitude_selection.stop,
-                                              self._longitude_selection.start)
+            # swap the slice if the longitudes are descending
+            self._longitude_selection = slice(
+                self._longitude_selection.stop, self._longitude_selection.start
+            )
 
         return ds.cf.sel(lon=self._longitude_selection, lat=self._latitude_selection)
 
+
 class RegularGridPolygonSelector(RegularGridBBoxSelector):
     """Polygon Selector for regular lat/lon grids."""
+
     # with a regular grid, you have to select the full bounding box anyway
     # this this simply computes the bounding box, and uses the same code.
 
     def __init__(self, polygon: list[tuple[float, float]] | np.ndarray):
         polygon = np.asarray(polygon)
-        bbox = (polygon[:,0].min(),
-                polygon[:,1].min(),
-                polygon[:,0].max(),
-                polygon[:,1].max(),
-                )
+        bbox = (
+            polygon[:, 0].min(),
+            polygon[:, 1].min(),
+            polygon[:, 0].max(),
+            polygon[:, 1].max(),
+        )
         super().__init__(bbox=bbox)
 
 
 class RegularGrid(Grid):
     """Grid implementation for regular lat/lng grids."""
+
     @staticmethod
     def recognize(ds: xr.Dataset) -> bool:
         """
@@ -141,17 +146,20 @@ class RegularGrid(Grid):
         """
         lat = ds.cf.coordinates["latitude"][0]
         lon = ds.cf.coordinates["longitude"][0]
-        data_vars = {var.name for var in ds.data_vars.values()
-                         if var.name not in {lat, lon}
-                         and "latitude" in var.cf.coordinates
-                         and "longitude" in var.cf.coordinates
+        data_vars = {
+            var.name
+            for var in ds.data_vars.values()
+            if var.name not in {lat, lon}
+            and "latitude" in var.cf.coordinates
+            and "longitude" in var.cf.coordinates
         }
         return data_vars
 
-    def compute_polygon_subset_selector(self,
-                                        ds: xr.Dataset,
-                                        polygon: list[tuple[float, float]],
-                                        ) -> Selector:
+    def compute_polygon_subset_selector(
+        self,
+        ds: xr.Dataset,
+        polygon: list[tuple[float, float]],
+    ) -> Selector:
 
         polygon = np.asarray(polygon)
         lon = ds.cf["longitude"].data
@@ -161,10 +169,11 @@ class RegularGrid(Grid):
         selector = RegularGridPolygonSelector(polygon=polygon)
         return selector
 
-    def compute_bbox_subset_selector(self,
-                                     ds: xr.Dataset,
-                                     bbox: tuple[float, float, float, float],
-                                     ) -> Selector:
+    def compute_bbox_subset_selector(
+        self,
+        ds: xr.Dataset,
+        bbox: tuple[float, float, float, float],
+    ) -> Selector:
         bbox = normalize_bbox_x_coords(ds.cf["longitude"].values, bbox)
         selector = RegularGridBBoxSelector(bbox)
         return selector

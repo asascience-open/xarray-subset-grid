@@ -27,19 +27,14 @@ repos:
         - --ignore-words-list=astroid,fo
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.14.10
+  rev: v0.15.0
   hooks:
     - id: ruff
       args: ["--fix", "--show-fixes"]
     - id: ruff-format
 
-- repo: https://github.com/tox-dev/pyproject-fmt
-  rev: v2.11.1
-  hooks:
-    - id: pyproject-fmt
-
 - repo: https://github.com/woodruffw/zizmor-pre-commit
-  rev: v1.19.0
+  rev: v1.22.0
   hooks:
     - id: zizmor
 

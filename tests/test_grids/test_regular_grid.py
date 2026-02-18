@@ -24,6 +24,7 @@ EXAMPLE_DATA = Path(__file__).parent.parent / "example_data"
 
 # It was created by the "OFS subsetter"
 
+
 @pytest.mark.parametrize("test_file", RGRID_FILES)
 def test_recognize(test_file):
     """
@@ -77,8 +78,6 @@ def create_synthetic_rectangular_grid_dataset(decreasing=False):
     return ds
 
 
-
-
 def test_grid_vars():
     """
     Check if the grid vars are defined properly
@@ -88,7 +87,7 @@ def test_grid_vars():
     grid_vars = ds.xsg.grid_vars
 
     # ['mesh', 'nv', 'lon', 'lat', 'lonc', 'latc']
-    assert grid_vars == {'lat', 'lon'}
+    assert grid_vars == {"lat", "lon"}
 
 
 def test_data_vars():
@@ -106,26 +105,27 @@ def test_data_vars():
     # the extra "time" variables are not using the grid
     # so they should not be listed as data_vars
     assert data_vars == {
-        'water_w',
-        'salinity',
-        'surf_roughness',
-        'surf_temp_flux',
-        'water_v',
+        "water_w",
+        "salinity",
+        "surf_roughness",
+        "surf_temp_flux",
+        "water_v",
         # 'time_offset',
-        'water_temp',
-        'water_baro_v',
-        'surf_atm_press',
-        'surf_el',
-        'surf_salt_flux',
-        'water_u',
-        'surf_wnd_stress_gridy',
-        'water_baro_u',
-        'watdep',
-        'surf_solar_flux',
+        "water_temp",
+        "water_baro_v",
+        "surf_atm_press",
+        "surf_el",
+        "surf_salt_flux",
+        "water_u",
+        "surf_wnd_stress_gridy",
+        "water_baro_u",
+        "watdep",
+        "surf_solar_flux",
         # 'time1_run',
-        'surf_wnd_stress_gridx',
+        "surf_wnd_stress_gridx",
         # 'time1_offset'
     }
+
 
 # might not be needed if tested elsewhere.
 def test_data_vars2():
@@ -141,7 +141,7 @@ def test_data_vars2():
     data_vars = ds.xsg.data_vars
     print(f"data_vars: {data_vars}")
 
-    assert data_vars == {'salt', 'temp'}
+    assert data_vars == {"salt", "temp"}
 
 
 def test_extra_vars():
@@ -154,41 +154,42 @@ def test_extra_vars():
 
     # the extra "time" variables are not using the grid
     # so they should be listed as extra_vars
-    assert extra_vars == {
-        'time_offset',
-        'time1_run',
-        'time1_offset'
-    }
+    assert extra_vars == {"time_offset", "time1_run", "time1_offset"}
+
 
 def test_subset_to_bb():
     """
     Not a complete test by any means, but the basics are there.
 
-    NOTE: it doesn't test if the variables got subset corectly ...
+    NOTE: it doesn't test if the variables got subset correctly ...
 
     """
     ds = xr.open_dataset(EXAMPLE_DATA / "2D-rectangular_grid_wind.nc")
 
-    print("initial bounds:", ds['lon'].data.min(),
-                             ds['lat'].data.min(),
-                             ds['lon'].data.max(),
-                             ds['lat'].data.max(),
-                            )
+    print(
+        "initial bounds:",
+        ds["lon"].data.min(),
+        ds["lat"].data.min(),
+        ds["lon"].data.max(),
+        ds["lat"].data.max(),
+    )
 
     bbox = (-0.5, 0, 0.5, 0.5)
 
     ds2 = ds.xsg.subset_bbox(bbox)
 
-    assert ds2['lat'].size == 15
-    assert ds2['lon'].size == 29
+    assert ds2["lat"].size == 15
+    assert ds2["lon"].size == 29
 
-    new_bounds = (ds2['lon'].data.min(),
-                  ds2['lat'].data.min(),
-                  ds2['lon'].data.max(),
-                  ds2['lat'].data.max(),
-                  )
+    new_bounds = (
+        ds2["lon"].data.min(),
+        ds2["lat"].data.min(),
+        ds2["lon"].data.max(),
+        ds2["lat"].data.max(),
+    )
     print("new bounds:", new_bounds)
     assert new_bounds == bbox
+
 
 def test_decreasing_latitude():
     """
@@ -200,26 +201,30 @@ def test_decreasing_latitude():
     """
     ds = xr.open_dataset(EXAMPLE_DATA / "rectangular_grid_decreasing.nc")
 
-    print("initial bounds:", ds['lon'].data.min(),
-                             ds['lat'].data.min(),
-                             ds['lon'].data.max(),
-                             ds['lat'].data.max(),
-                            )
+    print(
+        "initial bounds:",
+        ds["lon"].data.min(),
+        ds["lat"].data.min(),
+        ds["lon"].data.max(),
+        ds["lat"].data.max(),
+    )
 
     bbox = (-0.5, 0, 0.5, 0.5)
 
     ds2 = ds.xsg.subset_bbox(bbox)
 
-    assert ds2['lat'].size == 15
-    assert ds2['lon'].size == 29
+    assert ds2["lat"].size == 15
+    assert ds2["lon"].size == 29
 
-    new_bounds = (ds2['lon'].data.min(),
-                  ds2['lat'].data.min(),
-                  ds2['lon'].data.max(),
-                  ds2['lat'].data.max(),
-                  )
+    new_bounds = (
+        ds2["lon"].data.min(),
+        ds2["lat"].data.min(),
+        ds2["lon"].data.max(),
+        ds2["lat"].data.max(),
+    )
     print("new bounds:", new_bounds)
     assert new_bounds == bbox
+
 
 def test_decreasing_coords():
     """
@@ -239,20 +244,23 @@ def test_decreasing_coords():
     assert subset.sizes["lat"] > 0
     assert subset.sizes["lon"] > 0
 
+
 def test_subset_polygon():
     """
     Not a complete test by any means, but the basics are there.
 
-    NOTE: it doesn't test if the variables got subset corectly ...
+    NOTE: it doesn't test if the variables got subset correctly ...
 
     """
     ds = xr.open_dataset(EXAMPLE_DATA / "2D-rectangular_grid_wind.nc")
 
-    print("initial bounds:", ds['lon'].data.min(),
-                             ds['lat'].data.min(),
-                             ds['lon'].data.max(),
-                             ds['lat'].data.max(),
-                            )
+    print(
+        "initial bounds:",
+        ds["lon"].data.min(),
+        ds["lat"].data.min(),
+        ds["lon"].data.max(),
+        ds["lat"].data.max(),
+    )
 
     poly = [(-0.5, 0.0), (0.0, 0.5), (0.5, 0.5), (0.5, 0.0), (0, 0.0)]
     # this poly has this bounding box:
@@ -261,17 +269,17 @@ def test_subset_polygon():
 
     ds2 = ds.xsg.subset_polygon(poly)
 
-    assert ds2['lat'].size == 15
-    assert ds2['lon'].size == 29
+    assert ds2["lat"].size == 15
+    assert ds2["lon"].size == 29
 
-    new_bounds = (ds2['lon'].data.min(),
-                  ds2['lat'].data.min(),
-                  ds2['lon'].data.max(),
-                  ds2['lat'].data.max(),
-                  )
+    new_bounds = (
+        ds2["lon"].data.min(),
+        ds2["lat"].data.min(),
+        ds2["lon"].data.max(),
+        ds2["lat"].data.max(),
+    )
     print("new bounds:", new_bounds)
     assert new_bounds == (-0.5, 0, 0.5, 0.5)
-
 
 
 # def test_vertical_levels():

@@ -19,6 +19,7 @@ from xarray_subset_grid.grids.ugrid import UGrid
 
 EXAMPLE_DATA = Path(__file__).parent.parent / "example_data"
 
+
 @pytest.mark.parametrize("test_file", UGRID_FILES[:3])
 def test_recognize(test_file):
     """
@@ -31,14 +32,10 @@ def test_recognize(test_file):
     except KeyError:  # no mesh variable
         # Hacky way to deal with non-conforming examples
         # This should be in a config somewhere, or ??
-        if 'tris' in ds:
-            grid_top = {'face_node_connectivity': 'tris',
-             'node_coordinates': ('lon', 'lat')
-             }
-        elif 'nv' in ds:
-            grid_top = {'face_node_connectivity': 'nv',
-             'node_coordinates': ('lon', 'lat')
-             }
+        if "tris" in ds:
+            grid_top = {"face_node_connectivity": "tris", "node_coordinates": ("lon", "lat")}
+        elif "nv" in ds:
+            grid_top = {"face_node_connectivity": "nv", "node_coordinates": ("lon", "lat")}
         ds = ugrid.assign_ugrid_topology(ds, **grid_top)
 
     assert UGrid.recognize(ds)

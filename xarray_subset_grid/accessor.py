@@ -15,13 +15,14 @@ from xarray_subset_grid.grids import (
     UGrid,
 )
 
-_grid_impls = [FVCOMGrid,
-               SELFEGrid,
-               UGrid,
-               SGrid,
-               # RegularGrid2d,
-               RegularGrid
-               ]
+_grid_impls = [
+    FVCOMGrid,
+    SELFEGrid,
+    UGrid,
+    SGrid,
+    # RegularGrid2d,
+    RegularGrid,
+]
 
 
 def register_grid_impl(grid_impl: Grid, priority: int = 0):

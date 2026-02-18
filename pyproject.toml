@@ -36,7 +36,6 @@ dependencies = [
   "cf-xarray",
   "cftime",
   "dask",
-  # "dask[complete]", # getting errors from pixi with the "complete"
   "netcdf4",
   "numpy",
   "xarray>=2024.6",
@@ -51,7 +50,7 @@ optional-dependencies.dev = [
   "sphinx-rtd-theme",
 ]
 optional-dependencies.examples = [ "fsspec", "h5netcdf", "matplotlib", "s3fs", "zarr<3" ]
-urls."Homepage" = "https://github.com/asascience-open/xarray-subset-grid"
+urls."Homepage" = "https://github.com/ioos/xarray-subset-grid/"
 
 [tool.setuptools]
 packages = [ "xarray_subset_grid" ]
@@ -90,79 +89,3 @@ lint.extend-safe-fixes = [
 [tool.pyright]
 venvPath = "."
 venv = "venv"
-
-[tool.pixi.workspace]
-channels = [ "conda-forge" ]
-platforms = [ "linux-64", "osx-arm64", "osx-64", "win-64" ]
-
-[tool.pixi.pypi-dependencies]
-xarray_subset_grid = { path = ".", editable = true }
-
-[tool.pixi.environments]
-default = { solve-group = "default" }
-dev = { features = [ "dev" ], solve-group = "default" }
-examples = { features = [ "examples" ], solve-group = "default" }
-all = { features = [ "dev", "examples" ], solve-group = "default" }
-test310 = [ "dev", "py310" ]                                        # implicit: test310 = ["dev", "py310", "default"]
-test311 = [ "dev", "py311" ]
-test312 = [ "dev", "py312" ]
-test313 = [ "dev", "py313" ]
-test314 = [ "dev", "py314" ]
-
-[tool.pixi.system-requirements]
-macos = "11.0"
-
-[tool.pixi.tasks]
-
-[tool.pixi.dependencies]
-python = ">=3.10"
-numpy = "*"
-xarray = ">=2024.6"
-pandas = "*"
-cf_xarray = "*"
-dask = "*"
-fsspec = "*"
-s3fs = "*"
-zarr = "<3"
-netcdf4 = "*"
-h5netcdf = "*"
-
-
-[tool.pixi.feature.dev.dependencies]
-ruff = "*"
-pre-commit = "*"
-pyright = "*"
-pytest = "*"
-pytest-cov = "*"
-sphinx = "*"
-sphinx-rtd-theme = "*"
-pip = "*"
-setuptools_scm = "*"
-python-build = "*"
-sphinx-autodoc-typehints = "*"
-myst-nb = "*"
-
-[tool.pixi.feature.dev.tasks]
-lint = "ruff check tests xarray_subset_grid"
-test = "pytest tests/"
-test_all = "pytest --online tests/"
-
-[tool.pixi.feature.examples.dependencies]
-matplotlib = "*"
-jupyter = "*"
-ipython = "*"
-
-[tool.pixi.feature.py310.dependencies]
-python = "~=3.10"
-
-[tool.pixi.feature.py311.dependencies]
-python = "~=3.11"
-
-[tool.pixi.feature.py312.dependencies]
-python = "~=3.12"
-
-[tool.pixi.feature.py313.dependencies]
-python = "~=3.13"
-
-[tool.pixi.feature.py314.dependencies]
-python = "~=3.14"
