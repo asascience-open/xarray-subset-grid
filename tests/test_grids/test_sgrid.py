@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import zarr
 import numpy as np
 import pytest
 import xarray as xr
@@ -52,7 +52,7 @@ def test_grid_topology_location_parse():
 
 
 @pytest.mark.skipif(
-    zarr__version__ >= 3, reason="zarr3.0.8 doesn't support FSpec AWS (it might soon)"
+    int(zarr.__version__.split(".")[0]) >= 3, reason="zarr3.0.8 doesn't support FSpec AWS (it might soon)"
 )
 @pytest.mark.online
 def test_polygon_subset():

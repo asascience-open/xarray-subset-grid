@@ -15,5 +15,6 @@ Contents:
    installation
    design
    grids
+   api
    notebooks
    contributing

@@ -1,5 +1,6 @@
 import os
 
+import xarray as xr
 import numpy as np
 import pytest
 
@@ -125,3 +126,56 @@ def test_ray_tracing_numpy():
     result = ray_tracing_numpy(points[:, 0], points[:, 1], poly)
 
     assert np.array_equal(result, [False, True, False])
+
+# ---------- compute_2d_subset_mask ----------
+
+from xarray_subset_grid.utils import compute_2d_subset_mask
+
+
+def test_compute_2d_subset_mask_basic():
+    """compute_2d_subset_mask should mark points inside the polygon as True."""
+    lat_vals = np.linspace(30, 40, 20)
+    lon_vals = np.linspace(-80, -70, 20)
+    lon2d, lat2d = np.meshgrid(lon_vals, lat_vals)
+
+    lat = xr.DataArray(lat2d, dims=["y", "x"])
+    lon = xr.DataArray(lon2d, dims=["y", "x"])
+
+    # Polygon covering the centre of the domain
+    poly = np.array([
+        [-76, 33],
+        [-74, 33],
+        [-74, 37],
+        [-76, 37],
+        [-76, 33],
+    ])
+
+    mask = compute_2d_subset_mask(lat, lon, poly)
+
+    assert mask.shape == lat2d.shape
+    # At least some points should be inside
+    assert mask.values.any()
+    # Not all points should be inside
+    assert not mask.values.all()
+
+
+def test_compute_2d_subset_mask_empty_poly():
+    """A polygon completely outside the domain should mask everything out."""
+    lat_vals = np.linspace(30, 40, 10)
+    lon_vals = np.linspace(-80, -70, 10)
+    lon2d, lat2d = np.meshgrid(lon_vals, lat_vals)
+
+    lat = xr.DataArray(lat2d, dims=["y", "x"])
+    lon = xr.DataArray(lon2d, dims=["y", "x"])
+
+    # Polygon far away from the data
+    poly = np.array([
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 1],
+        [0, 0],
+    ])
+
+    mask = compute_2d_subset_mask(lat, lon, poly)
+    assert not mask.values.any()
