@@ -49,6 +49,8 @@ setuptools_scm = "*"
 python-build = "*"
 sphinx-autodoc-typehints = "*"
 myst-nb = "*"
+ipykernel = "*"
+nbconvert = "*"
 
 [feature.dev.tasks]
 lint = "ruff check tests xarray_subset_grid"
