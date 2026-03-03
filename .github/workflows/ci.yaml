@@ -29,12 +29,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .
-          pip install pytest pytest-cov
+          pip install pytest pytest-cov nbconvert ipykernel
 
       - name: Run tests (offline only)
         run: |
           pytest tests/ -v --cov=xarray_subset_grid --cov-report=xml --cov-report=term-missing
-
+        # Note: online tests (network notebooks + AWS) require --online flag.
+        # They are skipped here intentionally to keep CI fast and reliable.
       - name: Upload coverage report
         uses: codecov/codecov-action@v4
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'

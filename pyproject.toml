@@ -42,6 +42,8 @@ dependencies = [
 ]
 
 optional-dependencies.dev = [
+  "ipykernel",
+  "nbconvert",
   "pre-commit",
   "pytest",
   "pytest-cov",
