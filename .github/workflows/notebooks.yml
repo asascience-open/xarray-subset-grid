@@ -1,0 +1,47 @@
+name: Notebook Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/examples/**"
+      - "xarray_subset_grid/**"
+      - "tests/test_notebooks.py"
+      - "scripts/run_notebooks.py"
+      - ".github/workflows/notebooks.yml"
+  pull_request:
+    branches: [main]
+
+jobs:
+  run-notebooks:
+    name: Run example notebooks (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package and notebook dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov nbconvert jupyter matplotlib ipykernel
+          pip install fsspec s3fs h5netcdf zarr
+          python -m ipykernel install --user --name xsg-venv
+
+      - name: Run offline notebook tests via pytest
+        run: |
+          pytest tests/test_notebooks.py -v -k "offline"
+
+      - name: Run offline notebooks via standalone script
+        run: |
+          python scripts/run_notebooks.py
