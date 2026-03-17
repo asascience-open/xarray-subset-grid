@@ -3,6 +3,7 @@ import warnings
 # from typing import Optional, Union
 import numpy as np
 import xarray as xr
+from xarray.core.coordinates import DatasetCoordinates
 
 from xarray_subset_grid.grid import Grid
 from xarray_subset_grid.grids import (
@@ -78,18 +79,16 @@ class GridDatasetAccessor:
         data analysis. These can be discarded when subsetting the
         dataset when they are not needed.
         """
-        if self._ds:
+        if self._grid:
             return self._grid.data_vars(self._ds)
         return set()
 
     @property
-    def coords(self) -> set[str]:
-        if self._ds:
-            return self._ds.coords
-        return set()
+    def coords(self) -> DatasetCoordinates:
+        return self._ds.coords
 
     @property
-    def grid_vars(self) -> set[str]:
+    def grid_vars(self) -> set[str] | list[str]:
         """List of grid variables.
 
         These variables are used to define the grid and thus should be
