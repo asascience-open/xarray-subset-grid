@@ -145,5 +145,5 @@ def test_assign_ugrid_topology_warns_with_deprecation_warning(monkeypatch):
     assert result == "ok"
     assert len(caught) == 1
     assert caught[0].category is DeprecationWarning
-    assert "assign_grid_topology" in str(caught[0].message)
+    assert "assign_ugrid_topology" in str(caught[0].message)
     assert os.path.basename(caught[0].filename) == "test_utils.py"
