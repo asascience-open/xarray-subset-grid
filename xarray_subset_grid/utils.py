@@ -97,10 +97,11 @@ def ray_tracing_numpy(x, y, poly):
 # this placeholder for backwards compatibility for a brief period
 def assign_ugrid_topology(*args, **kwargs):
     warnings.warn(
-        DeprecationWarning,
         "The function `assign_grid_topology` has been moved to the "
         "`grids.ugrid` module. It will not be able to be called from "
         "the utils `module` in the future.",
+        DeprecationWarning,
+        stacklevel=2,
     )
     from .grids.ugrid import assign_ugrid_topology
 

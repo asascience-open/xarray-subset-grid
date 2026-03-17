@@ -1,9 +1,11 @@
 import os
+import warnings
 
 import numpy as np
 import pytest
 
 from xarray_subset_grid.utils import (
+    assign_ugrid_topology,
     normalize_bbox_x_coords,
     normalize_polygon_x_coords,
     ray_tracing_numpy,
@@ -125,3 +127,23 @@ def test_ray_tracing_numpy():
     result = ray_tracing_numpy(points[:, 0], points[:, 1], poly)
 
     assert np.array_equal(result, [False, True, False])
+
+
+def test_assign_ugrid_topology_warns_with_deprecation_warning(monkeypatch):
+    def fake_assign_ugrid_topology(*args, **kwargs):
+        return "ok"
+
+    monkeypatch.setattr(
+        "xarray_subset_grid.grids.ugrid.assign_ugrid_topology",
+        fake_assign_ugrid_topology,
+    )
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        result = assign_ugrid_topology(None)
+
+    assert result == "ok"
+    assert len(caught) == 1
+    assert caught[0].category is DeprecationWarning
+    assert "assign_grid_topology" in str(caught[0].message)
+    assert os.path.basename(caught[0].filename) == "test_utils.py"
