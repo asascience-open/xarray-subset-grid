@@ -1,9 +1,9 @@
 import warnings
+from typing import TYPE_CHECKING
 
 # from typing import Optional, Union
 import numpy as np
 import xarray as xr
-from xarray.core.coordinates import DatasetCoordinates
 
 from xarray_subset_grid.grid import Grid
 from xarray_subset_grid.grids import (
@@ -15,6 +15,9 @@ from xarray_subset_grid.grids import (
     SGrid,
     UGrid,
 )
+
+if TYPE_CHECKING:
+    from xarray.core.coordinates import DatasetCoordinates
 
 _grid_impls = [
     FVCOMGrid,
@@ -84,11 +87,11 @@ class GridDatasetAccessor:
         return set()
 
     @property
-    def coords(self) -> DatasetCoordinates:
+    def coords(self) -> "DatasetCoordinates":
         return self._ds.coords
 
     @property
-    def grid_vars(self) -> set[str] | list[str]:
+    def grid_vars(self) -> set[str]:
         """List of grid variables.
 
         These variables are used to define the grid and thus should be
