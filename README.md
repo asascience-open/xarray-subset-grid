@@ -23,7 +23,9 @@ conda install -c conda-forge xarray-subset-grid
 This package is designed to be used in conjunction with [`xarray`](https://xarray.dev/). Given a [CF Compliant](https://cfconventions.org/) `xarray` dataset named `ds`, this package can be accessed using the `xsg` accessor:
 
 ```python
-# Get the interprested grid class
+import numpy as np
+
+# Get the interpreted grid class
 grid = ds.xsg
 
 # subset to only include temperature
@@ -45,7 +47,7 @@ poly = np.array(
 ds_subset_poly = ds.xsg.subset_polygon(poly)
 ```
 
-For full usage, see the [example notebooks](./examples/)
+For full usage, see the [example notebooks](https://github.com/ioos/xarray-subset-grid/tree/main/docs/examples) and the [Sphinx documentation on Read the Docs](https://xarray-subset-grid.readthedocs.io/).
 
 ## Development
 
@@ -55,7 +57,9 @@ First, create a new `virtualenv` and activate it:
 
 ```bash
 python -m venv venv
-source venv/bin.activate
+source venv/bin/activate  # Linux and macOS
+# venv\Scripts\activate   # Windows cmd
+# venv\Scripts\Activate.ps1  # Windows PowerShell
 ```
 
 Then install the project in local edit mode:
