@@ -19,12 +19,14 @@ def normalize_polygon_x_coords(x, poly):
     If the x coords are between 0 and 180 (i.e. both will work), the polygon
     is not changed.
 
-    NOTE: polygon is normalized in place!
+    NOTE: ``poly`` is normalized in place when it is already an ndarray;
+    a copy is made when ``poly`` is a sequence.
 
     Args:
         x (np.array): x-coordinates of the vertices
         poly (np.array): polygon vertices
     """
+    poly = np.asarray(poly)
     x_min, x_max = x.min(), x.max()
 
     poly_x = poly[:, 0]
@@ -97,10 +99,11 @@ def ray_tracing_numpy(x, y, poly):
 # this placeholder for backwards compatibility for a brief period
 def assign_ugrid_topology(*args, **kwargs):
     warnings.warn(
-        DeprecationWarning,
-        "The function `assign_grid_topology` has been moved to the "
+        "The function `assign_ugrid_topology` has been moved to the "
         "`grids.ugrid` module. It will not be able to be called from "
         "the utils `module` in the future.",
+        DeprecationWarning,
+        stacklevel=2,
     )
     from .grids.ugrid import assign_ugrid_topology
 
