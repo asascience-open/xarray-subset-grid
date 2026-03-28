@@ -8,6 +8,7 @@ import xarray_subset_grid.accessor  # noqa: F401
 from xarray_subset_grid.grids.sgrid import _get_location_info_from_topology
 
 # open dataset as zarr object using fsspec reference file system and xarray
+zarr__version__ = 0
 try:
     import fsspec
     import zarr

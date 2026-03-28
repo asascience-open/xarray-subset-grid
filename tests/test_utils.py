@@ -1,9 +1,17 @@
 import os
+from datetime import datetime
 
+import cftime
 import numpy as np
 import pytest
+import xarray as xr
 
+from tests.conftest import EXAMPLE_DATA
+from xarray_subset_grid import utils as xsg_utils
 from xarray_subset_grid.utils import (
+    asdatetime,
+    compute_2d_subset_mask,
+    format_bytes,
     normalize_bbox_x_coords,
     normalize_polygon_x_coords,
     ray_tracing_numpy,
@@ -125,3 +133,72 @@ def test_ray_tracing_numpy():
     result = ray_tracing_numpy(points[:, 0], points[:, 1], poly)
 
     assert np.array_equal(result, [False, True, False])
+
+
+@pytest.mark.parametrize(
+    "num, unit",
+    [
+        (512, "bytes"),
+        (2048, "KB"),
+        (3 * 1024**2, "MB"),
+    ],
+)
+def test_format_bytes(num, unit):
+    assert unit in format_bytes(num)
+
+
+def test_asdatetime_none():
+    assert asdatetime(None) is None
+
+
+def test_asdatetime_datetime_passthrough():
+    dt = datetime(2020, 6, 15, 12, 30, 0)
+    assert asdatetime(dt) is dt
+
+
+def test_asdatetime_cftime_passthrough():
+    dt = cftime.datetime(2020, 6, 15, 12)
+    assert asdatetime(dt) is dt
+
+
+def test_asdatetime_parse_string():
+    dt = asdatetime("2020-06-15T12:30:00")
+    assert dt.year == 2020 and dt.month == 6 and dt.day == 15
+
+
+def test_compute_2d_subset_mask_all_inside():
+    ny, nx = 5, 5
+    lat = np.linspace(40.0, 44.0, ny)
+    lon = np.linspace(-74.0, -70.0, nx)
+    lat2d, lon2d = np.meshgrid(lat, lon, indexing="ij")
+    lat_da = xr.DataArray(lat2d, dims=("y", "x"))
+    lon_da = xr.DataArray(lon2d, dims=("y", "x"))
+    poly = np.array([(-75.0, 39.0), (-69.0, 39.0), (-69.0, 45.0), (-75.0, 45.0)])
+    mask = compute_2d_subset_mask(lat_da, lon_da, poly)
+    assert mask.dims == ("y", "x")
+    assert bool(mask.all())
+
+
+def test_compute_2d_subset_mask_partial():
+    ny, nx = 7, 7
+    lat = np.linspace(40.0, 46.0, ny)
+    lon = np.linspace(-74.0, -68.0, nx)
+    lat2d, lon2d = np.meshgrid(lat, lon, indexing="ij")
+    lat_da = xr.DataArray(lat2d, dims=("y", "x"))
+    lon_da = xr.DataArray(lon2d, dims=("y", "x"))
+    # Small polygon over the south-west corner only
+    poly = np.array([(-74.5, 40.0), (-73.0, 40.0), (-73.0, 41.0), (-74.5, 41.0)])
+    mask = compute_2d_subset_mask(lat_da, lon_da, poly)
+    assert mask.dims == ("y", "x")
+    assert bool(mask.any())
+    assert not bool(mask.all())
+
+
+def test_assign_ugrid_topology_utils_deprecation_wrapper():
+    nc = EXAMPLE_DATA / "SFBOFS_subset1.nc"
+    if not nc.is_file():
+        pytest.skip("example NetCDF not present")
+    ds = xr.open_dataset(nc)
+    with pytest.warns(DeprecationWarning, match="assign_ugrid_topology"):
+        ds2 = xsg_utils.assign_ugrid_topology(ds, face_node_connectivity="nv")
+    assert "mesh" in ds2.variables
