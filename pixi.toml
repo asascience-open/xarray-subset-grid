@@ -49,12 +49,14 @@ setuptools_scm = "*"
 python-build = "*"
 sphinx-autodoc-typehints = "*"
 myst-nb = "*"
+pooch = "*"
 
 [feature.dev.tasks]
 lint = "ruff check tests xarray_subset_grid"
-test = "pytest tests/"
-test_all = "pytest --online tests/"
-test_cov = "pytest --cov=xarray_subset_grid tests"
+test = { cmd = ["pytest", "tests/"], depends-on = ["download"] }
+download = "python download_test_data.py"
+test_all = { cmd = "pytest --online tests/", depends-on = ["download"] }
+test_cov = { cmd = "pytest --cov=xarray_subset_grid tests", depends-on = ["download"] }
 
 [feature.examples.dependencies]
 matplotlib = "*"
