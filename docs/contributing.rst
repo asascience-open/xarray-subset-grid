@@ -108,7 +108,7 @@ location you’d like to keep it. We are partial to creating a
 
 .. code:: sh
 
-   git clone https://github.com/asascience-open/xarray-subset-grid.git
+   git clone https://github.com/ioos/xarray-subset-grid.git
 
 Pull Requests
 -------------

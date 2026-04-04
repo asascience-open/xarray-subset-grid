@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# Data files
+*.nc
+*.pkl
+
 # Distribution / packaging
 .Python
 build/
@@ -163,6 +167,7 @@ cython_debug/
 xarray_subset_grid/_version.py
 # pixi environments
 .pixi
+pixi.lock
 *.egg-info
 
 .ruff_cache/

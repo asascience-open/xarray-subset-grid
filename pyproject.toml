@@ -11,8 +11,8 @@ keywords = [ "xarray" ]
 license = { file = "LICENSE" }
 
 authors = [
-  { name = "Matthew Iannucci", email = "matt.iannucci@tetratech.com" },
   { name = "Christopher H. Barker", email = "chris.barker@noaa.gov" },
+  { name = "Matthew Iannucci", email = "matt.iannucci@tetratech.com" },
 ]
 requires-python = ">=3.10"
 classifiers = [
@@ -42,6 +42,7 @@ dependencies = [
 ]
 
 optional-dependencies.dev = [
+  "pooch",
   "pre-commit",
   "pytest",
   "pytest-cov",
