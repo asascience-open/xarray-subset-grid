@@ -45,7 +45,7 @@ poly = np.array(
 ds_subset_poly = ds.xsg.subset_polygon(poly)
 ```
 
-For full usage, see the [example notebooks](./examples/)
+For full usage, see the [example notebooks](./docs/examples/)
 
 ## Development
 
