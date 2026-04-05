@@ -4,7 +4,7 @@ Subset Xarray datasets in space while retaining the original grid for complex gr
 
 ## Installation
 
-### `pip compatible`
+### `pip`
 
 This package is available on pypi:
 
@@ -12,7 +12,9 @@ This package is available on pypi:
 python -m pip install xarray-subset-grid
 ```
 
-And also on conda-forge:
+### conda / pixi
+
+This package is available on conda-forge:
 
 ```
 conda install -c conda-forge xarray-subset-grid
@@ -20,15 +22,19 @@ conda install -c conda-forge xarray-subset-grid
 
 ## Usage
 
-This package is designed to be used in conjunction with [`xarray`](https://xarray.dev/). Given a [CF Compliant](https://cfconventions.org/) `xarray` dataset named `ds`, this package can be accessed using the `xsg` accessor:
+This package is designed to be used in conjunction with [`xarray`](https://xarray.dev/).
+Given a [CF Compliant](https://cfconventions.org/) `xarray` dataset named `ds`, this package can be accessed using the `xsg` accessor:
 
 ```python
+
 import numpy as np
 
-# Get the interpreted grid class
+# xarray_subset_gris should detect the grid type.
+# To check what it found:
 grid = ds.xsg
 
-# subset to only include temperature
+# subsetting to include only certain variables:
+# Only temperature
 ds_temp = ds.xsg.subset_vars(["temp"])
 
 # subset by bounding box
@@ -47,11 +53,12 @@ poly = np.array(
 ds_subset_poly = ds.xsg.subset_polygon(poly)
 ```
 
-For full usage, see the [example notebooks](https://github.com/ioos/xarray-subset-grid/tree/main/docs/examples) and the [Sphinx documentation on Read the Docs](https://xarray-subset-grid.readthedocs.io/).
+For full usage, see the [example notebooks](https://github.com/ioos/xarray-subset-grid/tree/main/docs/examples)
+and the [Sphinx documentation on Read the Docs](https://xarray-subset-grid.readthedocs.io/).
 
 ## Development
 
-### `pip compatible`
+### `pip`
 
 First, create a new `virtualenv` and activate it:
 
@@ -109,13 +116,14 @@ pixi run -e test312 test
 Options are: `test310` `test311` `test312` `test313`
 
 
-To run a shell to do dev work:
+To run a shell to do development work:
 
 ```bash
 pixi shell -e dev
 ```
 
-To run a shell in which you can run the examples (notebooks and al that):
+To run a shell in which you can run the examples
+(notebooks and all that):
 
 ```bash
 pixi shell -e examples
@@ -127,10 +135,11 @@ To run a shell with everything (dev and example deps:
 pixi shell -e all
 ```
 
-Finally, to when the `pyproject.toml` is updated, be sure to update the `pixi` lockfile:
+Finally, when the `pixi.toml` file is updated,
+be sure to update the `pixi` lockfile:
 
 ```bash
-pixi install
+pixi update
 ```
 
 ### `conda`
