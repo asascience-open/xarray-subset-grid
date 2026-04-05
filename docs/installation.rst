@@ -4,13 +4,13 @@ Installation
 ============
 
 This installation guide includes only the xarray-subset-grid installation instructions. Please
-refer to `xarray-subset-grid Contributor's Guide <https://uxarray.readthedocs.io/en/latest/contributing.html>`_
-for detailed information about how to contribute to the UXarray project.
+refer to the `xarray-subset-grid Contributor's Guide <contributing.html>`_
+for detailed information about how to contribute to this project.
 
 We recommend using the `conda <https://conda.io/docs/>`__ or
 `pixi <https://prefix.dev/>`__ package managers for your Python
 environments. Please take some time to go over the
-`README <https://github.com/asascience-open/xarray-subset-grid/blob/main/README.md>`__.
+`README <https://github.com/ioos/xarray-subset-grid/blob/main/README.md>`__.
 
 
 Conda
@@ -71,7 +71,7 @@ PyPI
 An alternative to Conda is using pip
 ::
 
-    pip install xarray_subset_grid@git+https://github.com/asascience-open/xarray-subset-grid.git
+    pip install xarray_subset_grid@git+https://github.com/ioos/xarray-subset-grid.git
     .. pip install xarray-subset-grid
 
 
@@ -84,7 +84,7 @@ If you are interested in installing xarray-subset-grid from source,
 you will first need to get the latest version of the code
 ::
 
-    git clone https://github.com/asascience-open/xarray-subset-grid.git
+    git clone https://github.com/ioos/xarray-subset-grid.git
     cd xarray-subset-grid
 
 Run the following command from the root-directory
