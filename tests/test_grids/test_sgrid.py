@@ -8,12 +8,8 @@ import xarray_subset_grid.accessor  # noqa: F401
 from xarray_subset_grid.grids.sgrid import _get_location_info_from_topology
 
 # open dataset as zarr object using fsspec reference file system and xarray
-zarr__version__ = 0
 try:
     import fsspec
-    import zarr
-
-    zarr__version__ = int(zarr.__version__.split(".")[0])
 except ImportError:
     fsspec = None
 
@@ -52,9 +48,6 @@ def test_grid_topology_location_parse():
     }
 
 
-@pytest.mark.skipif(
-    zarr__version__ >= 3, reason="zarr3.0.8 doesn't support FSpec AWS (it might soon)"
-)
 @pytest.mark.online
 def test_polygon_subset():
     """

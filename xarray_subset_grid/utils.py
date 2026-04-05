@@ -1,4 +1,3 @@
-import warnings
 from datetime import datetime
 
 import cf_xarray  # noqa
@@ -93,21 +92,6 @@ def ray_tracing_numpy(x, y, poly):
 
         p1x, p1y = p2x, p2y
     return inside
-
-
-# This is defined in ugrid.py
-# this placeholder for backwards compatibility for a brief period
-def assign_ugrid_topology(*args, **kwargs):
-    warnings.warn(
-        "The function `assign_ugrid_topology` has been moved to the "
-        "`grids.ugrid` module. It will not be able to be called from "
-        "the utils `module` in the future.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    from .grids.ugrid import assign_ugrid_topology
-
-    return assign_ugrid_topology(*args, **kwargs)
 
 
 def format_bytes(num):

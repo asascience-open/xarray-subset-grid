@@ -27,12 +27,11 @@ def test_subset_polygon_and_bbox_return_none_without_grid():
         assert ds.xsg.subset_bbox((-72, 39, -70, 41)) is None
 
 
-def test_subset_vars_passthrough_without_grid():
+def test_subset_vars_raises_without_grid():
     ds = xr.Dataset({"a": (("x",), [1, 2, 3])})
     with pytest.warns(UserWarning, match="no grid type"):
-        out = ds.xsg.subset_vars(["a"])
-    # Without a recognized grid, subset_vars returns the dataset unchanged.
-    assert "a" in out.data_vars
+        with pytest.raises(ValueError, match="subset_vars requires a recognized grid"):
+            ds.xsg.subset_vars(["a"])
 
 
 def test_has_vertical_levels_false_without_grid():
