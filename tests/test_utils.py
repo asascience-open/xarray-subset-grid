@@ -1,13 +1,12 @@
 import os
+from datetime import datetime
 
+import cftime
 import numpy as np
 import pytest
+import xarray as xr
 
-from xarray_subset_grid.utils import (
-    normalize_bbox_x_coords,
-    normalize_polygon_x_coords,
-    ray_tracing_numpy,
-)
+import xarray_subset_grid.utils as xsg_utils
 
 # normalize_polygon_x_coords tests.
 
@@ -69,12 +68,7 @@ poly2_180 = np.array(
 )
 def test_normalize_x_coords(lons, poly, norm_poly):
     lons = np.array(lons)
-    normalized_polygon = normalize_polygon_x_coords(lons, np.array(poly))
-    print(f"{lons=}")
-    print(f"{poly=}")
-    print(f"{norm_poly=}")
-    print(f"{normalized_polygon=}")
-
+    normalized_polygon = xsg_utils.normalize_polygon_x_coords(lons, np.array(poly))
     assert np.allclose(normalized_polygon, norm_poly)
 
 
@@ -97,7 +91,7 @@ bbox2_180 = [-126, 39, -70, 41]
 )
 def test_normalize_x_coords_bbox(lons, bbox, norm_bbox):
     lons = np.array(lons)
-    normalized_polygon = normalize_bbox_x_coords(lons, bbox)
+    normalized_polygon = xsg_utils.normalize_bbox_x_coords(lons, bbox)
     assert np.allclose(normalized_polygon, norm_bbox)
 
 
@@ -122,6 +116,82 @@ def test_ray_tracing_numpy():
         ]
     )
 
-    result = ray_tracing_numpy(points[:, 0], points[:, 1], poly)
+    result = xsg_utils.ray_tracing_numpy(points[:, 0], points[:, 1], poly)
 
     assert np.array_equal(result, [False, True, False])
+
+
+@pytest.mark.parametrize(
+    "num, unit",
+    [
+        (512, "bytes"),
+        (2048, "KB"),
+        (3 * 1024**2, "MB"),
+    ],
+)
+def test_format_bytes(num, unit):
+    assert unit in xsg_utils.format_bytes(num)
+
+
+def test_asdatetime_none():
+    assert xsg_utils.asdatetime(None) is None
+
+
+def test_asdatetime_datetime_passthrough():
+    dt = datetime(2020, 6, 15, 12, 30, 0)
+    assert xsg_utils.asdatetime(dt) is dt
+
+
+def test_asdatetime_cftime_passthrough():
+    dt = cftime.datetime(2020, 6, 15, 12)
+    assert xsg_utils.asdatetime(dt) is dt
+
+
+def test_asdatetime_parse_string():
+    dt = xsg_utils.asdatetime("2020-06-15T12:30:00")
+    assert dt.year == 2020 and dt.month == 6 and dt.day == 15
+
+
+def test_compute_2d_subset_mask_all_inside():
+    ny, nx = 5, 5
+    lat = np.linspace(40.0, 44.0, ny)
+    lon = np.linspace(-74.0, -70.0, nx)
+    lat2d, lon2d = np.meshgrid(lat, lon, indexing="ij")
+    lat_da = xr.DataArray(lat2d, dims=("y", "x"))
+    lon_da = xr.DataArray(lon2d, dims=("y", "x"))
+    poly = np.array([(-75.0, 39.0), (-69.0, 39.0), (-69.0, 45.0), (-75.0, 45.0)])
+    mask = xsg_utils.compute_2d_subset_mask(lat_da, lon_da, poly)
+    assert mask.dims == ("y", "x")
+    assert mask.all()
+
+
+def test_compute_2d_subset_mask_partial():
+    # Include explicit lon/lat nodes inside the polygon so the mask can be checked at a
+    # non-boundary grid point (ray-casting is ambiguous on polygon edges).
+    lat = np.array([40.0, 40.5, 41.0, 43.0, 46.0])
+    lon = np.array([-74.5, -73.75, -73.0, -71.0, -68.0])
+    lat2d, lon2d = np.meshgrid(lat, lon, indexing="ij")
+    lat_da = xr.DataArray(lat2d, dims=("y", "x"))
+    lon_da = xr.DataArray(lon2d, dims=("y", "x"))
+    poly = np.array([(-74.5, 40.0), (-73.0, 40.0), (-73.0, 41.0), (-74.5, 41.0)])
+    mask = xsg_utils.compute_2d_subset_mask(lat_da, lon_da, poly)
+    assert mask.dims == ("y", "x")
+    assert mask.any()
+    assert not mask.all()
+    i_inside = int(np.where(lat == 40.5)[0][0])
+    j_inside = int(np.where(lon == -73.75)[0][0])
+    assert mask.values[i_inside, j_inside]
+    assert not mask.values[-1, -1]
+
+
+def test_compute_2d_subset_mask_list_polygon_coerced():
+    """list/tuple polygon vertices are accepted (coerced via normalize_polygon_x_coords)."""
+    ny, nx = 5, 5
+    lat = np.linspace(40.0, 44.0, ny)
+    lon = np.linspace(-74.0, -70.0, nx)
+    lat2d, lon2d = np.meshgrid(lat, lon, indexing="ij")
+    lat_da = xr.DataArray(lat2d, dims=("y", "x"))
+    lon_da = xr.DataArray(lon2d, dims=("y", "x"))
+    poly = [(-75.0, 39.0), (-69.0, 39.0), (-69.0, 45.0), (-75.0, 45.0)]
+    mask = xsg_utils.compute_2d_subset_mask(lat_da, lon_da, poly)
+    assert mask.all()

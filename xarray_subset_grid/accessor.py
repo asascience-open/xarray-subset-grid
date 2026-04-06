@@ -112,9 +112,12 @@ class GridDatasetAccessor:
         :param vars: The variables to keep
         :return: The subsetted dataset
         """
-        if self._grid:
-            return self._grid.subset_vars(self._ds, vars)
-        return self._ds
+        if not self._grid:
+            raise ValueError(
+                "subset_vars requires a recognized grid; this dataset has no grid type "
+                "that xarray-subset-grid can use."
+            )
+        return self._grid.subset_vars(self._ds, vars)
 
     @property
     def has_vertical_levels(self) -> bool:
