@@ -26,7 +26,6 @@ This package is designed to be used in conjunction with [`xarray`](https://xarra
 Given a [CF Compliant](https://cfconventions.org/) `xarray` dataset named `ds`, this package can be accessed using the `xsg` accessor:
 
 ```python
-
 import numpy as np
 
 # xarray_subset_gris should detect the grid type.
