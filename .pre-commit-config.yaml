@@ -10,6 +10,15 @@ repos:
     - id: check-added-large-files
       exclude_types: [yaml]
 
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v2.1.0
+  hooks:
+  - id: mypy
+    additional_dependencies:
+      - types-requests
+      - pandas-stubs
+    exclude: 'docs/source/conf\.py'      
+
 - repo: https://github.com/keewis/blackdoc
   rev: v0.4.6
   hooks:
