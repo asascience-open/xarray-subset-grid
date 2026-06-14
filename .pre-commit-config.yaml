@@ -15,7 +15,6 @@ repos:
   hooks:
   - id: mypy
     additional_dependencies:
-      - types-requests
       - pandas-stubs
     exclude: 'docs/source/conf\.py'      
 
