@@ -1,6 +1,6 @@
 import warnings
+from collections.abc import Iterable
 
-# from typing import Optional, Union
 import numpy as np
 import xarray as xr
 
@@ -89,7 +89,7 @@ class GridDatasetAccessor:
         return set()
 
     @property
-    def grid_vars(self) -> set[str]:
+    def grid_vars(self) -> Iterable[str]:
         """List of grid variables.
 
         These variables are used to define the grid and thus should be
