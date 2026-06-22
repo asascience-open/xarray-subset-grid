@@ -1,2 +1,5 @@
 # GitHub syntax highlighting
 pixi.lock linguist-language=YAML
+*.py text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
