@@ -72,4 +72,5 @@ RGRID_FILES = [
     EXAMPLE_DATA / "2D-rectangular_grid_wind.nc",
     EXAMPLE_DATA / "rectangular_grid_decreasing.nc",
     EXAMPLE_DATA / "AMSEAS-subset.nc",
+    EXAMPLE_DATA / "unknown_2D-rtofs_example.nc",
 ]
