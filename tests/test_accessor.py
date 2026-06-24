@@ -7,9 +7,8 @@ import xarray_subset_grid.accessor  # noqa: F401 -- register accessor
 
 def test_accessor_warns_when_no_grid_recognized():
     ds = xr.Dataset()
-    with pytest.warns(UserWarning, match="no grid type"):
-        accessor = ds.xsg
-    assert accessor.grid is None
+    with pytest.raises(ValueError, match="Cannot find grid or coords for"):
+        ds.xsg
 
 
 def test_subset_polygon_and_bbox_return_none_without_grid():
@@ -22,19 +21,19 @@ def test_subset_polygon_and_bbox_return_none_without_grid():
             [-72.0, 41.0],
         ]
     )
-    with pytest.warns(UserWarning, match="no grid type"):
-        assert ds.xsg.subset_polygon(poly) is None
-        assert ds.xsg.subset_bbox((-72, 39, -70, 41)) is None
+    with pytest.raises(ValueError, match="Cannot find grid or coords for"):
+        ds.xsg.subset_polygon(poly)
+    with pytest.raises(ValueError, match="Cannot find grid or coords for"):
+        ds.xsg.subset_bbox((-72, 39, -70, 41))
 
 
 def test_subset_vars_raises_without_grid():
     ds = xr.Dataset({"a": (("x",), [1, 2, 3])})
-    with pytest.warns(UserWarning, match="no grid type"):
-        with pytest.raises(ValueError, match="subset_vars requires a recognized grid"):
-            ds.xsg.subset_vars(["a"])
+    with pytest.raises(ValueError, match="Cannot find grid or coords for"):
+        ds.xsg.subset_vars(["a"])
 
 
 def test_has_vertical_levels_false_without_grid():
     ds = xr.Dataset()
-    with pytest.warns(UserWarning, match="no grid type"):
-        assert ds.xsg.has_vertical_levels is False
+    with pytest.raises(ValueError, match="Cannot find grid or coords for"):
+        ds.xsg.has_vertical_levels
