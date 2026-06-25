@@ -88,7 +88,7 @@ class RegularGrid2d(Grid):
         return data_vars
 
     def compute_polygon_subset_selector(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str = None
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str | None = None
     ) -> Selector:
         lat = ds.cf["latitude"]
         lon = ds.cf["longitude"]

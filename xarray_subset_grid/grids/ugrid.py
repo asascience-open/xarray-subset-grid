@@ -171,7 +171,7 @@ class UGrid(Grid):
         return data_vars
 
     def compute_polygon_subset_selector(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str = None
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str | None = None
     ) -> Selector:
         # For this grid type, we find all nodes that are connected to elements that are inside
         # the polygon. To do this, we first find all nodes that are inside the polygon and then

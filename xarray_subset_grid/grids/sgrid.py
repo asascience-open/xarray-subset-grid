@@ -100,7 +100,7 @@ class SGrid(Grid):
         return {var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)}
 
     def compute_polygon_subset_selector(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str = None
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str | None = None
     ) -> Selector:
         grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
         grid_topology = ds[grid_topology_key]
