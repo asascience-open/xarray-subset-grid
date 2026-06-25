@@ -26,7 +26,7 @@ class Grid(ABC):
         return "grid"
 
     @abstractmethod
-    def grid_vars(self, ds: xr.Dataset) -> list[str]:
+    def grid_vars(self, ds: xr.Dataset) -> Iterable[str]:
         """List of grid variables.
 
         These variables are used to define the grid and thus should be
