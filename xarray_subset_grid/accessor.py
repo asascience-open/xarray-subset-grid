@@ -26,7 +26,7 @@ _grid_impls = [
 ]
 
 
-def register_grid_impl(grid_impl: Grid, priority: int = 0):
+def register_grid_impl(grid_impl: type[Grid], priority: int = 0):
     """Register a new grid implementation.
 
     :param grid_impl: The grid implementation to register
@@ -79,7 +79,7 @@ class GridDatasetAccessor:
         data analysis. These can be discarded when subsetting the
         dataset when they are not needed.
         """
-        if self._ds:
+        if self._grid:
             return self._grid.data_vars(self._ds)
         return set()
 
