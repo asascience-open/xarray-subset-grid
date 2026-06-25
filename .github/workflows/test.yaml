@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ "ubuntu-latest", "windows-latest", "macos-latest" ]
+        os: [ "ubuntu-latest", "windows-latest", "macos-15-intel", "macos-latest" ]
         environment: [ test310, test311, test312, test313, test314 ]
     permissions:
       actions: none

@@ -34,22 +34,24 @@ dynamic = [ "version" ]
 
 dependencies = [
   "cf-xarray",
-  "cftime",
-  "dask",
   "netcdf4",
-  "numpy",
   "xarray>=2024.6",
 ]
 
 optional-dependencies.dev = [
+  "jupyter",
+  "matplotlib",
+  "myst-nb",
   "pooch",
   "pre-commit",
-  "pytest",
   "pytest-cov",
+  "pytest",
   "ruff",
-  "sphinx",
+  "sphinx-autodoc-typehints",
   "sphinx-rtd-theme",
+  "sphinx",
 ]
+
 optional-dependencies.examples = [ "fsspec", "h5netcdf", "matplotlib", "s3fs", "zarr<3" ]
 urls."Homepage" = "https://github.com/ioos/xarray-subset-grid/"
 
