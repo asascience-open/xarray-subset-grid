@@ -167,7 +167,7 @@ class RegularGrid(Grid):
 
         polygon = normalize_polygon_x_coords(lon, polygon)
 
-        selector = RegularGridPolygonSelector(polygon)
+        selector = RegularGridPolygonSelector(polygon=polygon)
         return selector
 
     def compute_bbox_subset_selector(
