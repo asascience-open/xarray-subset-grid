@@ -79,7 +79,7 @@ class GridDatasetAccessor:
         data analysis. These can be discarded when subsetting the
         dataset when they are not needed.
         """
-        if self._grid:
+        if self._ds:
             return self._grid.data_vars(self._ds)
         return set()
 
