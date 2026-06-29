@@ -1,8 +1,26 @@
 # conftest: some configuration for the tests
 
+import zipfile
 from pathlib import Path
 
+import pooch
 import pytest
+
+
+@pytest.fixture(scope="session", autouse=True)
+def download_data():
+    """Download support data for tests and documentation."""
+    url = "https://github.com/ioos/xarray-subset-grid/releases/download"
+    version = "2026.06.24"
+
+    fname = pooch.retrieve(
+        url=f"{url}/{version}/test_data.zip",
+        known_hash="sha256:525e09f4d478c7484692ce4c30f5dd0f81115209e54d94d03831cca6bbfaceb0",
+    )
+
+    here = Path(__file__).resolve().parent.parent
+    with zipfile.ZipFile(fname, "r") as zip_ref:
+        zip_ref.extractall(here)
 
 
 def pytest_addoption(parser):
