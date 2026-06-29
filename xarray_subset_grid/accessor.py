@@ -16,7 +16,7 @@ from xarray_subset_grid.grids import (
     UGrid,
 )
 
-_grid_impls = [
+_grid_impls: list[type[Grid]] = [
     FVCOMGrid,
     SELFEGrid,
     UGrid,

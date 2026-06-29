@@ -162,12 +162,12 @@ class RegularGrid(Grid):
         name: str | None = None,
     ) -> Selector:
 
-        polygon_array = np.asarray(polygon)
+        polygon = np.asarray(polygon)
         lon = ds.cf["longitude"].data
 
-        polygon_array = normalize_polygon_x_coords(lon, polygon_array)
+        polygon = normalize_polygon_x_coords(lon, polygon)
 
-        selector = RegularGridPolygonSelector(polygon=polygon_array)
+        selector = RegularGridPolygonSelector(polygon)
         return selector
 
     def compute_bbox_subset_selector(
