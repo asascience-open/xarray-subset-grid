@@ -54,10 +54,9 @@ pooch = "*"
 [feature.dev.tasks]
 lint = "ruff check tests xarray_subset_grid"
 pre_commit = "pre-commit run --all-files"
-test = { cmd = ["pytest", "tests/"], depends-on = ["download"] }
-download = "python download_test_data.py"
-test_all = { cmd = "pytest --online tests/", depends-on = ["download"] }
-test_cov = { cmd = "pytest --cov=xarray_subset_grid tests", depends-on = ["download"] }
+test = { cmd = ["pytest", "tests/"] }
+test_all = { cmd = "pytest --online tests/" }
+test_cov = { cmd = "pytest --cov=xarray_subset_grid tests" }
 
 [feature.examples.dependencies]
 matplotlib = "*"
