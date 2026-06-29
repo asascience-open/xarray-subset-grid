@@ -92,10 +92,7 @@ class SGrid(Grid):
         """
         grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
         grid_topology = ds[grid_topology_key]
-        dims = []
-        for dims, _coords in _get_sgrid_dim_coord_names(grid_topology):
-            dims.extend(dims)
-        dims = set(dims)
+        dims = set([d for d, _ in _get_sgrid_dim_coord_names(grid_topology)])
 
         return {var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)}
 
@@ -104,7 +101,6 @@ class SGrid(Grid):
     ) -> Selector:
         grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
         grid_topology = ds[grid_topology_key]
-        dims = _get_sgrid_dim_coord_names(grid_topology)
         subset_masks: list[tuple[list[str], xr.DataArray]] = []
 
         node_info = _get_location_info_from_topology(grid_topology, "node")
@@ -114,8 +110,6 @@ class SGrid(Grid):
         unique_dims = set(node_dims)
         node_vars = [k for k in ds.variables if unique_dims.issubset(set(ds[k].dims))]
 
-        node_lon: xr.DataArray | None = None
-        node_lat: xr.DataArray | None = None
         for c in node_coords:
             if "lon" in ds[c].standard_name.lower():
                 node_lon = ds[c]
@@ -144,14 +138,14 @@ class SGrid(Grid):
             info = _get_location_info_from_topology(grid_topology, s)
             dims = info["dims"]
             coords = info["coords"]
-            unique_dims = set(dims)
-            vars = [k for k in ds.variables if unique_dims.issubset(set(ds[k].dims))]
+            _unique_dims = set(dims)
+            vars = [k for k in ds.variables if _unique_dims.issubset(set(ds[k].dims))]
 
-            lon: xr.DataArray | None = None
             for c in coords:
                 if "lon" in ds[c].standard_name.lower():
                     lon = ds[c]
             padding = info["padding"]
+            arranged_padding: list[int | str] = []
             arranged_padding = [padding[d] for d in lon.dims]
             arranged_padding = [0 if p == "none" or p == "low" else 1 for p in arranged_padding]
             mask = np.zeros(lon.shape, dtype=bool)
@@ -173,17 +167,16 @@ class SGrid(Grid):
 
 def _get_location_info_from_topology(grid_topology: xr.DataArray, location) -> dict[str, str]:
     """Get the dimensions and coordinates for a given location from the grid_topology"""
-    rdict = {}
     dim_str = grid_topology.attrs.get(f"{location}_dimensions", None)
     coord_str = grid_topology.attrs.get(f"{location}_coordinates", None)
     if dim_str is None or coord_str is None:
         raise ValueError(f"Could not find {location} dimensions or coordinates")
     # Remove padding for now
-    dims_only = " ".join([v for v in dim_str.split(" ") if "(" not in v and ")" not in v])
-    if ":" in dims_only:
-        dims_only = [s.replace(":", "") for s in dims_only.split(" ") if ":" in s]
+    _dims_only = " ".join([v for v in dim_str.split(" ") if "(" not in v and ")" not in v])
+    if ":" in _dims_only:
+        dims_only = [s.replace(":", "") for s in _dims_only.split(" ") if ":" in s]
     else:
-        dims_only = dims_only.split(" ")
+        dims_only = _dims_only.split(" ")
 
     padding = dim_str.replace(":", "").split(")")
     pdict = {}
@@ -201,10 +194,11 @@ def _get_location_info_from_topology(grid_topology: xr.DataArray, location) -> d
         pdict[dims_only[0]] = "none"
         pdict[dims_only[1]] = "none"
 
-    rdict["dims"] = dims_only
-    rdict["coords"] = coord_str.split(" ")
-    rdict["padding"] = pdict
-    return rdict
+    return {
+        "dims": dims_only,
+        "coords": coord_str.split(" "),
+        "padding": pdict,
+    }
 
 
 def _get_sgrid_dim_coord_names(
@@ -220,11 +214,11 @@ def _get_sgrid_dim_coord_names(
     for k, v in grid_topology.attrs.items():
         if "_dimensions" in k:
             # Remove padding for now
-            d = " ".join([v for v in v.split(" ") if "(" not in v and ")" not in v])
-            if ":" in d:
-                d = [d.replace(":", "") for d in d.split(" ") if ":" in d]
+            _d = " ".join([v for v in v.split(" ") if "(" not in v and ")" not in v])
+            if ":" in _d:
+                d = [_d.replace(":", "") for _d in _d.split(" ") if ":" in _d]
             else:
-                d = d.split(" ")
+                d = _d.split(" ")
             dims.append(d)
         elif "_coordinates" in k:
             coords.append(v.split(" "))
