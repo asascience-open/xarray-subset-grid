@@ -6,8 +6,8 @@ import xarray as xr
 
 from xarray_subset_grid.selector import Selector
 
-FLOAT_MAX = np.finfo(np.float32).max
-FLOAT_MIN = np.finfo(np.float32).min
+FLOAT_MAX: float = float(np.finfo(np.float32).max)
+FLOAT_MIN: float = float(np.finfo(np.float32).min)
 
 
 class Grid(ABC):
@@ -134,7 +134,7 @@ class Grid(ABC):
 
     @abstractmethod
     def compute_polygon_subset_selector(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str = None
+        self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str | None = None
     ) -> Selector:
         """Compute the subset selector for the polygon.
 
@@ -148,7 +148,7 @@ class Grid(ABC):
         raise NotImplementedError()
 
     def compute_bbox_subset_selector(
-        self, ds: xr.Dataset, bbox: tuple[float, float, float, float], name: str = None
+        self, ds: xr.Dataset, bbox: tuple[float, float, float, float], name: str | None = None
     ) -> Selector:
         """Compute the subset selector for the bounding box.
 
