@@ -32,15 +32,15 @@ def info(ds):
 print("Subsetting methods comparison")
 start = time.time()
 ads = ds.xsg.grid.subset_bbox(ds, bbox)
-print(f"Xarray-subset-grid - {time.time - start} sec")
+print(f"Xarray-subset-grid - {time.time() - start} sec")
 
 start = time.time()
 tds = thalassa.normalize(ds)
 tds = thalassa.crop(tds, shapely.box(*bbox))
-print(f"Thalassa - {time.time - start} sec")
+print(f"Thalassa - {time.time() - start} sec")
 
 # Checking time only for subsetting operation
 uds = xu.UgridDataset(ds)
 start = time.time()
 uds = uds.ugrid.sel(y=slice(bbox[2], bbox[3]), x=slice(bbox[0], bbox[1]))
-print(f"UGrid - {time.time - start} sec")
+print(f"UGrid - {time.time() - start} sec")

@@ -26,8 +26,6 @@ class Selector:
             self.__dict__.update(instance.__dict__)
             self.__class__ = instance.__class__
 
-    __hash__ = None
-
     def __eq__(self, other):
         if not isinstance(other, Selector):
             return NotImplemented

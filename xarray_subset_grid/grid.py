@@ -26,7 +26,7 @@ class Grid(ABC):
         return "grid"
 
     @abstractmethod
-    def grid_vars(self, ds: xr.Dataset) -> Iterable[str]:
+    def grid_vars(self, ds: xr.Dataset) -> set[str]:
         """List of grid variables.
 
         These variables are used to define the grid and thus should be
@@ -134,7 +134,10 @@ class Grid(ABC):
 
     @abstractmethod
     def compute_polygon_subset_selector(
-        self, ds: xr.Dataset, polygon: list[tuple[float, float]], name: str | None = None
+        self,
+        ds: xr.Dataset,
+        polygon: list[tuple[float, float]] | np.ndarray,
+        name: str | None = None,
     ) -> Selector:
         """Compute the subset selector for the polygon.
 
