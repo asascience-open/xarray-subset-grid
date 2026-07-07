@@ -26,12 +26,6 @@ class Selector:
             self.__dict__.update(instance.__dict__)
             self.__class__ = instance.__class__
 
-    def __hash__(self):
-        """Polygon seems to be the unique property that we should use for hash calculation
-        and comparisons.
-        """
-        return hash(self.polygon)
-
     def __eq__(self, other):
         if not isinstance(other, Selector):
             return NotImplemented
