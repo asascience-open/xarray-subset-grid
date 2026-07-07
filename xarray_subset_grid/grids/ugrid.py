@@ -153,17 +153,13 @@ class UGrid(Grid):
         Then all grid_vars are excluded as well.
         """
         mesh = ds.cf["mesh_topology"]
-        dims = []
 
         # Use the coordinates as the source of truth, the face and node
         # dimensions are the same as the coordinates and any data variables
         # that do not contain either face or node dimensions can be ignored
         face_coord = mesh.face_coordinates.split(" ")[0]
-        dims.extend(ds[face_coord].dims)
         node_coord = mesh.node_coordinates.split(" ")[0]
-        dims.extend(ds[node_coord].dims)
-
-        dims = set(dims)
+        dims = set(ds[face_coord].dims + ds[node_coord].dims)
 
         data_vars = {var for var in ds.data_vars if not set(ds[var].dims).isdisjoint(dims)}
         data_vars -= self.grid_vars(ds)
@@ -417,8 +413,8 @@ def assign_ugrid_topology(
         )
     if mesh.face_coordinates is None:
         try:
-            face_coordinates = ds[mesh.face_node_connectivity].cf.coordinates
-            mesh.face_coordinates = " ".join(f"{coord[0]}" for coord in face_coordinates.values())
+            _face_coordinates = ds[mesh.face_node_connectivity].cf.coordinates
+            mesh.face_coordinates = " ".join(f"{coord[0]}" for coord in _face_coordinates.values())
         except AttributeError:
             mesh.face_coordinates = None
 
@@ -440,8 +436,8 @@ def assign_ugrid_topology(
 
     if mesh.edge_coordinates is None:
         try:
-            mesh.edge_coordinates = ds[mesh.edge_node_connectivity].cf.coordinates
-            mesh.edge_coordinates = [f"{coord[0]}" for coord in edge_coordinates.values()]
+            _edge_coordinates = ds[mesh.edge_node_connectivity].cf.coordinates
+            mesh.edge_coordinates = [f"{coord[0]}" for coord in _edge_coordinates.values()]
         except (KeyError, AttributeError):
             mesh.edge_coordinates = None
 
