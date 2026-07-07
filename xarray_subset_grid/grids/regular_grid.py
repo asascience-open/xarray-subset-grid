@@ -158,7 +158,8 @@ class RegularGrid(Grid):
     def compute_polygon_subset_selector(
         self,
         ds: xr.Dataset,
-        polygon: list[tuple[float, float]],
+        polygon: list[tuple[float, float]] | np.ndarray,
+        name: str | None = None,
     ) -> Selector:
 
         polygon = np.asarray(polygon)
@@ -173,6 +174,7 @@ class RegularGrid(Grid):
         self,
         ds: xr.Dataset,
         bbox: tuple[float, float, float, float],
+        name: str | None = None,
     ) -> Selector:
         bbox = normalize_bbox_x_coords(ds.cf["longitude"].values, bbox)
         selector = RegularGridBBoxSelector(bbox)

@@ -1,4 +1,5 @@
 import warnings
+from collections.abc import Iterable
 
 # from typing import Optional, Union
 import numpy as np
@@ -15,7 +16,7 @@ from xarray_subset_grid.grids import (
     UGrid,
 )
 
-_grid_impls = [
+_grid_impls: list[type[Grid]] = [
     FVCOMGrid,
     SELFEGrid,
     UGrid,
@@ -25,7 +26,7 @@ _grid_impls = [
 ]
 
 
-def register_grid_impl(grid_impl: Grid, priority: int = 0):
+def register_grid_impl(grid_impl: type[Grid], priority: int = 0):
     """Register a new grid implementation.
 
     :param grid_impl: The grid implementation to register
@@ -89,7 +90,7 @@ class GridDatasetAccessor:
         return set()
 
     @property
-    def grid_vars(self) -> set[str]:
+    def grid_vars(self) -> Iterable[str]:
         """List of grid variables.
 
         These variables are used to define the grid and thus should be
