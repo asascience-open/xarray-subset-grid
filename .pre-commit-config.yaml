@@ -16,14 +16,20 @@ repos:
   - id: mypy
     # In the next typing PR we will add the extra dependencies for a better assessment, then
     # we'll try strict, then removing ignore missing imports.
-    # args: [--strict, --ignore-missing-imports]
+    args: [ --install-types, --non-interactive ]
     additional_dependencies:
-      - pandas-stubs
-    #   - cf-xarray
-    #   - netcdf4
-    #   - xarray>=2024.6
-
-    exclude: 'docs/source/conf\.py'
+      - cf-xarray
+      - netcdf4
+      - xarray>=2024.6
+      - matplotlib
+    exclude: |
+      (?x)(
+        ^build/
+        | conf\.py$
+        | ^tests/
+        | ^docs/
+        | ^profiling/
+      )
 
 - repo: https://github.com/keewis/blackdoc
   rev: v0.4.6
