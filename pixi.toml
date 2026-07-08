@@ -17,8 +17,7 @@ python = "*"
 [environments]
 default = { solve-group = "default" }
 dev = { features = [ "dev" ], solve-group = "default" }
-test310 = [ "dev", "py310" ]  # implicit: test310 = ["dev", "py310", "default"]
-test311 = [ "dev", "py311" ]
+test311 = [ "dev", "py311" ]  # implicit: test311 = ["dev", "py311", "default"]
 test312 = [ "dev", "py312" ]
 test313 = [ "dev", "py313" ]
 test314 = [ "dev", "py314" ]
@@ -32,9 +31,6 @@ pre_commit = "pre-commit run --all-files"
 test = { cmd = ["pytest", "tests/"] }
 test_all = { cmd = "pytest --online tests/" }
 test_cov = { cmd = "pytest --cov=xarray_subset_grid tests" }
-
-[feature.py310.dependencies]
-python = "~=3.10"
 
 [feature.py311.dependencies]
 python = "~=3.11"
