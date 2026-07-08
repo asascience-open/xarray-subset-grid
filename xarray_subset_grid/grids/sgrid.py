@@ -44,10 +44,9 @@ class SGridSelector(Selector):
             ds_out.append(ds_subset)
 
         # Merge the subsetted datasets
-        ds_out = xr.merge(ds_out)
+        _ds_out = xr.merge(ds_out)
 
-        ds_out = ds_out.assign({self._grid_topology_key: self._grid_topology})
-        return ds_out
+        return _ds_out.assign({self._grid_topology_key: self._grid_topology})
 
 
 class SGrid(Grid):

@@ -1,7 +1,9 @@
 from datetime import datetime
 
 import cf_xarray  # noqa
-import cftime
+
+# See https://github.com/Unidata/cftime/issues/349
+import cftime  # type: ignore[import-untyped]
 import numpy as np
 import xarray as xr
 from dateutil.parser import parse as parsetime
