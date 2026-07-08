@@ -96,11 +96,11 @@ class FVCOMGrid(UGrid):
         selections = {}
         if "siglay" in ds.dims:
             siglay = ds["siglay"].isel(node=0)
-            elevation_index = int(np.absolute(siglay - level).argmin(axis=0).values)
+            elevation_index = int(np.absolute((siglay - level).to_numpy()).argmin(axis=0))
             selections["siglay"] = elevation_index
         if "siglev" in ds.dims:
             siglev = ds["siglev"].isel(node=0)
-            elevation_index = int(np.absolute(siglev - level).argmin(axis=0).values)
+            elevation_index = int(np.absolute((siglev - level).to_numpy()).argmin(axis=0))
             selections["siglev"] = elevation_index
 
         return ds.isel(selections)
@@ -127,13 +127,13 @@ class FVCOMGrid(UGrid):
         if "siglay" in ds.dims:
             siglay = ds["siglay"].isel(node=0)
             elevation_indexes = [
-                int(np.absolute(siglay - level).argmin(axis=0).values) for level in levels
+                int(np.absolute((siglay - level).to_numpy()).argmin(axis=0)) for level in levels
             ]
             selections["siglay"] = slice(elevation_indexes[0], elevation_indexes[1])
         if "siglev" in ds.dims:
             siglev = ds["siglev"].isel(node=0)
             elevation_index = [
-                int(np.absolute(siglev - level).argmin(axis=0).values) for level in levels
+                int(np.absolute((siglev - level).to_numpy()).argmin(axis=0)) for level in levels
             ]
             selections["siglev"] = slice(elevation_index[0], elevation_index[1])
 

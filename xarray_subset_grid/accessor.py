@@ -1,9 +1,12 @@
 import warnings
 from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
-# from typing import Optional, Union
 import numpy as np
 import xarray as xr
+
+if TYPE_CHECKING:
+    from xarray.core.coordinates import DatasetCoordinates
 
 from xarray_subset_grid.grid import Grid
 from xarray_subset_grid.grids import (
@@ -84,7 +87,7 @@ class GridDatasetAccessor:
         return set()
 
     @property
-    def coords(self) -> set[str]:
+    def coords(self) -> set[str] | "DatasetCoordinates":
         if self._ds:
             return self._ds.coords
         return set()
