@@ -26,7 +26,7 @@ class Selector:
             self.__dict__.update(instance.__dict__)
             self.__class__ = instance.__class__
 
-    __hash__ = None
+    __hash__ = None  # type: ignore[assignment]
 
     def __eq__(self, other):
         if not isinstance(other, Selector):

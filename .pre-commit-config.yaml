@@ -11,11 +11,18 @@ repos:
       exclude_types: [yaml]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v2.1.0
+  rev: v2.2.0
   hooks:
   - id: mypy
+    # In the next typing PR we will add the extra dependencies for a better assessment, then
+    # we'll try strict, then removing ignore missing imports.
+    # args: [--strict, --ignore-missing-imports]
     additional_dependencies:
       - pandas-stubs
+    #   - cf-xarray
+    #   - netcdf4
+    #   - xarray>=2024.6
+
     exclude: 'docs/source/conf\.py'
 
 - repo: https://github.com/keewis/blackdoc
