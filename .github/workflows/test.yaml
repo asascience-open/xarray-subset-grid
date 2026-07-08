@@ -35,4 +35,4 @@ jobs:
 
       - name: Tests
         run: >
-          pixi run --environment ${{ matrix.environment }} test
+          pixi run --frozen --environment ${{ matrix.environment }} test
