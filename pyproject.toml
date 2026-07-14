@@ -40,6 +40,7 @@ dependencies = [
 optional-dependencies.dev = [
   "jupyter",
   "matplotlib",
+  "mypy",
   "myst-nb",
   "pooch",
   "pre-commit",
@@ -49,6 +50,7 @@ optional-dependencies.dev = [
   "sphinx-autodoc-typehints",
   "sphinx-rtd-theme",
   "sphinx",
+  "types-python-dateutil",
 ]
 
 optional-dependencies.examples = [ "fsspec", "h5netcdf", "matplotlib", "s3fs", "zarr<3" ]
