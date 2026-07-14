@@ -31,6 +31,7 @@ pre_commit = "pre-commit run --all-files"
 test = { cmd = ["pytest", "tests/"] }
 test_all = { cmd = "pytest --online tests/" }
 test_cov = { cmd = "pytest --cov=xarray_subset_grid tests" }
+mypy = { cmd = "mypy xarray_subset_grid" }
 
 [feature.py311.dependencies]
 python = "~=3.11"
