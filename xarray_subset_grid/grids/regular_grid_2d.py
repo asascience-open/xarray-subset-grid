@@ -3,6 +3,7 @@
 # do we need a separate class for this?
 # This doesn't appear, right now, to check for depth to dedermine if it's 2D
 
+from collections.abc import Hashable
 
 import numpy as np
 import xarray as xr
@@ -69,7 +70,7 @@ class RegularGrid2d(Grid):
         lon = ds.cf.coordinates["longitude"][0]
         return {lat, lon}
 
-    def data_vars(self, ds: xr.Dataset) -> set[str]:
+    def data_vars(self, ds: xr.Dataset) -> set[Hashable]:
         """Set of data variables.
 
         These variables exist on the grid and are available to used for

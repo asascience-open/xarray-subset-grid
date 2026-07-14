@@ -1,4 +1,5 @@
 import warnings
+from collections.abc import Hashable
 from types import SimpleNamespace
 
 import numpy as np
@@ -143,7 +144,7 @@ class UGrid(Grid):
                     vars.add(mesh.attrs[var_name])
         return vars
 
-    def data_vars(self, ds: xr.Dataset) -> set[str]:
+    def data_vars(self, ds: xr.Dataset) -> set[Hashable]:
         """Set of data variables.
 
         These variables exist on the grid and are available to used for

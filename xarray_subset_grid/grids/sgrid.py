@@ -1,3 +1,5 @@
+from collections.abc import Hashable
+
 import numpy as np
 import xarray as xr
 
@@ -11,7 +13,7 @@ class SGridSelector(Selector):
 
     _grid_topology_key: str
     _grid_topology: xr.DataArray
-    _subset_masks: list[tuple[list[str], xr.DataArray]]
+    _subset_masks: list[tuple[list[Hashable], xr.DataArray]]
 
     def __init__(
         self,
@@ -19,7 +21,7 @@ class SGridSelector(Selector):
         polygon: list[tuple[float, float]] | np.ndarray,
         grid_topology_key: str,
         grid_topology: xr.DataArray,
-        subset_masks: list[tuple[list[str], xr.DataArray]],
+        subset_masks: list[tuple[list[Hashable], xr.DataArray]],
     ):
         super().__init__()
         self.name = name
@@ -82,7 +84,7 @@ class SGrid(Grid):
             grid_coords.extend(coords)
         return set(grid_coords)
 
-    def data_vars(self, ds: xr.Dataset) -> set[str]:
+    def data_vars(self, ds: xr.Dataset) -> set[Hashable]:
         """Set of data variables.
 
         These variables exist on the grid and are available to used for
@@ -103,7 +105,7 @@ class SGrid(Grid):
     ) -> Selector:
         grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
         grid_topology = ds[grid_topology_key]
-        subset_masks: list[tuple[list[str], xr.DataArray]] = []
+        subset_masks: list[tuple[list[Hashable], xr.DataArray]] = []
 
         node_info = _get_location_info_from_topology(grid_topology, "node")
         node_dims = node_info["dims"]
@@ -147,9 +149,8 @@ class SGrid(Grid):
                 if "lon" in ds[c].standard_name.lower():
                     lon = ds[c]
             padding = info["padding"]
-            arranged_padding: list[int | str] = []
-            arranged_padding = [padding[d] for d in lon.dims]
-            arranged_padding = [0 if p == "none" or p == "low" else 1 for p in arranged_padding]
+            add_padding = [padding[d] for d in lon.dims]
+            arranged_padding = [0 if p == "none" or p == "low" else 1 for p in add_padding]
             mask = np.zeros(lon.shape, dtype=bool)
             mask[
                 index_bounding_box[0][0] : index_bounding_box[0][1] + arranged_padding[0],
@@ -167,7 +168,9 @@ class SGrid(Grid):
         )
 
 
-def _get_location_info_from_topology(grid_topology: xr.DataArray, location) -> dict[str, str]:
+def _get_location_info_from_topology(
+    grid_topology: xr.DataArray, location
+) -> dict[str, list | dict]:
     """Get the dimensions and coordinates for a given location from the grid_topology"""
     dim_str = grid_topology.attrs.get(f"{location}_dimensions", None)
     coord_str = grid_topology.attrs.get(f"{location}_coordinates", None)

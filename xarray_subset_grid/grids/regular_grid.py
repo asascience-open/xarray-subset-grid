@@ -9,6 +9,8 @@ The grid is defined by two 1-d arrays.
 * delta_lat and delta_lon do not have to be constant.
 """
 
+from collections.abc import Hashable
+
 import numpy as np
 import xarray as xr
 
@@ -137,7 +139,7 @@ class RegularGrid(Grid):
         lon = ds.cf.coordinates["longitude"][0]
         return {lat, lon}
 
-    def data_vars(self, ds: xr.Dataset) -> set[str]:
+    def data_vars(self, ds: xr.Dataset) -> set[Hashable]:
         """Set of data variables.
 
         These variables exist on the grid and are available to used for
