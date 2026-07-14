@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
+from collections.abc import Hashable, Iterable
 
 import numpy as np
 import xarray as xr
@@ -35,7 +35,7 @@ class Grid(ABC):
         return set()
 
     @abstractmethod
-    def data_vars(self, ds: xr.Dataset) -> set[str]:
+    def data_vars(self, ds: xr.Dataset) -> set[Hashable]:
         """List of data variables.
 
         These variables exist on the grid and are available to used for
@@ -44,7 +44,7 @@ class Grid(ABC):
         """
         return set()
 
-    def extra_vars(self, ds: xr.Dataset) -> set[str]:
+    def extra_vars(self, ds: xr.Dataset) -> set[Hashable]:
         """List of variables that are not grid vars or data vars.
 
         These variables area ll the ones in the dataset that are not
