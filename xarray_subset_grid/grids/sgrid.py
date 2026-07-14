@@ -44,9 +44,9 @@ class SGridSelector(Selector):
             ds_out.append(ds_subset)
 
         # Merge the subsetted datasets
-        _ds_out = xr.merge(ds_out)
+        ds_merged = xr.merge(ds_out)
 
-        return _ds_out.assign({self._grid_topology_key: self._grid_topology})
+        return ds_merged.assign({self._grid_topology_key: self._grid_topology})
 
 
 class SGrid(Grid):
@@ -174,11 +174,11 @@ def _get_location_info_from_topology(grid_topology: xr.DataArray, location) -> d
     if dim_str is None or coord_str is None:
         raise ValueError(f"Could not find {location} dimensions or coordinates")
     # Remove padding for now
-    _dims_only = " ".join([v for v in dim_str.split(" ") if "(" not in v and ")" not in v])
-    if ":" in _dims_only:
-        dims_only = [s.replace(":", "") for s in _dims_only.split(" ") if ":" in s]
+    dimensions = " ".join([v for v in dim_str.split(" ") if "(" not in v and ")" not in v])
+    if ":" in dimensions:
+        dims_only = [s.replace(":", "") for s in dimensions.split(" ") if ":" in s]
     else:
-        dims_only = _dims_only.split(" ")
+        dims_only = dimensions.split(" ")
 
     padding = dim_str.replace(":", "").split(")")
     pdict = {}
@@ -216,12 +216,16 @@ def _get_sgrid_dim_coord_names(
     for k, v in grid_topology.attrs.items():
         if "_dimensions" in k:
             # Remove padding for now
-            _d = " ".join([v for v in v.split(" ") if "(" not in v and ")" not in v])
-            if ":" in _d:
-                d = [_d.replace(":", "") for _d in _d.split(" ") if ":" in _d]
+            dimension = " ".join([v for v in v.split(" ") if "(" not in v and ")" not in v])
+            if ":" in dimension:
+                dim = [
+                    dimension.replace(":", "")
+                    for dimension in dimension.split(" ")
+                    if ":" in dimension
+                ]
             else:
-                d = _d.split(" ")
-            dims.append(d)
+                dim = dimension.split(" ")
+            dims.append(dim)
         elif "_coordinates" in k:
             coords.append(v.split(" "))
 
