@@ -1,5 +1,5 @@
 import warnings
-from collections.abc import Iterable
+from collections.abc import Hashable, Iterable
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -75,7 +75,7 @@ class GridDatasetAccessor:
         return self._grid
 
     @property
-    def data_vars(self) -> set[str]:
+    def data_vars(self) -> set[Hashable]:
         """List of data variables.
 
         These variables exist on the grid and are available to used for
@@ -104,7 +104,7 @@ class GridDatasetAccessor:
         return set()
 
     @property
-    def extra_vars(self) -> set[str]:
+    def extra_vars(self) -> set[Hashable]:
         if self._grid:
             return self._grid.extra_vars(self._ds)
         return set()
