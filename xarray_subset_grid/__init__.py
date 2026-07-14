@@ -1,10 +1,12 @@
-# module
-from . import grid  # noqa
-from . import grids  # noqa
-from . import utils  # noqa
-from . import accessor  # noqa
+from . import accessor, grid, grids, utils
+from ._version import __version__  # type: ignore[import-untyped]
 from .selector import Selector
 
-from ._version import __version__  # noqa
-
-__all__ = ["Selector"]
+__all__ = [
+    "__version__",
+    "accessor",
+    "grid",
+    "grids",
+    "Selector",
+    "utils",
+]
