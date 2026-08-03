@@ -31,7 +31,7 @@ repos:
     - id: blackdoc
 
 - repo: https://github.com/codespell-project/codespell
-  rev: v2.4.2
+  rev: v2.4.3
   hooks:
     - id: codespell
       exclude: >
@@ -42,14 +42,14 @@ repos:
         - --ignore-words-list=astroid,fo
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.15.21
+  rev: v0.16.1
   hooks:
     - id: ruff
       args: ["--fix", "--show-fixes"]
     - id: ruff-format
 
 - repo: https://github.com/woodruffw/zizmor-pre-commit
-  rev: v1.26.1
+  rev: v1.29.0
   hooks:
     - id: zizmor
 
