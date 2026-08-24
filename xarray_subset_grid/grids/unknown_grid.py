@@ -1,12 +1,6 @@
 """
-Implementation for Rectangular grids
+Implementation for any unknown 1D and 2D grids
 
-NOTE: it's called "regular", but I think this will work for
-any (grid-aligned) rectangular grid:
-
-The grid is defined by two 1-d arrays.
-
-* delta_lat and delta_lon do not have to be constant.
 """
 
 import numpy as np
@@ -19,29 +13,6 @@ from xarray_subset_grid.utils import (
     normalize_polygon_x_coords,
 )
 
-# class RegularGridPolygonSelector(Selector):
-#     """Polygon Selector for regular lat/lon grids."""
-#     # with a regular grid, you have to select the full bounding box anyway
-#     # this this simply computes the bounding box, and used that
-
-#     polygon: list[tuple[float, float]] | np.ndarray
-#     _polygon_mask: xr.DataArray
-
-#     def __init__(self, polygon: list[tuple[float, float]] | np.ndarray, mask: xr.DataArray,
-#                  name: str):
-#         super().__init__()
-#         self.name = name
-#         self.polygon = polygon
-#         self.polygon_mask = mask
-
-#     def select(self, ds: xr.Dataset) -> xr.Dataset:
-#         """Perform the selection on the dataset."""
-#         ds_subset = ds.cf.isel(
-#             lon=self._polygon_mask,
-#             lat=self._polygon_mask,
-#         )
-#         return ds_subset
-
 
 class RegularGridBBoxSelector(Selector):
     """Selector for regular lat/lng grids."""
@@ -53,8 +24,6 @@ class RegularGridBBoxSelector(Selector):
     def __init__(self, bbox: tuple[float, float, float, float]):
         super().__init__()
         self.bbox = bbox
-        self._longitude_selection = slice(bbox[0], bbox[2])
-        self._latitude_selection = slice(bbox[1], bbox[3])
 
     def select(self, ds: xr.Dataset) -> xr.Dataset:
         """
@@ -62,19 +31,14 @@ class RegularGridBBoxSelector(Selector):
         """
         lat = ds[ds.cf.coordinates.get("latitude")[0]]
         lon = ds[ds.cf.coordinates.get("longitude")[0]]
-        if np.all(np.diff(lat) < 0):
-            # swap the slice if the latitudes are descending
-            self._latitude_selection = slice(
-                self._latitude_selection.stop, self._latitude_selection.start
-            )
-        # and np.all(np.diff(lon) > 0):
-        if np.all(np.diff(lon) < 0):
-            # swap the slice if the longitudes are descending
-            self._longitude_selection = slice(
-                self._longitude_selection.stop, self._longitude_selection.start
-            )
 
-        return ds.cf.sel(lon=self._longitude_selection, lat=self._latitude_selection)
+        xmin, xmax = self.bbox[0], self.bbox[2]
+        ymin, ymax = self.bbox[1], self.bbox[3]
+
+        return ds.where(
+            (xmin <= lon) & (lon <= xmax) & (ymin <= lat) & (lat <= ymax),
+            drop=True,
+        )
 
 
 class RegularGridPolygonSelector(RegularGridBBoxSelector):
@@ -102,24 +66,25 @@ class RegularGrid(Grid):
         """
         Recognize if the dataset matches the given grid.
         """
+        # Short-circut to known grids.
+        grid = ds.variables.get("grid", None)
+        if grid is not None:
+            return False
+
+        # Are coords available?
         lat = ds.cf.coordinates.get("latitude", None)
         lon = ds.cf.coordinates.get("longitude", None)
         if lat is None or lon is None:
             return False
 
-        # choose first one -- valid assumption??
-        lat = lat[0]
-        lon = lon[0]
-        # Make sure the coordinates are 1D and match
-        if not (1 == ds[lat].ndim == ds[lon].ndim):
+        # Must have only one lon, lat!
+        if (len(lat) != len(lon)) or len(lat) > 1:
             return False
 
-        # make sure that at least one variable is using both the
-        #   latitude and longitude dimensions
-        #   (ugrids have both coordinates, but not both dimensions)
-        for var_name, var in ds.data_vars.items():
-            if (lon in var.dims) and (lat in var.dims):
-                return True
+        # If lat, lon are consistent and not 3D, we have a grid!
+        lat, lon = lat[0], lon[0]
+        if (ds[lon].ndim == ds[lat].ndim) or ds[lon].ndim < 3:
+            return True
         return False
 
     @property

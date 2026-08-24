@@ -15,7 +15,7 @@ import pytest
 import xarray as xr
 
 from tests.conftest import RGRID_FILES, SGRID_FILES, UGRID_FILES
-from xarray_subset_grid.grids.regular_grid import RegularGrid
+from xarray_subset_grid.grids.unknown_grid import RegularGrid
 
 EXAMPLE_DATA = Path(__file__).parent.parent / "example_data"
 

@@ -1,4 +1,3 @@
-import warnings
 from collections.abc import Iterable
 
 # from typing import Optional, Union
@@ -21,7 +20,6 @@ _grid_impls: list[type[Grid]] = [
     SELFEGrid,
     UGrid,
     SGrid,
-    # RegularGrid2d,
     RegularGrid,
 ]
 
@@ -46,8 +44,8 @@ def grid_factory(ds: xr.Dataset) -> Grid | None:
     for grid_impl in _grid_impls:
         if grid_impl.recognize(ds):
             return grid_impl()
-    warnings.warn("no grid type found in this dataset")
-    return None
+    msg = f"Cannot find grid or coords for\n{ds.cf}"
+    raise ValueError(msg)
 
 
 @xr.register_dataset_accessor("xsg")

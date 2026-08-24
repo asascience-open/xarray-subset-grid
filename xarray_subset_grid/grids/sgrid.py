@@ -105,7 +105,6 @@ class SGrid(Grid):
         grid_topology_key = ds.cf.cf_roles["grid_topology"][0]
         grid_topology = ds[grid_topology_key]
         subset_masks: list[tuple[list[str], xr.DataArray]] = []
-
         node_info = _get_location_info_from_topology(grid_topology, "node")
         node_dims = node_info["dims"]
         node_coords = node_info["coords"]
