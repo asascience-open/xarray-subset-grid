@@ -78,6 +78,36 @@ def create_synthetic_rectangular_grid_dataset(decreasing=False):
     return ds
 
 
+def create_synthetic_global_rectangular_grid_dataset(*, use_360=True, decreasing_lon=False):
+    """Create a synthetic global regular-grid dataset for longitude wrap tests."""
+    lat = np.linspace(-10, 10, 21)
+    if use_360:
+        lon = np.arange(0, 360)
+    else:
+        lon = np.arange(-180, 180)
+
+    if decreasing_lon:
+        lon = lon[::-1]
+
+    data = np.random.rand(lat.size, lon.size)
+
+    ds = xr.Dataset(
+        data_vars={
+            "temp": (("lat", "lon"), data),
+        },
+        coords={
+            "lat": lat,
+            "lon": lon,
+        },
+    )
+
+    ds.lat.attrs = {"standard_name": "latitude", "units": "degrees_north"}
+    ds.lon.attrs = {"standard_name": "longitude", "units": "degrees_east"}
+    ds.temp.attrs = {"standard_name": "sea_water_temperature"}
+
+    return ds
+
+
 def test_grid_vars():
     """
     Check if the grid vars are defined properly
@@ -280,6 +310,53 @@ def test_subset_polygon():
     )
     print("new bounds:", new_bounds)
     assert new_bounds == (-0.5, 0, 0.5, 0.5)
+
+
+def test_subset_bbox_wrap_prime_meridian_on_360_grid():
+    ds = create_synthetic_global_rectangular_grid_dataset(use_360=True)
+
+    ds_subset = ds.xsg.subset_bbox((-10, -5, 10, 5))
+
+    assert ds_subset["lat"].size == 11
+    assert ds_subset["lon"].size == 21
+    lon_values = ds_subset["lon"].values
+    assert lon_values.min() == 0
+    assert lon_values.max() == 359
+    assert set(range(0, 11)).issubset(set(lon_values.tolist()))
+    assert set(range(350, 360)).issubset(set(lon_values.tolist()))
+
+
+def test_subset_bbox_wrap_dateline_on_180_grid():
+    ds = create_synthetic_global_rectangular_grid_dataset(use_360=False)
+
+    ds_subset = ds.xsg.subset_bbox((170, -5, -170, 5))
+
+    assert ds_subset["lat"].size == 11
+    assert ds_subset["lon"].size == 21
+    lon_values = ds_subset["lon"].values
+    assert lon_values.min() == -180
+    assert lon_values.max() == 179
+    assert set(range(170, 180)).issubset(set(lon_values.tolist()))
+    assert set(range(-180, -169)).issubset(set(lon_values.tolist()))
+
+
+def test_subset_bbox_wrap_prime_meridian_descending_lon():
+    ds = create_synthetic_global_rectangular_grid_dataset(use_360=True, decreasing_lon=True)
+
+    ds_subset = ds.xsg.subset_bbox((-10, -5, 10, 5))
+
+    assert ds_subset["lat"].size == 11
+    assert ds_subset["lon"].size == 21
+    lon_values = ds_subset["lon"].values
+    assert set(range(0, 11)).issubset(set(lon_values.tolist()))
+    assert set(range(350, 360)).issubset(set(lon_values.tolist()))
+
+
+def test_subset_bbox_raises_for_span_ge_half_earth():
+    ds = create_synthetic_global_rectangular_grid_dataset(use_360=False)
+
+    with pytest.raises(ValueError, match="less than half-way around the earth"):
+        ds.xsg.subset_bbox((-170, -5, 170, 5))
 
 
 # def test_vertical_levels():

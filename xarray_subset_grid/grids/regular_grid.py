@@ -47,34 +47,76 @@ class RegularGridBBoxSelector(Selector):
     """Selector for regular lat/lng grids."""
 
     bbox: tuple[float, float, float, float]
-    _longitude_selection: slice
+    _longitude_bounds: tuple[float, float]
     _latitude_selection: slice
 
     def __init__(self, bbox: tuple[float, float, float, float]):
         super().__init__()
         self.bbox = bbox
-        self._longitude_selection = slice(bbox[0], bbox[2])
+        self._longitude_bounds = (bbox[0], bbox[2])
         self._latitude_selection = slice(bbox[1], bbox[3])
+
+    def _longitude_span(self) -> float:
+        west, east = self._longitude_bounds
+        return (east - west) % 360
+
+    def _validate_longitude_span(self):
+        span = self._longitude_span()
+        if np.isclose(span, 0.0):
+            raise ValueError(
+                "Invalid longitude bounds: west and east bounds "
+                "cannot define a zero-width selection"
+            )
+        if span >= 180.0 and not np.isclose(span, 180.0):
+            raise ValueError(
+                "Invalid longitude bounds: subsetting bounds "
+                "must span less than half-way around the earth"
+            )
+        if np.isclose(span, 180.0):
+            raise ValueError(
+                "Invalid longitude bounds: subsetting bounds "
+                "must span less than half-way around the earth"
+            )
+
+    def _build_longitude_slices(self, lon: xr.DataArray) -> list[slice]:
+        west, east = self._longitude_bounds
+        lon_min = float(lon.min().values)
+        lon_max = float(lon.max().values)
+
+        if west <= east:
+            longitude_slices = [slice(west, east)]
+        else:
+            longitude_slices = [slice(west, lon_max), slice(lon_min, east)]
+
+        if np.all(np.diff(lon) < 0):
+            longitude_slices = [slice(sl.stop, sl.start) for sl in longitude_slices]
+
+        return longitude_slices
 
     def select(self, ds: xr.Dataset) -> xr.Dataset:
         """
         Perform the selection on the dataset.
         """
+        self._validate_longitude_span()
+
         lat = ds[ds.cf.coordinates.get("latitude")[0]]
         lon = ds[ds.cf.coordinates.get("longitude")[0]]
+
+        latitude_selection = self._latitude_selection
         if np.all(np.diff(lat) < 0):
             # swap the slice if the latitudes are descending
-            self._latitude_selection = slice(
-                self._latitude_selection.stop, self._latitude_selection.start
-            )
-        # and np.all(np.diff(lon) > 0):
-        if np.all(np.diff(lon) < 0):
-            # swap the slice if the longitudes are descending
-            self._longitude_selection = slice(
-                self._longitude_selection.stop, self._longitude_selection.start
-            )
+            latitude_selection = slice(latitude_selection.stop, latitude_selection.start)
 
-        return ds.cf.sel(lon=self._longitude_selection, lat=self._latitude_selection)
+        longitude_selections = self._build_longitude_slices(lon)
+        selections = [
+            ds.cf.sel(lon=lon_sel, lat=latitude_selection) for lon_sel in longitude_selections
+        ]
+
+        if len(selections) == 1:
+            return selections[0]
+
+        lon_dim = lon.dims[0]
+        return xr.concat(selections, dim=lon_dim)
 
 
 class RegularGridPolygonSelector(RegularGridBBoxSelector):

@@ -52,12 +52,16 @@ def normalize_bbox_x_coords(x, bbox):
 
     bbox_x_min, bbox_x_max = bbox[0], bbox[2]
 
-    if x_max > 180 and bbox_x_max < 0:
-        bbox_x_min += 360
-        bbox_x_max += 360
-    elif x_min < 0 and bbox_x_max > 180:
-        bbox_x_min -= 360
-        bbox_x_max -= 360
+    if x_max > 180:
+        if bbox_x_min < 0:
+            bbox_x_min += 360
+        if bbox_x_max < 0:
+            bbox_x_max += 360
+    elif x_min < 0:
+        if bbox_x_min > 180:
+            bbox_x_min -= 360
+        if bbox_x_max > 180:
+            bbox_x_max -= 360
 
     return bbox_x_min, bbox[1], bbox_x_max, bbox[3]
 
