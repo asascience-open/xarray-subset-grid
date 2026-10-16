@@ -1,104 +1,75 @@
 """
 make a simple curvilinear grid from a ROMS grid
 
-['x',
- 'y',
- 'requested_times',
- 'ntimes',
- 'ndtfast',
- 'dt',
- 'dtfast',
- 'dstart',
- 'nHIS',
- 'ndefHIS',
- 'nRST',
- 'nSTA',
- 'Falpha',
- 'Fbeta',
- 'Fgamma',
- 'Akt_bak',
- 'Akv_bak',
- 'Akk_bak',
- 'Akp_bak',
- 'rdrg',
- 'rdrg2',
- 'Zob',
- 'Zos',
- 'Znudg',
- 'M2nudg',
- 'M3nudg',
- 'Tnudg',
- 'FSobc_in',
- 'FSobc_out',
- 'M2obc_in',
- 'M2obc_out',
- 'Tobc_in',
- 'Tobc_out',
- 'M3obc_in',
- 'M3obc_out',
- 'rho0',
- 'gamma2',
- 'spherical',
- 'xl',
- 'el',
- 'h',
- 'f',
- 'pm',
- 'pn',
- 'angle',
- 'mask_rho',
- 'mask_u',
- 'mask_v',
- 'mask_psi',
- 'nf_type',
- 'Times',
- 'temp_sur',
- 'salt_sur',
- 'u_sur',
- 'v_sur',
- 'Uwind',
- 'Vwind',
- 'wetdry_mask_rho',
- 'wetdry_mask_u',
- 'wetdry_mask_v',
- 'wetdry_mask_psi']
+This was tested, and use with output from the 
+COOPS OFS subsetter with a small subset from GOMOFS
 """
-
+import numpy as np
 import xarray as xr
 
 infile = "6ad12b55-abf1-94640.nc"
 
+print("opening input dataset")
 dsin = xr.open_dataset(infile)
 
+print("making u and v")
 
+# averaging to rho points
 u = dsin['u_sur']
-u2 = (u[1:,1:] + u[:-1,:-1]) / 2
-v = dsin['u_sur']
-v2 = (v[1:,1:] + v[:-1,:-1]) / 2
+u2 = (u[:,2:,1:] + u[:,:-2,:-1]) / 2
+v = dsin['v_sur']
+v2 = (v[:,1:,2:] + v[:,:-1,:-2]) / 2
 
-new_dims = {'eta_u':'lat', 'xi_u': 'lon'}
-u2 = u2.swap_dims(new_dims)
-v2 = v2.swap_dims(new_dims)
-new_dims = {'eta_psi':'lat', 'xi_psi': 'lon'}
-lat = dsin['lat_psi']
+u2 = u2.swap_dims({'eta_u':'lat', 'xi_u': 'lon'})
+v2 = v2.swap_dims({'eta_v':'lat', 'xi_v': 'lon'})
+
+new_dims = {'eta_rho':'lat', 'xi_rho': 'lon'}
+lat = dsin['lat_rho'][1:-1, 1:-1]
 lat2 = lat.swap_dims(new_dims)
-lon = dsin['lon_psi']
+lon = dsin['lon_rho'][1:-1, 1:-1]
 lon2 = lon.swap_dims(new_dims)
 
+# rotate the u an v
+angle = dsin['angle'][1:-1, 1:-1]
+angle = angle.swap_dims(new_dims)
+cos = np.cos(angle)
+sin = np.sin(angle)
 
+print("computing rotation")
+u3 = cos * u2 + sin * v2
+v3 = cos * v2 + sin * u2
+
+print("swapping dimensions")
+
+new_dims = {'eta_rho':'lat', 'xi_rho': 'lon'}
+lat = dsin['lat_rho'][1:-1, 1:-1]
+lat2 = lat.swap_dims(new_dims)
+lon = dsin['lon_rho'][1:-1, 1:-1]
+lon2 = lon.swap_dims(new_dims)
+
+lat2.attrs['standard_name'] = 'latitude'
+lon2.attrs['standard_name'] = 'longitude'
+
+print("creating new dataset")
 
 dsout = xr.Dataset(data_vars={'lat': lat2,
                               'lon': lon2,
                               'ocean_time': dsin['ocean_time'],
-                              'u': u2,
-                              'v': v2,},
+                              'u': u3,
+                              'v': v3,
+                              # just so there's some non-data vars in there
+                              'poly_x': dsin['x'],
+                              'poly_y': dsin['y'],
+                              },
                               )
-dsout = dsout.drop_vars(['lon_psi', 'lat_psi'])
+dsout = dsout.drop_vars(['lon_rho', 'lat_rho'])
 
 dsout.attrs.update({'note': "Converted from ROMS output from CO-OPS subsetting/Aggregation tool",
                     'Conventions': 'CF-1.4, SGRID-0.3',
                     'type': 'CF compliant curvilnear grid',
                     })
+
+print("writting out new dataset")
 
 dsout.to_netcdf('curve_grid_example.nc')
 

@@ -76,4 +76,7 @@ RGRID_FILES = [
 
 QGRID_FILES = [
     EXAMPLE_DATA / "unknown_2D-rtofs_example.nc",
+    EXAMPLE_DATA / "curve_grid_example.nc",
 ]
+
+

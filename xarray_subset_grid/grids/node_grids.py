@@ -22,12 +22,19 @@ from xarray_subset_grid.utils import (
 class JustNodesBBoxSelector(Selector):
     """Selector for rectilinear lat/long grids."""
 
-    bbox: tuple[float, float, float, float]
-    _longitude_selection: slice
-    _latitude_selection: slice
+    # FixMe: it is worth caching this result?
+    #        like is done for UGrids?
 
-    def __init__(self, bbox: tuple[float, float, float, float]):
+    bbox: tuple[float, float, float, float]
+    # _longitude_selection: slice
+    # _latitude_selection: slice
+
+    def __init__(self,
+                 name: str,
+                 bbox: tuple[float, float, float, float],
+                 ):
         super().__init__()
+        self.name = name
         self.bbox = bbox
 
     def select(self, ds: xr.Dataset) -> xr.Dataset:
@@ -77,7 +84,8 @@ class JustNodesGrid(Grid):
         raise NotImplementedError
 
     def grid_vars(self, ds: xr.Dataset) -> set[str]:
-        """Set of grid variables.
+        """
+        Set of grid variables.
 
         These variables are used to define the grid and thus should be
         kept when subsetting the dataset
@@ -116,17 +124,19 @@ class JustNodesGrid(Grid):
 
         polygon = normalize_polygon_x_coords(lon, polygon)
 
-        selector = JustNodesPolygonSelector(polygon=polygon)
+        selector = JustNodesPolygonSelector(polygon=polygon, name=name)
         return selector
 
+    ## fixme: is this ever called
+    ##   the other grids don't have it.
     def compute_bbox_subset_selector(
         self,
         ds: xr.Dataset,
         bbox: tuple[float, float, float, float],
         name: str | None = None,
     ) -> Selector:
-        bbox = normalize_bbox_x_coords(ds.cf["longitude"].values, bbox)
-        selector = JustNodesBBoxSelector(bbox)
+        bbox = normalize_bbox_x_coords(ds[ds.cf.coordinates["latitude"][0]].values, bbox)
+        selector = JustNodesBBoxSelector(name, bbox)
         return selector
 
 class RectilinearGrid(JustNodesGrid):
