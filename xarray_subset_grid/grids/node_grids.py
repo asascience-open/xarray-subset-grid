@@ -59,7 +59,10 @@ class JustNodesPolygonSelector(JustNodesBBoxSelector):
     # with a regular grid, you have to select the full bounding box anyway
     # this this simply computes the bounding box, and uses the same code.
 
-    def __init__(self, polygon: list[tuple[float, float]] | np.ndarray):
+    def __init__(self,
+                 name: str | None,
+                 polygon: list[tuple[float, float]] | np.ndarray,
+):
         polygon = np.asarray(polygon)
         bbox = (
             polygon[:, 0].min(),
@@ -67,7 +70,7 @@ class JustNodesPolygonSelector(JustNodesBBoxSelector):
             polygon[:, 0].max(),
             polygon[:, 1].max(),
         )
-        super().__init__(bbox=bbox)
+        super().__init__(name=name, bbox=bbox)
 
 
 class JustNodesGrid(Grid):

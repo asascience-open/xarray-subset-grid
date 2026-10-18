@@ -11,11 +11,11 @@ import pytest
 def download_data():
     """Download support data for tests and documentation."""
     url = "https://github.com/ioos/xarray-subset-grid/releases/download"
-    version = "2026.06.24"
+    version = "2026.10.18"
 
     fname = pooch.retrieve(
         url=f"{url}/{version}/test_data.zip",
-        known_hash="sha256:525e09f4d478c7484692ce4c30f5dd0f81115209e54d94d03831cca6bbfaceb0",
+        known_hash="sha256:53043eb8f58fd0a08791924e4bd4a7d57fc85adcdf7bee52b7e2c58d985ba4de",
     )
 
     here = Path(__file__).resolve().parent.parent
@@ -75,7 +75,7 @@ RGRID_FILES = [
 ]
 
 QGRID_FILES = [
-    EXAMPLE_DATA / "unknown_2D-rtofs_example.nc",
+    EXAMPLE_DATA / "quad_grid_2D-rtofs_example.nc",
     EXAMPLE_DATA / "curve_grid_example.nc",
 ]
 
