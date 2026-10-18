@@ -47,10 +47,12 @@ class JustNodesBBoxSelector(Selector):
         xmin, xmax = self.bbox[0], self.bbox[2]
         ymin, ymax = self.bbox[1], self.bbox[3]
 
-        return ds.where(
+        ds2 = ds.where(
             (xmin <= lon) & (lon <= xmax) & (ymin <= lat) & (lat <= ymax),
             drop=True,
         )
+
+        return ds2
 
 
 class JustNodesPolygonSelector(JustNodesBBoxSelector):

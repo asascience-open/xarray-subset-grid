@@ -1,5 +1,5 @@
 """
-Tests for rectangular grid code.
+Tests for quad grid code.
 """
 
 from pathlib import Path
@@ -12,11 +12,14 @@ import xarray as xr
 from tests.conftest import RGRID_FILES, SGRID_FILES, UGRID_FILES, QGRID_FILES
 from xarray_subset_grid.grids.node_grids import (RectilinearGrid, QuadGrid)
 
-EXAMPLE_DATA = Path(__file__).parent.parent / "example_data"
+HERE = Path(__file__).parent
+EXAMPLE_DATA = HERE.parent / "example_data"
+OUTPUT_DIR = HERE / 'temp_output'
+OUTPUT_DIR.mkdir(exist_ok=True)
 
 
 @pytest.mark.parametrize("test_file", RGRID_FILES)
-def test_recognize(test_file):
+def test_recognize_rgrid(test_file):
     """
     Works for at least one file ...
     """
@@ -28,21 +31,31 @@ def test_recognize(test_file):
 @pytest.mark.parametrize("test_file", QGRID_FILES)
 def test_recognize_quad(test_file):
     """
-    works for at least one file ...
+    works for at least two files ...
     """
     ds = xr.open_dataset(test_file)
 
     assert QuadGrid.recognize(ds)
 
 
-@pytest.mark.parametrize("test_file", UGRID_FILES + SGRID_FILES)
-def test_recognize_not(test_file):
+@pytest.mark.parametrize("test_file", UGRID_FILES + SGRID_FILES + QGRID_FILES)
+def test_recognize_not_rgrid(test_file):
     """
-    should not recognize an SGrid
+    should not recognize any other grids
     """
     ds = xr.open_dataset(test_file)
 
     assert not RectilinearGrid.recognize(ds)
+
+
+@pytest.mark.parametrize("test_file", UGRID_FILES + SGRID_FILES + RGRID_FILES)
+def test_recognize_not_qgrid(test_file):
+    """
+    should not recognize any other grids
+    """
+    ds = xr.open_dataset(test_file)
+
+    assert not QuadGrid.recognize(ds)
 
 
 def create_synthetic_rectangular_grid_dataset(decreasing=False):
@@ -245,7 +258,7 @@ def test_decreasing_coords():
     assert subset.sizes["lon"] > 0
 
 
-def test_subset_polygon():
+def test_subset_polygon_rgrid():
     """
     Not a complete test by any means, but the basics are there.
 
@@ -279,7 +292,57 @@ def test_subset_polygon():
         ds2["lat"].data.max(),
     )
     print("new bounds:", new_bounds)
-    assert new_bounds == (-0.5, 0, 0.5, 0.5)
+    assert new_bounds == (-0.5, 0.0, 0.5, 0.5)
+
+def test_quad_subset_poly():
+    """
+    Minimal test, but it's something
+
+    using RTOFS psuedo dataset
+
+    Almost Global:
+
+    Initial bounds: -180.0 -78.64 179.99988 89.97772
+    Fairly High res:
+       y = 3298 ;
+       x = 4500 ;
+    """
+    ds = xr.open_dataset(EXAMPLE_DATA / "quad_grid_2D-rtofs_example.nc")
+
+    print(
+        "initial bounds:",
+        ds["lon"].data.min(),
+        ds["lat"].data.min(),
+        ds["lon"].data.max(),
+        ds["lat"].data.max(),
+    )
+
+    poly = [(-0.5, 0.0), (0.0, 0.4), (0.5, 0.4), (0.5, 0.0), (0, 0.0)]
+    # this poly has this bounding box:
+    # bbox = (-0.5, 0, 0.5, 0.5)
+    # so results should be the same as the bbox tests
+
+    ds2 = ds.xsg.subset_polygon(poly)
+    print(f"{ds2["lat"].shape=}")
+    print(f"{ds2["lon"].shape=}")
+
+    assert ds2["lat"].shape == (6, 13)
+    assert ds2["lon"].shape == (6, 13)
+
+    new_bounds = (
+        ds2["lon"].data.min(),
+        ds2["lat"].data.min(),
+        ds2["lon"].data.max(),
+        ds2["lat"].data.max(),
+    )
+
+    print("new bounds:", new_bounds)
+    # not exact, as the grid isn't round numbers.
+    # Fixme: in this case, it should probably include another node expand
+    #        to be user it includes the whole BB
+    assert new_bounds == (-0.47998047, 0, 0.47998047, 0.39999676)
+
+    ds2.to_netcdf(OUTPUT_DIR / "rtofs_subset.nc")
 
 
 # def test_vertical_levels():
