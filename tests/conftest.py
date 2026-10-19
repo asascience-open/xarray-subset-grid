@@ -11,7 +11,7 @@ import pytest
 def download_data():
     """Download support data for tests and documentation."""
     url = "https://github.com/ioos/xarray-subset-grid/releases/download"
-    version = "2026.10.18"
+    version = "2026.10.19"
 
     fname = pooch.retrieve(
         url=f"{url}/{version}/test_data.zip",
