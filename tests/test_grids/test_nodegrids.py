@@ -6,15 +6,14 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
 import xarray as xr
 
-from tests.conftest import RGRID_FILES, SGRID_FILES, UGRID_FILES, QGRID_FILES
-from xarray_subset_grid.grids.node_grids import (RectilinearGrid, QuadGrid)
+from tests.conftest import QGRID_FILES, RGRID_FILES, SGRID_FILES, UGRID_FILES
+from xarray_subset_grid.grids.node_grids import QuadGrid, RectilinearGrid
 
 HERE = Path(__file__).parent
 EXAMPLE_DATA = HERE.parent / "example_data"
-OUTPUT_DIR = HERE / 'temp_output'
+OUTPUT_DIR = HERE / "temp_output"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 
@@ -293,6 +292,7 @@ def test_subset_polygon_rgrid():
     )
     print("new bounds:", new_bounds)
     assert new_bounds == (-0.5, 0.0, 0.5, 0.5)
+
 
 def test_quad_subset_poly():
     """
