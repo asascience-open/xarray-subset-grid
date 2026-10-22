@@ -78,5 +78,3 @@ QGRID_FILES = [
     EXAMPLE_DATA / "quad_grid_2D-rtofs_example.nc",
     EXAMPLE_DATA / "curve_grid_example.nc",
 ]
-
-

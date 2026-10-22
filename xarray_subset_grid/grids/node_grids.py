@@ -29,10 +29,11 @@ class JustNodesBBoxSelector(Selector):
     # _longitude_selection: slice
     # _latitude_selection: slice
 
-    def __init__(self,
-                 name: str,
-                 bbox: tuple[float, float, float, float],
-                 ):
+    def __init__(
+        self,
+        name: str,
+        bbox: tuple[float, float, float, float],
+    ):
         super().__init__()
         self.name = name
         self.bbox = bbox
@@ -61,10 +62,11 @@ class JustNodesPolygonSelector(JustNodesBBoxSelector):
     # with a regular grid, you have to select the full bounding box anyway
     # this this simply computes the bounding box, and uses the same code.
 
-    def __init__(self,
-                 name: str | None,
-                 polygon: list[tuple[float, float]] | np.ndarray,
-):
+    def __init__(
+        self,
+        name: str | None,
+        polygon: list[tuple[float, float]] | np.ndarray,
+    ):
         polygon = np.asarray(polygon)
         bbox = (
             polygon[:, 0].min(),
@@ -144,12 +146,14 @@ class JustNodesGrid(Grid):
         selector = JustNodesBBoxSelector(name, bbox)
         return selector
 
+
 class RectilinearGrid(JustNodesGrid):
     """
     Grid implementation for rectilinear lat/long grids.
 
     North aligned, 1D lat and lon coordinates
     """
+
     @property
     def name(self) -> str:
         """Name of the grid type."""
@@ -160,9 +164,10 @@ class RectilinearGrid(JustNodesGrid):
         Recognize if the Dataset matches a rectilinear grid.
         """
         # Short-circuit to defined grids (UGRID or SGRID)
-        mesh_vars = (ds.cf.cf_roles.get("mesh_topology"),
-                    ds.cf.cf_roles.get("grid_topology"),
-                    )
+        mesh_vars = (
+            ds.cf.cf_roles.get("mesh_topology"),
+            ds.cf.cf_roles.get("grid_topology"),
+        )
         if mesh_vars != (None, None):  # it's an SGRID or UGRID
             return False
 
@@ -180,20 +185,17 @@ class RectilinearGrid(JustNodesGrid):
         ndims_lat = ds[lat[0]].ndim
         lon_dims = ds[lon[0]].dims
         ndims_lon = ds[lat[0]].ndim
-        if ((lat_dims == lon_dims)
-            or (ndims_lat > 1)
-            or (ndims_lon > 1)
-            ):
+        if (lat_dims == lon_dims) or (ndims_lat > 1) or (ndims_lon > 1):
             return False
 
         # make sure that at least one variable is using both the
         #   latitude and longitude dimensions
         #   (ugrids have both coordinates, but not both dimensions)
         for var_name, var in ds.data_vars.items():
-            if ((lat_dims[0] in var.dims)
-                and (lon_dims[0] in var.dims)):
+            if (lat_dims[0] in var.dims) and (lon_dims[0] in var.dims):
                 return True
         return False
+
 
 class QuadGrid(JustNodesGrid):
     """
@@ -205,6 +207,7 @@ class QuadGrid(JustNodesGrid):
     2D lat and lon coordinates.
     Data only on the nodes
     """
+
     @property
     def name(self) -> str:
         """Name of the grid type."""
@@ -215,9 +218,10 @@ class QuadGrid(JustNodesGrid):
         Recognize if the Dataset matches a rectilinear grid.
         """
         # Short-circuit to defined grids (UGRID or SGRID)
-        mesh_vars = (ds.cf.cf_roles.get("mesh_topology"),
-                    ds.cf.cf_roles.get("grid_topology"),
-                    )
+        mesh_vars = (
+            ds.cf.cf_roles.get("mesh_topology"),
+            ds.cf.cf_roles.get("grid_topology"),
+        )
         if mesh_vars != (None, None):  # it's an SGRID or UGRID
             return False
 
@@ -235,19 +239,13 @@ class QuadGrid(JustNodesGrid):
         ndims_lat = ds[lat[0]].ndim
         lon_dims = ds[lon[0]].dims
         ndims_lon = ds[lat[0]].ndim
-        if not ((lat_dims == lon_dims)
-            and (ndims_lat == 2)
-            and (ndims_lon == 2)
-            ):
+        if not ((lat_dims == lon_dims) and (ndims_lat == 2) and (ndims_lon == 2)):
             return False
 
         # make sure that at least one variable is using both the
         #   latitude and longitude dimensions
         #   (ugrids have both coordinates, but not both dimensions)
         for var_name, var in ds.data_vars.items():
-            if ((lat_dims[0] in var.dims)
-                and (lon_dims[0] in var.dims)):
+            if (lat_dims[0] in var.dims) and (lon_dims[0] in var.dims):
                 return True
         return False
-
-

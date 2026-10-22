@@ -7,8 +7,8 @@ import xarray as xr
 from xarray_subset_grid.grid import Grid
 from xarray_subset_grid.grids import (
     FVCOMGrid,
-    RectilinearGrid,
     QuadGrid,
+    RectilinearGrid,
     # @D version doesn't appear to be different ??
     # RegularGrid2d,
     SELFEGrid,
