@@ -15,7 +15,7 @@ def download_data():
 
     fname = pooch.retrieve(
         url=f"{url}/{version}/test_data.zip",
-        known_hash="sha256:53043eb8f58fd0a08791924e4bd4a7d57fc85adcdf7bee52b7e2c58d985ba4de",
+        known_hash="sha256:d7c472b941bd389cd1467374e0f07433ae84300ff900f68f5ace6f120c4b6eb0",
     )
 
     here = Path(__file__).resolve().parent.parent
