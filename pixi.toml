@@ -3,8 +3,8 @@ name = "xarray_subset_grid"
 channels = [ "conda-forge" ]
 platforms = [
     "linux-64",
-    { platform = "osx-64", macos="14.0" },
-    { platform = "osx-arm64", macos="14.0" },
+    { platform = "osx-64", macos="15.0" },
+    { platform = "osx-arm64", macos="15.0" },
     "win-64",
 ]
 
