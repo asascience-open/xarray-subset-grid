@@ -41,7 +41,7 @@ class UGridSelector(Selector):
 
     def __init__(
         self,
-        name: str,
+        name: str | None,
         polygon: list[tuple[float, float]] | np.ndarray,
         node_dimension: str,
         selected_nodes: np.ndarray,
