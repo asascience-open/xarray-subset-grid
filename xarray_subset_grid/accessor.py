@@ -1,9 +1,12 @@
 import warnings
-from collections.abc import Iterable
+from collections.abc import Hashable, Iterable
+from typing import TYPE_CHECKING
 
-# from typing import Optional, Union
 import numpy as np
 import xarray as xr
+
+if TYPE_CHECKING:
+    from xarray.core.coordinates import DatasetCoordinates
 
 from xarray_subset_grid.grid import Grid
 from xarray_subset_grid.grids import (
@@ -72,7 +75,7 @@ class GridDatasetAccessor:
         return self._grid
 
     @property
-    def data_vars(self) -> set[str]:
+    def data_vars(self) -> set[Hashable]:
         """List of data variables.
 
         These variables exist on the grid and are available to used for
@@ -84,7 +87,7 @@ class GridDatasetAccessor:
         return set()
 
     @property
-    def coords(self) -> set[str]:
+    def coords(self) -> set[str] | "DatasetCoordinates":
         if self._ds:
             return self._ds.coords
         return set()
@@ -101,7 +104,7 @@ class GridDatasetAccessor:
         return set()
 
     @property
-    def extra_vars(self) -> set[str]:
+    def extra_vars(self) -> set[Hashable]:
         if self._grid:
             return self._grid.extra_vars(self._ds)
         return set()

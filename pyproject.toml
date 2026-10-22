@@ -38,17 +38,21 @@ dependencies = [
 ]
 
 optional-dependencies.dev = [
+  "fsspec",
   "jupyter",
   "matplotlib",
+  "mypy",
   "myst-nb",
   "pooch",
-  "pre-commit",
+  "prek",
   "pytest-cov",
   "pytest",
   "ruff",
+  "s3fs",
   "sphinx-autodoc-typehints",
   "sphinx-rtd-theme",
   "sphinx",
+  "types-python-dateutil",
 ]
 
 optional-dependencies.examples = [ "fsspec", "h5netcdf", "matplotlib", "s3fs", "zarr<3" ]

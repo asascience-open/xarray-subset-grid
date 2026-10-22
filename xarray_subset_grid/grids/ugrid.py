@@ -1,4 +1,5 @@
 import warnings
+from collections.abc import Hashable
 from types import SimpleNamespace
 
 import numpy as np
@@ -143,7 +144,7 @@ class UGrid(Grid):
                     vars.add(mesh.attrs[var_name])
         return vars
 
-    def data_vars(self, ds: xr.Dataset) -> set[str]:
+    def data_vars(self, ds: xr.Dataset) -> set[Hashable]:
         """Set of data variables.
 
         These variables exist on the grid and are available to used for
@@ -477,12 +478,12 @@ def assign_ugrid_topology(
         raise ValueError(f"start_index must be 0 or 1, not {mesh.start_index}")
 
     # assign the start_index to all the grid variables
-    for var in (v for v in ALL_MESH_VARS if "connectivity" in v):
-        var_name = getattr(mesh, var)
+    for variable in (v for v in ALL_MESH_VARS if "connectivity" in v):
+        var_name = getattr(mesh, variable)
         if var_name:
             try:
-                var = ds[var_name]
-                var.attrs.setdefault("start_index", mesh.start_index)
+                ds_var = ds[var_name]
+                ds_var.attrs.setdefault("start_index", mesh.start_index)
             except KeyError:
                 warnings.warn(f"{var_name} in mesh_topology variable, but not in dataset")
 
